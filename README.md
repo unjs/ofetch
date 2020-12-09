@@ -1,4 +1,6 @@
-# 😱 oh-my-fetch
+![ohmyfetch](https://user-images.githubusercontent.com/904724/101655594-15a01f80-3a42-11eb-805c-73609243adc2.png)
+
+# 😱 ohmyfetch
 
 [![npm version][npm-version-src]][npm-version-href]
 [![Github Actions][github-actions-src]][github-actions-href]

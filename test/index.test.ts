@@ -2,7 +2,7 @@ import { listen, Listener } from 'listhen'
 import { createApp } from '@nuxt/h2'
 import { $fetch } from '../src/node'
 
-describe('0fetch', () => {
+describe('ohmyfetch', () => {
   let listener: Listener
 
   it('setup', async () => {

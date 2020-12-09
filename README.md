@@ -1,9 +1,11 @@
-# 😱 0fetch
-
-[![npm version][npm-version-src]][npm-version-href]
+<!-- [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![Github Actions][github-actions-src]][github-actions-href]
-[![Codecov][codecov-src]][codecov-href]
+[![Codecov][codecov-src]][codecov-href] -->
+
+<center>
+<h1>😱 ohmyfetch</h1>
+</center>
 
 ## 🚀 Quick Start
 
@@ -11,30 +13,30 @@ Install:
 
 ```bash
 # npm
-npm i 0fetch
+npm i ohmyfetch
 
 # yarn
-yarn add 0fetch
+yarn add ohmyfetch
 ```
 
 Import:
 
 ```js
 // Browser / Workers
-import { $fetch } from '0fetch/browser'
+import { $fetch } from 'ohmyfetch/browser'
 
 // NodeJS
-import { $fetch } from '0fetch/node'
+import { $fetch } from 'ohmyfetch/node'
 
 // NodeJS (commonjs)
-const { $fetch } = require('0fetch/node')
+const { $fetch } = require('ohmyfetch/node')
 ```
 
 ## 🤔 Why?
 
 ### ✔️ Parse Response
 
-😌 `$fetch`:
+**`$fetch`:**
 
 ```js
 const { users } = await $fetch('/api/users')
@@ -45,7 +47,7 @@ const { users } = await $fetch('/api/users')
 - Fallback to text if cannot parse
 - Secure against prototype pollution
 
-🥺 `fetch`:
+**`fetch`:**
 
 ```js
 const { users } = await fetch('/api/users').then(r => r.json())
@@ -53,7 +55,7 @@ const { users } = await fetch('/api/users').then(r => r.json())
 
 ### ✔️ Handle Errors
 
-😌 `$fetch`:
+**`$fetch`:**
 
 ```ts
 await $fetch('http://google.com/404')
@@ -65,7 +67,7 @@ await $fetch('http://google.com/404')
 - Friendly error message with compact stack (hiding internals)
 - Parsed error body is available with `error.data`
 
-🤷 `fetch`:
+**`fetch`:**
 
 ```js
 const resonse = await fetch('http://google.com/404')
@@ -74,7 +76,7 @@ const resonse = await fetch('http://google.com/404')
 
 ### ✔️ Type Friendly
 
-😌 `$fetch`:
+**`$fetch`:**
 
 ```ts
 const { article } = await $fetch<Article>(`/api/article/${id}`)
@@ -83,7 +85,7 @@ const { article } = await $fetch<Article>(`/api/article/${id}`)
 
 - Expected response type can be specified
 
-🥺 `fetch`:
+**`fetch`:**
 
 ```js
 const { article } = await fetch(`/api/article/${id}`).then(r => r.json())
@@ -92,7 +94,7 @@ const { article } = await fetch(`/api/article/${id}`).then(r => r.json())
 
 ### ✔️ Support baseURL
 
-😌 `$fetch`:
+**`$fetch`:**
 
 ```js
 await $fetch('/config', { baseURL })
@@ -101,7 +103,7 @@ await $fetch('/config', { baseURL })
 - Allow making factory functions to add baseURL
 - Prepend baseURL with respecting traling/leading slashes and query params for base (using [ufo](https://github.com/nuxt-contrib/ufo))
 
-🤷 `fetch`:
+**`fetch`:**
 
 ```js
 await $fetch(baseURL + '/config')
@@ -115,14 +117,10 @@ Supporting browsers, workers and NodeJS
 
 - All targets are exported with Module and CommonJS format and named exports
 - No export is transpiled for sake of Modern syntax
-  - You probably need to transpile `0fetch` package with babel for ES5 support
+  - You probably need to transpile `ohmyfetch` package with babel for ES5 support
 - You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
 
 ## ❓ FAQ
-
-**Why package name is not simpler?**
-
-Ask who took all cool names and kept unused. Also `ofetch` is not available due npm similar naming policy. 🤷
 
 **Why export is called `$fetch` instead of `fetch`?**
 
@@ -145,14 +143,14 @@ If you really need to support legacy users, can optionally transpile library in 
 MIT. Made with 💖
 
 <!-- Badges -->
-[npm-version-src]: https://img.shields.io/npm/v/0fetch?style=flat-square
-[npm-version-href]: https://npmjs.com/package/0fetch
+[npm-version-src]: https://img.shields.io/npm/v/ohmyfetch?style=flat-square
+[npm-version-href]: https://npmjs.com/package/ohmyfetch
 
-[npm-downloads-src]: https://img.shields.io/npm/dm/0fetch?style=flat-square
-[npm-downloads-href]: https://npmjs.com/package/0fetch
+[npm-downloads-src]: https://img.shields.io/npm/dm/ohmyfetch?style=flat-square
+[npm-downloads-href]: https://npmjs.com/package/ohmyfetch
 
-[github-actions-src]: https://img.shields.io/github/workflow/status/nuxt-contrib/0fetch/ci/main?style=flat-square
-[github-actions-href]: https://github.com/nuxt-contrib/0fetch/actions?query=workflow%3Aci
+[github-actions-src]: https://img.shields.io/github/workflow/status/nuxt-contrib/ohmyfetch/ci/main?style=flat-square
+[github-actions-href]: https://github.com/nuxt-contrib/ohmyfetch/actions?query=workflow%3Aci
 
-[codecov-src]: https://img.shields.io/codecov/c/gh/nuxt-contrib/0fetch/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/nuxt-contrib/0fetch
+[codecov-src]: https://img.shields.io/codecov/c/gh/nuxt-contrib/ohmyfetch/main?style=flat-square
+[codecov-href]: https://codecov.io/gh/nuxt-contrib/ohmyfetch

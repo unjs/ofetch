@@ -1,0 +1,51 @@
+{
+  "name": "0fetch",
+  "version": "0.0.0",
+  "description": "oh-my-fetch",
+  "repository": "nuxt-contrib/ohmyfetch",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    "node": {
+      "import": "./node.mjs",
+      "require": "./node.js"
+    },
+    "browser": {
+      "import": "./browser.mjs",
+      "require": "./browser.js"
+    }
+  },
+  "main": "./dist/node.js",
+  "module": "./dist/node.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "siroc build",
+    "lint": "eslint --ext .ts .",
+    "play": "jiti playground/index.ts",
+    "release": "yarn test && yarn build && standard-version && git push --follow-tags && npm publish",
+    "test": "yarn lint && jest"
+  },
+  "dependencies": {
+    "@nuxt/ufo": "^0.0.4",
+    "destr": "^1.0.1",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-config-typescript": "latest",
+    "@types/flat": "latest",
+    "@types/jest": "latest",
+    "@types/node": "latest",
+    "@types/node-fetch": "^2.5.7",
+    "eslint": "latest",
+    "jest": "latest",
+    "jiti": "^0.1.17",
+    "listhen": "^0.1.2",
+    "siroc": "latest",
+    "standard-version": "latest",
+    "ts-jest": "latest",
+    "typescript": "latest"
+  }
+}

@@ -1,4 +1,4 @@
-![ohmyfetch](https://user-images.githubusercontent.com/904724/101661564-b8f43300-3a48-11eb-99d9-5ccc42429f78.png)
+![ohmyfetch](https://user-images.githubusercontent.com/904724/101663230-bb578c80-3a4a-11eb-89eb-14cd3e08dd8c.png)
 
 # 😱 ohmyfetch
 

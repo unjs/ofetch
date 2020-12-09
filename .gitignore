@@ -8,3 +8,4 @@ types
 .conf*
 /node.*
 /browser.*
+/*.d.ts

@@ -1,9 +1,10 @@
-<!-- [![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
-[![Github Actions][github-actions-src]][github-actions-href]
-[![Codecov][codecov-src]][codecov-href] -->
+# 😱 oh-my-fetch
 
-# 😱 ohmyfetch
+[![npm version][npm-version-src]][npm-version-href]
+[![Github Actions][github-actions-src]][github-actions-href]
+[![Codecov][codecov-src]][codecov-href]
+[![bundle][bundle-src]][bundle-href]
+<!-- [![npm downloads][npm-downloads-src]][npm-downloads-href] -->
 
 ## 🚀 Quick Start
 
@@ -155,3 +156,7 @@ MIT. Made with 💖
 
 [codecov-src]: https://img.shields.io/codecov/c/gh/nuxt-contrib/ohmyfetch/main?style=flat-square
 [codecov-href]: https://codecov.io/gh/nuxt-contrib/ohmyfetch
+
+[bundle-src]: https://img.shields.io/bundlephobia/minzip/ohmyfetch?style=flat-square
+[bundle-href]: https://bundlephobia.com/result?p=ohmyfetch
+

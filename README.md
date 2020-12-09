@@ -101,7 +101,7 @@ await $fetch('/config', { baseURL })
 ```
 
 - Allow making factory functions to add baseURL
-- Prepend baseURL with respecting traling/leading slashes and query params for base (using [ufo](https://github.com/nuxt-contrib/ufo))
+- Prepend baseURL with respecting trailing/leading slashes and query params for baseURL (using [ufo](https://github.com/nuxt-contrib/ufo))
 
 **`fetch`:**
 
@@ -124,19 +124,19 @@ Supporting browsers, workers and NodeJS
 
 **Why export is called `$fetch` instead of `fetch`?**
 
-Using same name of `fetch` can be confusing since API is different but still it is a fetch so using closes possible alternative.
+Using same name of `fetch` can be confusing since API is different but still it is a fetch so using closesest possible alternative.
 
 **Why note having default export?**
 
 Default exports are always risky to be mixed with CommonJS exports.
 
-This also guarantees we can introduce more utils without breaking package and also encourage using `$fetch` name.
+This also guarantees we can introduce more utils without breaking the package and also encourage using `$fetch` name.
 
 **Why not transpiled?**
 
-By keep transpiling libraries we push web backwards with legacy code which is unneeded for most of users.
+By keep transpiling libraries we push web backward with legacy code which is unneeded for most of the users.
 
-If you really need to support legacy users, can optionally transpile library in build pipelines.
+If you need to support legacy users, can optionally transpile the library to build pipelines.
 
 ## License
 

@@ -34,30 +34,23 @@ const { $fetch } = require('ohmyfetch/node')
 ![oh-my-fetch](https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif)
 
 
-## 🤔 Why?
+## Why?
 
 ### ✔️ Parse Response
 
-**`$fetch`:**
+- Smartly parse JSON and native values like `true` (using [destr](https://github.com/nuxt-contrib/destr))
+- Fallback to text if cannot parse
+- Secure against prototype pollution
 
 ```js
 const { users } = await $fetch('/api/users')
 ```
 
-- Using [destr](https://github.com/nuxt-contrib/destr)
-- Smartly parse JSON and native values like `true`
-- Fallback to text if cannot parse
-- Secure against prototype pollution
-
-**`fetch`:**
-
-```js
-const { users } = await fetch('/api/users').then(r => r.json())
-```
-
 ### ✔️ Handle Errors
 
-**`$fetch`:**
+- Automatically throw errors when `response.ok` is `false`
+- Friendly error message with compact stack (hiding internals)
+- Parsed error body is available with `error.data`
 
 ```ts
 await $fetch('http://google.com/404')
@@ -65,55 +58,27 @@ await $fetch('http://google.com/404')
 //     at async main (/project/playground.ts:4:3)
 ```
 
-- Automatically throw errors when `response.ok` is `false`
-- Friendly error message with compact stack (hiding internals)
-- Parsed error body is available with `error.data`
-
-**`fetch`:**
-
-```js
-const resonse = await fetch('http://google.com/404')
-// You need to manually check response.ok and throw an error
-```
-
 ### ✔️ Type Friendly
 
-**`$fetch`:**
+- Response can be type assisted
 
 ```ts
 const { article } = await $fetch<Article>(`/api/article/${id}`)
-// article object is type assisted
-```
-
-- Expected response type can be specified
-
-**`fetch`:**
-
-```js
-const { article } = await fetch(`/api/article/${id}`).then(r => r.json())
-// article type is any
+// Auto complete working with article.id
 ```
 
 ### ✔️ Support baseURL
 
-**`$fetch`:**
+- Allow making factory functions to add baseURL
+- Prepend baseURL with respecting trailing/leading slashes and query params for baseURL (using [ufo](https://github.com/nuxt-contrib/ufo))
 
 ```js
 await $fetch('/config', { baseURL })
 ```
 
-- Allow making factory functions to add baseURL
-- Prepend baseURL with respecting trailing/leading slashes and query params for baseURL (using [ufo](https://github.com/nuxt-contrib/ufo))
-
-**`fetch`:**
-
-```js
-await $fetch(baseURL + '/config')
-```
-
 ### ✔️ Univeral
 
-Supporting browsers, workers and NodeJS
+Supporting browsers, workers and NodeJS targets
 
 ## 📦 Bundler Notes
 

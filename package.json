@@ -15,7 +15,11 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "browser.js",
+    "browser.mjs",
+    "node.js",
+    "node.mjs"
   ],
   "scripts": {
     "build": "siroc build",

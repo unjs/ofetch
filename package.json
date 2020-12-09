@@ -9,14 +9,10 @@
     "node": {
       "import": "./node.mjs",
       "require": "./node.js"
-    },
-    "browser": {
-      "import": "./browser.mjs",
-      "require": "./browser.js"
     }
   },
-  "main": "./dist/node.js",
-  "module": "./dist/node.mjs",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"

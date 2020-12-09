@@ -22,13 +22,13 @@ yarn add ohmyfetch
 Import:
 
 ```js
-// Browser / Workers
-import { $fetch } from 'ohmyfetch/browser'
+// Universal (requires global.fetch)
+import { $fetch } from 'ohmyfetch'
 
-// NodeJS
+// NodeJS / Isomorphic
 import { $fetch } from 'ohmyfetch/node'
 
-// NodeJS (commonjs)
+// NodeJS / Isomorphic (CommonJS)
 const { $fetch } = require('ohmyfetch/node')
 ```
 

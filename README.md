@@ -78,7 +78,7 @@ const { article } = await $fetch<Article>(`/api/article/${id}`)
 await $fetch('/config', { baseURL })
 ```
 
-### ✔️ Univeral
+### ✔️ Universal
 
 Supporting browsers, workers and NodeJS targets
 
@@ -93,7 +93,7 @@ Supporting browsers, workers and NodeJS targets
 
 **Why export is called `$fetch` instead of `fetch`?**
 
-Using same name of `fetch` can be confusing since API is different but still it is a fetch so using closesest possible alternative.
+Using the same name of `fetch` can be confusing since API is different but still it is a fetch so using closest possible alternative.
 
 **Why not having default export?**
 

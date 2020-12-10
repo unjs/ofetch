@@ -95,7 +95,7 @@ Supporting browsers, workers and NodeJS targets
 
 Using same name of `fetch` can be confusing since API is different but still it is a fetch so using closesest possible alternative.
 
-**Why note having default export?**
+**Why not having default export?**
 
 Default exports are always risky to be mixed with CommonJS exports.
 

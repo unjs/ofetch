@@ -29,17 +29,17 @@
     "test": "yarn lint && jest"
   },
   "dependencies": {
-    "@nuxt/ufo": "^0.0.4",
-    "destr": "^1.0.1",
     "node-fetch": "^2.6.1"
   },
   "devDependencies": {
     "@nuxt/h2": "^0.0.14",
+    "@nuxt/ufo": "^0.0.4",
     "@nuxtjs/eslint-config-typescript": "latest",
     "@types/flat": "latest",
     "@types/jest": "latest",
     "@types/node": "latest",
     "@types/node-fetch": "^2.5.7",
+    "destr": "^1.0.1",
     "eslint": "latest",
     "jest": "latest",
     "jiti": "^0.1.17",

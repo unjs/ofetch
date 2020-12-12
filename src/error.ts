@@ -1,14 +1,19 @@
-import type { Response, RequestInfo } from './types'
+import type { FetchRequest, FetchResponse } from './fetch'
 
-export class FetchError extends Error {
+export class FetchError<T = any> extends Error {
   name: 'FetchError' = 'FetchError'
+  request?: FetchRequest
+  response?: FetchResponse<T>
+  data?: T
 }
 
-export function createFetchError<T = any> (response: Response, input: RequestInfo, data: T): FetchError {
-  const message = `${response.status} ${response.statusText} (${input.toString()})`
-  const error = new FetchError(message)
+export function createFetchError<T = any> (request: FetchRequest, response: FetchResponse<T>): FetchError<T> {
+  const message = `${response.status} ${response.statusText} (${request.toString()})`
+  const error: FetchError<T> = new FetchError(message)
 
-  Object.defineProperty(error, 'data', { get () { return data } })
+  Object.defineProperty(error, 'request', { get () { return request } })
+  Object.defineProperty(error, 'response', { get () { return response } })
+  Object.defineProperty(error, 'data', { get () { return response.data } })
 
   const stack = error.stack
   Object.defineProperty(error, 'stack', { get () { return normalizeStack(stack) } })

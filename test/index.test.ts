@@ -1,6 +1,6 @@
 import { listen, Listener } from 'listhen'
 import { createApp } from '@nuxt/h2'
-import { $fetch } from '../src/node'
+import { $fetch, FetchError } from '../src/node'
 
 describe('ohmyfetch', () => {
   let listener: Listener
@@ -19,8 +19,10 @@ describe('ohmyfetch', () => {
   })
 
   it('404', async () => {
-    const err = await $fetch('404', { baseURL: listener.url }).catch(err => err)
+    const err: FetchError = await $fetch('404', { baseURL: listener.url }).catch(err => err)
     expect(err.stack).toMatch('404 Not Found')
     expect(err.data).toMatch('Not Found (404)')
+    expect(err.response?.data).toBe(err.data)
+    expect(err.request).toBe('http://localhost:3000/404')
   })
 })

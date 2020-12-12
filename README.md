@@ -1,11 +1,14 @@
-![ohmyfetch](https://user-images.githubusercontent.com/904724/101663230-bb578c80-3a4a-11eb-89eb-14cd3e08dd8c.png)
-
-# 😱 ohmyfetch
 
 [![npm version][npm-version-src]][npm-version-href]
 [![Github Actions][github-actions-src]][github-actions-href]
 [![Codecov][codecov-src]][codecov-href]
 [![bundle][bundle-src]][bundle-href]
+
+![ohmyfetch](https://user-images.githubusercontent.com/904724/101663230-bb578c80-3a4a-11eb-89eb-14cd3e08dd8c.png)
+
+<!-- # 😱 ohmyfetch -->
+
+
 <!-- [![npm downloads][npm-downloads-src]][npm-downloads-href] -->
 
 ## 🚀 Quick Start
@@ -33,26 +36,26 @@ import { $fetch } from 'ohmyfetch/node'
 const { $fetch } = require('ohmyfetch/node')
 ```
 
-![oh-my-fetch](https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif)
+<details>
+  <summary>Spoiler</summary>
+  <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
+</details>
 
 
-## Why?
 
-### ✔️ Parse Response
+## ✔️ Parsing Response
 
-- Smartly parse JSON and native values like `true` (using [destr](https://github.com/nuxt-contrib/destr))
-- Fallback to text if cannot parse
-- Secure against prototype pollution
+`$fetch` Smartly parses JSON and native valuesusing [destr](https://github.com/nuxt-contrib/destr) and fallback to text if cannot parse
 
 ```js
 const { users } = await $fetch('/api/users')
 ```
 
-### ✔️ Handle Errors
+## ✔️ Handling Errors
 
-- Automatically throw errors when `response.ok` is `false`
-- Friendly error message with compact stack (hiding internals)
-- Parsed error body is available with `error.data`
+`$fetch` Automatically throw errors when `response.ok` is `false` with a friendly error message and compact stack (hiding internals).
+
+Parsed error body is available with `error.data`. You may also use `FetchError` type.
 
 ```ts
 await $fetch('http://google.com/404')
@@ -60,27 +63,42 @@ await $fetch('http://google.com/404')
 //     at async main (/project/playground.ts:4:3)
 ```
 
-### ✔️ Type Friendly
+In order to bypass errors as reponse you can use `error.data`:
 
-- Response can be type assisted
+```ts
+await $fetch(...).catch((error) => error.data)
+```
+
+## ✔️ Type Friendly
+
+Response can be type assisted:
 
 ```ts
 const { article } = await $fetch<Article>(`/api/article/${id}`)
 // Auto complete working with article.id
 ```
 
-### ✔️ Support baseURL
 
-- Allow making factory functions to add baseURL
-- Prepend baseURL with respecting trailing/leading slashes and query params for baseURL (using [ufo](https://github.com/nuxt-contrib/ufo))
+## ✔️ Support baseURL
+
+By setting `baseURL` option `$fetch` prepends it with respecting to trailing/leading slashes and query params for baseURL using [ufo](https://github.com/nuxt-contrib/ufo):
 
 ```js
 await $fetch('/config', { baseURL })
 ```
 
-### ✔️ Universal
+## 🍣 Access to Raw Response
 
-Supporting browsers, workers and NodeJS targets
+If you need to access raw response (for headers, etc), can use `$fetch.raw`:
+
+```js
+const response = await $fetch.raw('/sushi')
+
+// response.data
+// response.headers
+// ...
+```
+
 
 ## 📦 Bundler Notes
 
@@ -105,7 +123,7 @@ This also guarantees we can introduce more utils without breaking the package an
 
 By keep transpiling libraries we push web backward with legacy code which is unneeded for most of the users.
 
-If you need to support legacy users, can optionally transpile the library to build pipelines.
+If you need to support legacy users, can optionally transpile the library in build pipeline.
 
 ## License
 

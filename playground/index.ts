@@ -1,7 +1,9 @@
 import { $fetch } from '../src/node'
 
 async function main () {
-  await $fetch('http://google.com/404')
+  const r = await $fetch<string>('http://google.com/404')
+  // eslint-disable-next-line no-console
+  console.log(r)
 }
 
 main().catch((err) => {

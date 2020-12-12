@@ -74,13 +74,20 @@ const { article } = await $fetch<Article>(`/api/article/${id}`)
 // Auto complete working with article.id
 ```
 
+## ✔️ Adding `baseURL`
 
-## ✔️ Support baseURL
-
-By setting `baseURL` option `$fetch` prepends it with respecting to trailing/leading slashes and query params for baseURL using [ufo](https://github.com/nuxt-contrib/ufo):
+By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query params for baseURL using [ufo](https://github.com/nuxt-contrib/ufo):
 
 ```js
 await $fetch('/config', { baseURL })
+```
+
+## ✔️ Adding params
+
+By using `params` option, `$fetch` adds params to URL by preserving params in request itself using [ufo](https://github.com/nuxt-contrib/ufo):
+
+```js
+await $fetch('/movie?lang=en', { params: { id: 123 } })
 ```
 
 ## 🍣 Access to Raw Response

@@ -1,15 +1,11 @@
 
 [![npm version][npm-version-src]][npm-version-href]
+[![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![Github Actions][github-actions-src]][github-actions-href]
 [![Codecov][codecov-src]][codecov-href]
 [![bundle][bundle-src]][bundle-href]
 
-![ohmyfetch](https://user-images.githubusercontent.com/904724/101663230-bb578c80-3a4a-11eb-89eb-14cd3e08dd8c.png)
-
-<!-- # 😱 ohmyfetch -->
-
-
-<!-- [![npm downloads][npm-downloads-src]][npm-downloads-href] -->
+![😱 ohmyfetch](.github/banner.svg)
 
 ## 🚀 Quick Start
 

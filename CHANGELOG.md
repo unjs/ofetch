@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.0.7...v0.1.1) (2020-12-12)
+
+
+### Bug Fixes
+
+* preserve params when using baseURL ([c3a63e2](https://github.com/nuxt-contrib/ohmyfetch/commit/c3a63e2b337b09b082eb9faf8e23e818d866c49c))
+
 ### [0.0.7](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.0.6...v0.0.7) (2020-12-12)
 
 ### [0.0.6](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.0.5...v0.0.6) (2020-12-12)

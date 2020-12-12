@@ -6,6 +6,10 @@
   "license": "MIT",
   "sideEffects": false,
   "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js"
+    },
     "./node": {
       "import": "./node.mjs",
       "require": "./node.js"
@@ -16,10 +20,8 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "browser.js",
-    "browser.mjs",
-    "node.js",
-    "node.mjs"
+    "node.*",
+    "index.*"
   ],
   "scripts": {
     "build": "siroc build",

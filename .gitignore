@@ -7,5 +7,5 @@ dist
 types
 .conf*
 /node.*
-/browser.*
+/index.*
 /*.d.ts

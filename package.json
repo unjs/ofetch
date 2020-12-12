@@ -6,7 +6,7 @@
   "license": "MIT",
   "sideEffects": false,
   "exports": {
-    "node": {
+    "./node": {
       "import": "./node.mjs",
       "require": "./node.js"
     }

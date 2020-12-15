@@ -41,7 +41,7 @@ const { $fetch } = require('ohmyfetch/node')
 
 ## ✔️ Parsing Response
 
-`$fetch` Smartly parses JSON and native valuesusing [destr](https://github.com/nuxt-contrib/destr) and fallback to text if cannot parse
+`$fetch` Smartly parses JSON and native values using [destr](https://github.com/nuxt-contrib/destr) and fallback to text if cannot parse
 
 ```js
 const { users } = await $fetch('/api/users')

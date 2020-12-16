@@ -27,7 +27,7 @@ describe('ohmyfetch', () => {
   })
 
   it('404', async () => {
-    const err: FetchError = await $fetch(listener.getURL('404'), { baseURL: listener.url }).catch(err => err)
+    const err: FetchError = await $fetch(listener.getURL('404')).catch(err => err)
     expect(err.stack).toMatch('404 Not Found')
     expect(err.data).toMatch('Not Found (404)')
     expect(err.response?.data).toBe(err.data)

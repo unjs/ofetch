@@ -513,10 +513,10 @@
   resolved "https://registry.yarnpkg.com/@nuxt/ufo/-/ufo-0.0.3.tgz#7673a54b81c020e7aea3a9e01e09a58c494a1eca"
   integrity sha512-LQkuVafVNB9+ggRF7443AX1V1rEWRs32Frk7F2qnRLf8j/SzRzxEZ99jiZqxVho72zU7NcWQ6Jy62m4fkZC6Wg==
 
-"@nuxt/ufo@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@nuxt/ufo/-/ufo-0.1.4.tgz#41967f00333821c8760f8ee71c50e37c534b7ac6"
-  integrity sha512-uEfXbPROYZcRbnkVS2NK2vklDpcfZOAjGaniuC4pKJAgHTx0A4f8uMC1R5BSTA8zNZAoweDc7pW6tqvu/JyIhQ==
+"@nuxt/ufo@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@nuxt/ufo/-/ufo-0.3.0.tgz#166f05dba92924b145e9859dbb587b4f19567f7c"
+  integrity sha512-JeMBsBzy6tvZe4zuTC69v4FWP+498SF9zYLzuYJ7A8rNtNvNBtgfmg05zTYEtWyC9rx2WHtvisfpkqolvkqwXA==
 
 "@nuxtjs/eslint-config-typescript@latest":
   version "5.0.0"

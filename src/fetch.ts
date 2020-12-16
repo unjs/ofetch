@@ -1,5 +1,5 @@
 import destr from 'destr'
-import { joinURL, withParams } from '@nuxt/ufo'
+import { joinURL, withQuery } from '@nuxt/ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
 
@@ -29,7 +29,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
         request = joinURL(opts.baseURL, request)
       }
       if (opts.params) {
-        request = withParams(request, opts.params)
+        request = withQuery(request, opts.params)
       }
     }
     const response: FetchResponse<any> = await fetch(request, opts)

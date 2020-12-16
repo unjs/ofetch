@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.3...v0.1.4) (2020-12-16)
+
+
+### Features
+
+* update ufo to 0.5 (reducing bundle size) ([837707d](https://github.com/nuxt-contrib/ohmyfetch/commit/837707d2ed03a7c6e69127849bf0c25ae182982d))
+
 ### [0.1.3](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.2...v0.1.3) (2020-12-16)
 
 

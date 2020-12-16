@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.2...v0.1.3) (2020-12-16)
+
+
+### Bug Fixes
+
+* ufo 0.3.1 ([e56e73e](https://github.com/nuxt-contrib/ohmyfetch/commit/e56e73e90bb6ad9be88f7c8413053744a64c702e))
+
 ### [0.1.2](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.1...v0.1.2) (2020-12-16)
 
 

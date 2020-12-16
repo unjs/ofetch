@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@nuxt/h2": "^0.0.14",
-    "@nuxt/ufo": "^0.3.0",
+    "@nuxt/ufo": "^0.3.1",
     "@nuxtjs/eslint-config-typescript": "latest",
     "@types/flat": "latest",
     "@types/jest": "latest",

@@ -6,6 +6,4 @@ coverage
 dist
 types
 .conf*
-/node.*
-/index.*
 /*.d.ts

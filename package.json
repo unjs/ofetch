@@ -7,12 +7,12 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "import": "./index.mjs",
-      "require": "./index.js"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     },
     "./node": {
-      "import": "./node.mjs",
-      "require": "./node.js"
+      "import": "./dist/node.mjs",
+      "require": "./dist/node.js"
     }
   },
   "main": "./dist/index.js",

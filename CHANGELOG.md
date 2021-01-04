@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.5](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.4...v0.1.5) (2021-01-04)
+
+
+### Bug Fixes
+
+* **pkg:** use same export names for incompatible tools ([7fc450a](https://github.com/nuxt-contrib/ohmyfetch/commit/7fc450ac81596de1dea53380dc9ef3ae8ceb2304))
+
 ### [0.1.4](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.3...v0.1.4) (2020-12-16)
 
 

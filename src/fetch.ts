@@ -1,5 +1,5 @@
 import destr from 'destr'
-import { joinURL, withQuery } from '@nuxt/ufo'
+import { joinURL, withQuery } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
 

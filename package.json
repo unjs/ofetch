@@ -34,21 +34,21 @@
     "node-fetch": "^2.6.1"
   },
   "devDependencies": {
-    "@nuxt/h2": "^0.0.14",
-    "@nuxt/ufo": "^0.5.0",
     "@nuxtjs/eslint-config-typescript": "latest",
     "@types/flat": "latest",
     "@types/jest": "latest",
     "@types/node": "latest",
-    "@types/node-fetch": "^2.5.7",
-    "destr": "^1.0.1",
+    "@types/node-fetch": "latest",
+    "destr": "latest",
     "eslint": "latest",
+    "h3": "latest",
     "jest": "latest",
-    "jiti": "^0.1.17",
-    "listhen": "^0.1.2",
+    "jiti": "latest",
+    "listhen": "latest",
     "siroc": "latest",
     "standard-version": "latest",
     "ts-jest": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "ufo": "latest"
   }
 }

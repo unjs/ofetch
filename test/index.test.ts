@@ -1,6 +1,6 @@
 import { listen, Listener } from 'listhen'
-import { getParams } from '@nuxt/ufo'
-import { createApp } from '@nuxt/h2'
+import { getQuery } from 'ufo'
+import { createApp } from 'h3'
 import { $fetch, FetchError } from '../src/node'
 
 describe('ohmyfetch', () => {
@@ -9,7 +9,7 @@ describe('ohmyfetch', () => {
   it('setup', async () => {
     const app = createApp()
       .use('/ok', () => 'ok')
-      .use('/params', req => (getParams(req.url || '')))
+      .use('/params', req => (getQuery(req.url || '')))
       .use('/url', req => req.url)
     listener = await listen(app)
   })
@@ -29,7 +29,7 @@ describe('ohmyfetch', () => {
   it('404', async () => {
     const err: FetchError = await $fetch(listener.getURL('404')).catch(err => err)
     expect(err.stack).toMatch('404 Not Found')
-    expect(err.data).toMatch('Not Found (404)')
+    expect(err.data).toMatchObject({ stack: [], statusCode: 404, statusMessage: 'Not Found' })
     expect(err.response?.data).toBe(err.data)
     expect(err.request).toBe(listener.getURL('404'))
   })

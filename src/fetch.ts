@@ -13,6 +13,7 @@ export interface FetchOptions extends RequestInit {
   baseURL?: string
   params?: SearchParams
   response?: boolean
+  throwHttpErrors?: boolean
 }
 
 export interface FetchResponse<T> extends Response { data?: T }
@@ -35,7 +36,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
     const response: FetchResponse<any> = await fetch(request, opts)
     const text = await response.text()
     response.data = destr(text)
-    if (!response.ok) {
+    if (opts.throwHttpErrors && !response.ok) {
       throw createFetchError(request, response)
     }
     return response

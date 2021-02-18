@@ -26,24 +26,20 @@ export interface $Fetch {
 }
 
 export function setHeader (options: FetchOptions, _key: string, value: string) {
-  const key = _key.toLowerCase()
+  let key = _key.toLowerCase()
   options.headers = options.headers || {}
-  if (Array.isArray(options.headers)) {
+  if ('set' in options.headers) {
+    ;(options.headers as Headers).set(key, value)
+  } else if (Array.isArray(options.headers)) {
     const existingHeader = options.headers.find(([header]) => header.toLowerCase() === key)
     if (existingHeader) {
       existingHeader[1] = value
     } else {
       options.headers.push([key, value])
     }
-  } else if ('set' in options.headers) {
-    ;(options.headers as Headers).set(key, value)
   } else {
-    const existingHeader = Object.keys(options.headers).find(header => header.toLowerCase() === key)
-    if (existingHeader) {
-      options.headers[existingHeader] = value
-    } else {
-      options.headers[key] = value
-    }
+    key = Object.keys(options.headers).find(header => header.toLowerCase() === key) || key
+    options.headers[key] = value
   }
 }
 

@@ -1,7 +1,7 @@
 import { listen, Listener } from 'listhen'
 import { getQuery } from 'ufo'
 import { createApp, useBody } from 'h3'
-import { Headers, HeadersInit } from 'node-fetch'
+import { Headers } from 'node-fetch'
 import { $fetch, FetchError } from '../src/node'
 
 describe('ohmyfetch', () => {

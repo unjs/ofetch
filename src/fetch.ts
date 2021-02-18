@@ -9,6 +9,8 @@ export type FetchRequest = RequestInfo
 
 export interface SearchParams { [key: string]: any }
 
+const payloadMethods = ['patch', 'post', 'put']
+
 export interface FetchOptions extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
@@ -32,18 +34,21 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.params) {
         request = withQuery(request, opts.params)
       }
-      if (opts.body && typeof opts.body === 'object' && ['patch', 'post', 'put'].includes(opts.method?.toLowerCase() || '')) {
-        try {
-          opts.body = JSON.stringify(opts.body)
-          opts.headers = opts.headers || {}
-          if (Array.isArray(opts.headers)) {
-            opts.headers.push(['content-type', 'application/json'])
-          } else if ('set' in opts.headers) {
-            ;(opts.headers as Headers).set('content-type', 'application/json')
+      if (opts.body && opts.body.toString() === '[object Object]' && payloadMethods.includes(opts.method?.toLowerCase() || '')) {
+        opts.body = JSON.stringify(opts.body)
+        opts.headers = opts.headers || {}
+        if (Array.isArray(opts.headers)) {
+          const index = opts.headers.findIndex(([header]) => header.toLowerCase() === 'content-type')
+          if (index >= 0) {
+            opts.headers[index] = ['content-type', 'application/json']
           } else {
-            opts.headers['content-type'] = 'application/json'
+            opts.headers.push(['content-type', 'application/json'])
           }
-        } catch {}
+        } else if ('set' in opts.headers) {
+          ;(opts.headers as Headers).set('content-type', 'application/json')
+        } else {
+          opts.headers['content-type'] = 'application/json'
+        }
       }
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit)

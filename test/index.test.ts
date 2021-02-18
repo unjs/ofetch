@@ -33,9 +33,9 @@ describe('ohmyfetch', () => {
     expect(body).toEqual({ num: 42 })
 
     const headerFetches = [
-      [['content-type', 'text/html']],
+      [['Content-Type', 'text/html']],
       [],
-      { 'content-type': 'text/html' },
+      { 'Content-Type': 'text/html' },
       new Headers()
     ]
 

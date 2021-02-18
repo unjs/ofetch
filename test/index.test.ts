@@ -1,6 +1,6 @@
 import { listen, Listener } from 'listhen'
 import { getQuery } from 'ufo'
-import { createApp } from 'h3'
+import { createApp, useBody } from 'h3'
 import { $fetch, FetchError } from '../src/node'
 
 describe('ohmyfetch', () => {
@@ -11,6 +11,7 @@ describe('ohmyfetch', () => {
       .use('/ok', () => 'ok')
       .use('/params', req => (getQuery(req.url || '')))
       .use('/url', req => req.url)
+      .use('/post', req => useBody(req))
     listener = await listen(app)
   })
 
@@ -24,6 +25,10 @@ describe('ohmyfetch', () => {
 
   it('baseURL', async () => {
     expect(await $fetch('/x?foo=123', { baseURL: listener.getURL('url') })).toBe('/x?foo=123')
+  })
+
+  it('posts ', async () => {
+    expect(await $fetch(listener.getURL('post'), { method: 'POST', body: { num: 42 } as any })).toEqual({ num: 42 })
   })
 
   it('404', async () => {

@@ -26,7 +26,7 @@ export interface $Fetch {
 }
 
 export function setHeader (options: FetchOptions, _key: string, value: string) {
-  let key = _key.toLowerCase()
+  const key = _key.toLowerCase()
   options.headers = options.headers || {}
   if ('set' in options.headers) {
     ;(options.headers as Headers).set(key, value)
@@ -38,8 +38,8 @@ export function setHeader (options: FetchOptions, _key: string, value: string) {
       options.headers.push([key, value])
     }
   } else {
-    key = Object.keys(options.headers).find(header => header.toLowerCase() === key) || key
-    options.headers[key] = value
+    const existingHeader = Object.keys(options.headers).find(header => header.toLowerCase() === key)
+    options.headers[existingHeader || key] = value
   }
 }
 

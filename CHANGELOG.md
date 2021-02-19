@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.6...v0.1.7) (2021-02-19)
+
+
+### Features
+
+* support automatic json body for post requests ([#7](https://github.com/nuxt-contrib/ohmyfetch/issues/7)) ([97d0987](https://github.com/nuxt-contrib/ohmyfetch/commit/97d0987131e006e72aac6d1d4acb063f3e53953d))
+
 ### [0.1.6](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.5...v0.1.6) (2021-01-12)
 
 ### [0.1.5](https://github.com/nuxt-contrib/ohmyfetch/compare/v0.1.4...v0.1.5) (2021-01-04)

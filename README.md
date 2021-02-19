@@ -47,6 +47,14 @@ const { $fetch } = require('ohmyfetch/node')
 const { users } = await $fetch('/api/users')
 ```
 
+## ✔️ JSON Body
+
+`$fetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` headers (for `put`, `patch` and `post` requests).
+
+```js
+const { users } = await $fetch('/api/users', { method: 'POST', body: { some: 'json' } })
+```
+
 ## ✔️ Handling Errors
 
 `$fetch` Automatically throw errors when `response.ok` is `false` with a friendly error message and compact stack (hiding internals).

@@ -6,4 +6,3 @@ coverage
 dist
 types
 .conf*
-/*.d.ts

@@ -2,7 +2,7 @@
   "name": "ohmyfetch",
   "version": "0.1.8",
   "description": "oh-my-fetch",
-  "repository": "nuxt-contrib/ohmyfetch",
+  "repository": "unjs/ohmyfetch",
   "license": "MIT",
   "sideEffects": false,
   "exports": {

@@ -41,7 +41,7 @@ const { $fetch } = require('ohmyfetch/node')
 
 ## ✔️ Parsing Response
 
-`$fetch` Smartly parses JSON and native values using [destr](https://github.com/nuxt-contrib/destr) and fallback to text if cannot parse
+`$fetch` Smartly parses JSON and native values using [destr](https://github.com/unjs/destr) and fallback to text if cannot parse
 
 ```js
 const { users } = await $fetch('/api/users')
@@ -84,7 +84,7 @@ const { article } = await $fetch<Article>(`/api/article/${id}`)
 
 ## ✔️ Adding `baseURL`
 
-By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query params for baseURL using [ufo](https://github.com/nuxt-contrib/ufo):
+By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query params for baseURL using [ufo](https://github.com/unjs/ufo):
 
 ```js
 await $fetch('/config', { baseURL })
@@ -92,7 +92,7 @@ await $fetch('/config', { baseURL })
 
 ## ✔️ Adding params
 
-By using `params` option, `$fetch` adds params to URL by preserving params in request itself using [ufo](https://github.com/nuxt-contrib/ufo):
+By using `params` option, `$fetch` adds params to URL by preserving params in request itself using [ufo](https://github.com/unjs/ufo):
 
 ```js
 await $fetch('/movie?lang=en', { params: { id: 123 } })
@@ -147,11 +147,11 @@ MIT. Made with 💖
 [npm-downloads-src]: https://img.shields.io/npm/dm/ohmyfetch?style=flat-square
 [npm-downloads-href]: https://npmjs.com/package/ohmyfetch
 
-[github-actions-src]: https://img.shields.io/github/workflow/status/nuxt-contrib/ohmyfetch/ci/main?style=flat-square
-[github-actions-href]: https://github.com/nuxt-contrib/ohmyfetch/actions?query=workflow%3Aci
+[github-actions-src]: https://img.shields.io/github/workflow/status/unjs/ohmyfetch/ci/main?style=flat-square
+[github-actions-href]: https://github.com/unjs/ohmyfetch/actions?query=workflow%3Aci
 
-[codecov-src]: https://img.shields.io/codecov/c/gh/nuxt-contrib/ohmyfetch/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/nuxt-contrib/ohmyfetch
+[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ohmyfetch/main?style=flat-square
+[codecov-href]: https://codecov.io/gh/unjs/ohmyfetch
 
 [bundle-src]: https://img.shields.io/bundlephobia/minzip/ohmyfetch?style=flat-square
 [bundle-href]: https://bundlephobia.com/result?p=ohmyfetch

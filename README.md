@@ -37,8 +37,6 @@ const { $fetch } = require('ohmyfetch/node')
   <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
 </details>
 
-
-
 ## ✔️ Parsing Response
 
 `$fetch` Smartly parses JSON and native values using [destr](https://github.com/unjs/destr) and fallback to text if cannot parse
@@ -110,12 +108,11 @@ const response = await $fetch.raw('/sushi')
 // ...
 ```
 
-
 ## 📦 Bundler Notes
 
 - All targets are exported with Module and CommonJS format and named exports
 - No export is transpiled for sake of Modern syntax
-  - You probably need to transpile `ohmyfetch` package with babel for ES5 support
+  - You probably need to transpile `ohmyfetch`, `destr` and `ufo` packages with babel for ES5 support
 - You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
 
 ## ❓ FAQ
@@ -155,4 +152,3 @@ MIT. Made with 💖
 
 [bundle-src]: https://img.shields.io/bundlephobia/minzip/ohmyfetch?style=flat-square
 [bundle-href]: https://bundlephobia.com/result?p=ohmyfetch
-

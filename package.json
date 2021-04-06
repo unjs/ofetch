@@ -31,7 +31,9 @@
     "test": "yarn lint && jest"
   },
   "dependencies": {
-    "node-fetch": "^2.6.1"
+    "destr": "^1.1.0",
+    "node-fetch": "^2.6.1",
+    "ufo": "^0.6.10"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
@@ -39,7 +41,6 @@
     "@types/jest": "latest",
     "@types/node": "latest",
     "@types/node-fetch": "latest",
-    "destr": "latest",
     "eslint": "latest",
     "h3": "latest",
     "jest": "latest",
@@ -48,7 +49,6 @@
     "siroc": "latest",
     "standard-version": "latest",
     "ts-jest": "latest",
-    "typescript": "latest",
-    "ufo": "latest"
+    "typescript": "latest"
   }
 }

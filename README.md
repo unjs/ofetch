@@ -76,7 +76,7 @@ await $fetch(...).catch((error) => error.data)
 Response can be type assisted:
 
 ```ts
-const { article } = await $fetch<Article>(`/api/article/${id}`)
+const article = await $fetch<Article>(`/api/article/${id}`)
 // Auto complete working with article.id
 ```
 

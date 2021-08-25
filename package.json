@@ -7,15 +7,21 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "node": {
+        "import": "./dist/node.mjs",
+        "require": "./dist/node.js"
+      },
+      "default": {
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js"
+      }
     },
     "./node": {
       "import": "./dist/node.mjs",
       "require": "./dist/node.js"
     }
   },
-  "main": "./dist/index.js",
+  "main": "./dist/node.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
@@ -24,16 +30,17 @@
     "index.*"
   ],
   "scripts": {
-    "build": "siroc build",
+    "build": "unbuild",
+    "prepack": "yarn build",
     "lint": "eslint --ext .ts .",
     "play": "jiti playground/index.ts",
-    "release": "yarn test && yarn build && standard-version && git push --follow-tags && npm publish",
+    "release": "yarn test && standard-version && git push --follow-tags && npm publish",
     "test": "yarn lint && jest"
   },
   "dependencies": {
     "destr": "^1.1.0",
     "node-fetch": "^2.6.1",
-    "ufo": "^0.6.10"
+    "ufo": "^0.7.9"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
@@ -46,9 +53,9 @@
     "jest": "latest",
     "jiti": "latest",
     "listhen": "latest",
-    "siroc": "latest",
     "standard-version": "latest",
     "ts-jest": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "unbuild": "latest"
   }
 }

@@ -22,14 +22,11 @@ yarn add ohmyfetch
 Import:
 
 ```js
-// Universal (requires global.fetch)
+// ESM / Typescript
 import { $fetch } from 'ohmyfetch'
 
-// NodeJS / Isomorphic
-import { $fetch } from 'ohmyfetch/node'
-
-// NodeJS / Isomorphic (CommonJS)
-const { $fetch } = require('ohmyfetch/node')
+// CommonJS
+const { $fetch } = require('ohmyfetch')
 ```
 
 <details>
@@ -37,9 +34,14 @@ const { $fetch } = require('ohmyfetch/node')
   <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
 </details>
 
+## ✔️ Works in Node.js
+
+We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
+ and automatically use [node-fetch](https://github.com/node-fetch/node-fetch) polyfill! No changes required.
+
 ## ✔️ Parsing Response
 
-`$fetch` Smartly parses JSON and native values using [destr](https://github.com/unjs/destr) and fallback to text if cannot parse
+`$fetch` Smartly parses JSON and native values using [destr](https://github.com/unjs/destr) and fallback to text if cannot parse.
 
 ```js
 const { users } = await $fetch('/api/users')

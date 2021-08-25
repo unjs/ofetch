@@ -121,7 +121,7 @@ const response = await $fetch.raw('/sushi')
 
 **Why export is called `$fetch` instead of `fetch`?**
 
-Using the same name of `fetch` can be confusing since API is different but still it is a fetch so using closest possible alternative.
+Using the same name of `fetch` can be confusing since API is different but still it is a fetch so using closest possible alternative. You can however, import `{ fetch }` from `ohmyfetch` which is auto polyfilled for Node.js and using native otherwise.
 
 **Why not having default export?**
 

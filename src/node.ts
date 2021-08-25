@@ -3,6 +3,6 @@ import { createFetch } from './base'
 
 export * from './base'
 
-export const $fetch = createFetch({
-  fetch: nodeFetch.default as any // TODO
-})
+export const fetch = nodeFetch.default as any as typeof globalThis.fetch
+
+export const $fetch = createFetch({ fetch })

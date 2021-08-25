@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/unjs/ohmyfetch/compare/v0.2.0...v0.3.0) (2021-08-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* use export condition to automatically use node-fetch
+
+### Features
+
+* direct export fetch implementation ([65b27dd](https://github.com/unjs/ohmyfetch/commit/65b27ddb863790af8637b9da1c50c8fba14a295d))
+* use export condition to automatically use node-fetch ([b81082b](https://github.com/unjs/ohmyfetch/commit/b81082b6ab1b8e89fa620699c4f9206101230805))
+
 ## [0.2.0](https://github.com/unjs/ohmyfetch/compare/v0.1.8...v0.2.0) (2021-04-06)
 
 

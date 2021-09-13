@@ -47,7 +47,7 @@
     "@types/flat": "latest",
     "@types/jest": "latest",
     "@types/node": "latest",
-    "@types/node-fetch": "latest",
+    "@types/node-fetch": "^2.5.12",
     "eslint": "latest",
     "h3": "latest",
     "jest": "latest",

@@ -53,11 +53,9 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.params) {
         request = withQuery(request, opts.params)
       }
-      if (opts.body && opts.body.toString() === '[object Object]' && payloadMethods.includes(opts.method?.toLowerCase() || '')) {
-        opts.body = opts.parse ? JSON.stringify(opts.body) : opts.body
-        if (opts.parse) {
-          setHeader(opts, 'content-type', 'application/json')
-        }
+      if (opts.body && opts.body.toString() === '[object Object]' && payloadMethods.includes(opts.method?.toLowerCase() || '') && opts.parse) {
+        opts.body = JSON.stringify(opts.body)
+        setHeader(opts, 'content-type', 'application/json')
       }
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit)

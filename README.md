@@ -41,7 +41,7 @@ We use [conditional exports](https://nodejs.org/api/packages.html#packages_condi
 
 ## ✔️ Parsing Response
 
-`$fetch` Smartly parses JSON and native values using [destr](https://github.com/unjs/destr) and fallback to text if cannot parse.
+`$fetch` Smartly parses JSON and native values using [destr](https://github.com/unjs/destr) and fallback to text if it fails to parse.
 
 ```js
 const { users } = await $fetch('/api/users')
@@ -67,7 +67,7 @@ await $fetch('http://google.com/404')
 //     at async main (/project/playground.ts:4:3)
 ```
 
-In order to bypass errors as reponse you can use `error.data`:
+In order to bypass errors as response you can use `error.data`:
 
 ```ts
 await $fetch(...).catch((error) => error.data)
@@ -113,7 +113,7 @@ const response = await $fetch.raw('/sushi')
 ## 📦 Bundler Notes
 
 - All targets are exported with Module and CommonJS format and named exports
-- No export is transpiled for sake of Modern syntax
+- No export is transpiled for sake of modern syntax
   - You probably need to transpile `ohmyfetch`, `destr` and `ufo` packages with babel for ES5 support
 - You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
 
@@ -133,7 +133,7 @@ This also guarantees we can introduce more utils without breaking the package an
 
 By keep transpiling libraries we push web backward with legacy code which is unneeded for most of the users.
 
-If you need to support legacy users, can optionally transpile the library in build pipeline.
+If you need to support legacy users, you can optionally transpile the library in your build pipeline.
 
 ## License
 

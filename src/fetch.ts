@@ -15,6 +15,7 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
+  parse?: boolean
   response?: boolean
 }
 
@@ -53,8 +54,10 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
         request = withQuery(request, opts.params)
       }
       if (opts.body && opts.body.toString() === '[object Object]' && payloadMethods.includes(opts.method?.toLowerCase() || '')) {
-        opts.body = JSON.stringify(opts.body)
-        setHeader(opts, 'content-type', 'application/json')
+        opts.body = opts.parse ? JSON.stringify(opts.body) : opts.body
+        if (opts.parse) {
+          setHeader(opts, 'content-type', 'application/json')
+        }
       }
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit)
@@ -67,7 +70,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
   }
 
   const $fetch = function (request, opts) {
-    return raw(request, opts).then(r => r.data)
+    return raw(request, { parse: true, ...opts }).then(r => r.data)
   } as $Fetch
 
   $fetch.raw = raw

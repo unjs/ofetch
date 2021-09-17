@@ -15,6 +15,7 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
+  parse?: 'destr' | 'JSON.parse' | boolean
   response?: boolean
 }
 
@@ -67,7 +68,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
   }
 
   const $fetch = function (request, opts) {
-    return raw(request, opts).then(r => r.data)
+    return raw(request, { parse: true, ...opts }).then(r => r.data)
   } as $Fetch
 
   $fetch.raw = raw

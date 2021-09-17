@@ -34,9 +34,7 @@ const getParser: GetParser = (parse) => {
     return undefined
   }
 
-  return typeof parse === 'boolean'
-    ? destr
-    : parse
+  return parse === true ? destr : parse
 }
 
 export function setHeader (options: FetchOptions, _key: string, value: string) {

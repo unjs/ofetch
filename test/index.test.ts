@@ -1,3 +1,4 @@
+import destr from 'destr'
 import { listen, Listener } from 'listhen'
 import { getQuery, joinURL } from 'ufo'
 import { createApp, useBody } from 'h3'
@@ -23,6 +24,17 @@ describe('ohmyfetch', () => {
 
   it('ok', async () => {
     expect(await $fetch(getURL('ok'))).toBe('ok')
+  })
+
+  it('custom parse', async () => {
+    const parser = jest.fn().mockReturnValue('asdf')
+    await $fetch(getURL('ok'), { parse: parser })
+    expect(parser).toHaveBeenCalledTimes(1)
+  })
+
+  it('custom parse false', async () => {
+    await $fetch(getURL('ok'), { parse: false })
+    expect(destr).toHaveBeenCalledTimes(0)
   })
 
   it('baseURL', async () => {

@@ -19,7 +19,6 @@ describe('ohmyfetch', () => {
 
   afterEach(async () => {
     await listener.close()
-    jest.resetAllMocks()
   })
 
   it('ok', async () => {

@@ -1,4 +1,3 @@
-import destr from 'destr'
 import { listen, Listener } from 'listhen'
 import { getQuery, joinURL } from 'ufo'
 import { createApp, useBody } from 'h3'
@@ -9,7 +8,7 @@ describe('ohmyfetch', () => {
   let listener: Listener
   const getURL = (url: string) => joinURL(listener.url, url)
 
-  it('setup', async () => {
+  beforeEach(async () => {
     const app = createApp()
       .use('/ok', () => 'ok')
       .use('/params', req => (getQuery(req.url || '')))
@@ -18,8 +17,9 @@ describe('ohmyfetch', () => {
     listener = await listen(app)
   })
 
-  afterAll(async () => {
+  afterEach(async () => {
     await listener.close()
+    jest.resetAllMocks()
   })
 
   it('ok', async () => {
@@ -33,8 +33,7 @@ describe('ohmyfetch', () => {
   })
 
   it('custom parse false', async () => {
-    await $fetch(getURL('ok'), { parse: false })
-    expect(destr).toHaveBeenCalledTimes(0)
+    expect(await $fetch(getURL('ok'), { parse: false })).toBe('ok')
   })
 
   it('baseURL', async () => {

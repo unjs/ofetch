@@ -98,7 +98,7 @@ By using `params` option, `$fetch` adds params to URL by preserving params in re
 await $fetch('/movie?lang=en', { params: { id: 123 } })
 ```
 
-## ✔️ Adding headers
+## 💡 Adding headers
 
 By using `headers` option, `$fetch` adds extra headers in addition to the request default headers:
 

@@ -103,7 +103,12 @@ await $fetch('/movie?lang=en', { params: { id: 123 } })
 By using `headers` option, `$fetch` adds extra headers in addition to the request default headers:
 
 ```js
-await $fetch('/movies', { headers: [['Accept', 'application/json'], ['Cache-Control', 'no-cache']] })
+await $fetch('/movies', {
+  headers: {
+    Accept: 'application/json',
+    'Cache-Control': 'no-cache'
+  }
+})
 ```
 
 ## 🍣 Access to Raw Response

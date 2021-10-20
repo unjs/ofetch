@@ -2,7 +2,7 @@ import { createFetch } from './base'
 
 export * from './base'
 
-// ref: https://github.com/tc39/proposal-global
+// ref: https://mathiasbynens.be/notes/globalthis
 const getGlobal = function () {
   if (typeof globalThis !== 'undefined') { return globalThis }
   if (typeof self !== 'undefined') { return self }

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.1](https://github.com/unjs/ohmyfetch/compare/v0.4.0...v0.4.1) (2021-10-22)
+
+
+### Bug Fixes
+
+* avoid optional chaining for sake of webpack4 ([38a75fe](https://github.com/unjs/ohmyfetch/commit/38a75fe599a2b96d2d5fe12f2e4630ae4f17a102))
+
 ## [0.4.0](https://github.com/unjs/ohmyfetch/compare/v0.3.2...v0.4.0) (2021-10-22)
 
 

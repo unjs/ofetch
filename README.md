@@ -52,6 +52,9 @@ You can optionally provde a different parser than destr.
 ```js
 // Use JSON.parse
 await $fetch('/movie?lang=en', { parseResponse: JSON.parse })
+
+// Return text as is
+await $fetch('/movie?lang=en', { parseResponse: txt => txt })
 ```
 
 ## ✔️ JSON Body
@@ -115,18 +118,6 @@ const response = await $fetch.raw('/sushi')
 // response.data
 // response.headers
 // ...
-```
-
-## ✔️ Custom JSON parsing
-
-By using `parse` option, `$fetch` determines how to parse data.
-
-```js
-// Disable JSON parsing
-await $fetch('/movie?lang=en', { parse: false })
-
-// Use JSON.parse to parse
-await $fetch('/movie?lang=en', { parse: JSON.parse })
 ```
 
 ## 📦 Bundler Notes

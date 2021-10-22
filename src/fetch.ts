@@ -15,6 +15,7 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
+  parseResponse?: (responseText: string) => any
   response?: boolean
 }
 
@@ -44,8 +45,8 @@ export function setHeader (options: FetchOptions, _key: string, value: string) {
 }
 
 export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
-  const raw: $Fetch['raw'] = async function (request, opts) {
-    if (opts && typeof request === 'string') {
+  const raw: $Fetch['raw'] = async function (request, opts = {}) {
+    if (typeof request === 'string') {
       if (opts.baseURL) {
         request = joinURL(opts.baseURL, request)
       }
@@ -59,7 +60,8 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit)
     const text = await response.text()
-    response.data = destr(text)
+    const parseFn = opts.parseResponse || destr
+    response.data = parseFn(text)
     if (!response.ok) {
       throw createFetchError(request, response)
     }

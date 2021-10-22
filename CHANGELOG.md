@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.2](https://github.com/unjs/ohmyfetch/compare/v0.3.1...v0.3.2) (2021-10-22)
+
+
+### Features
+
+* allow for custom response parser with `parseResponse` ([#16](https://github.com/unjs/ohmyfetch/issues/16)) ([463ced6](https://github.com/unjs/ohmyfetch/commit/463ced66c4d12f8d380d0bca2c5ff2febf38af7e))
+
+
+### Bug Fixes
+
+* check for `globalThis` before fallback to shims ([#20](https://github.com/unjs/ohmyfetch/issues/20)) ([b5c0c3b](https://github.com/unjs/ohmyfetch/commit/b5c0c3bb38289a83164570ffa7458c3f47c6d41b))
+
 ### [0.3.1](https://github.com/unjs/ohmyfetch/compare/v0.3.0...v0.3.1) (2021-08-26)
 
 

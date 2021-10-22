@@ -3,9 +3,6 @@ import { joinURL, withQuery } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
 
-type Parser = (text: string) => any
-type GetParser = (parse: Parser | boolean | undefined) => Parser | undefined
-
 export interface CreateFetchOptions { fetch: Fetch }
 
 export type FetchRequest = RequestInfo
@@ -18,7 +15,7 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
-  parse?: Parser | boolean
+  parseResponse?: (responseText: string) => any
   response?: boolean
 }
 
@@ -27,14 +24,6 @@ export interface FetchResponse<T> extends Response { data?: T }
 export interface $Fetch {
   <T = any>(request: FetchRequest, opts?: FetchOptions): Promise<T>
   raw<T = any>(request: FetchRequest, opts?: FetchOptions): Promise<FetchResponse<T>>
-}
-
-const getParser: GetParser = (parse) => {
-  if (!parse) {
-    return undefined
-  }
-
-  return parse === true ? destr : parse
 }
 
 export function setHeader (options: FetchOptions, _key: string, value: string) {
@@ -56,8 +45,8 @@ export function setHeader (options: FetchOptions, _key: string, value: string) {
 }
 
 export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
-  const raw: $Fetch['raw'] = async function (request, opts) {
-    if (opts && typeof request === 'string') {
+  const raw: $Fetch['raw'] = async function (request, opts = {}) {
+    if (typeof request === 'string') {
       if (opts.baseURL) {
         request = joinURL(opts.baseURL, request)
       }
@@ -71,8 +60,8 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit)
     const text = await response.text()
-    const parse = getParser(opts?.parse)
-    response.data = parse ? parse(text) : text
+    const parseFn = opts.parseResponse || destr
+    response.data = parseFn(text)
     if (!response.ok) {
       throw createFetchError(request, response)
     }
@@ -80,7 +69,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
   }
 
   const $fetch = function (request, opts) {
-    return raw(request, { parse: destr, ...opts }).then(r => r.data)
+    return raw(request, opts).then(r => r.data)
   } as $Fetch
 
   $fetch.raw = raw

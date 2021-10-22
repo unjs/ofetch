@@ -47,6 +47,13 @@ We use [conditional exports](https://nodejs.org/api/packages.html#packages_condi
 const { users } = await $fetch('/api/users')
 ```
 
+You can optionally provde a different parser than destr.
+
+```js
+// Use JSON.parse
+await $fetch('/movie?lang=en', { parseResponse: JSON.parse })
+```
+
 ## ✔️ JSON Body
 
 `$fetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` headers (for `put`, `patch` and `post` requests).

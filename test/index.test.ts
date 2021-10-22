@@ -8,7 +8,7 @@ describe('ohmyfetch', () => {
   let listener: Listener
   const getURL = (url: string) => joinURL(listener.url, url)
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const app = createApp()
       .use('/ok', () => 'ok')
       .use('/params', req => (getQuery(req.url || '')))
@@ -17,7 +17,7 @@ describe('ohmyfetch', () => {
     listener = await listen(app)
   })
 
-  afterEach(async () => {
+  afterAll(async () => {
     await listener.close()
   })
 
@@ -25,14 +25,10 @@ describe('ohmyfetch', () => {
     expect(await $fetch(getURL('ok'))).toBe('ok')
   })
 
-  it('custom parse', async () => {
+  it('custom parseResponse', async () => {
     const parser = jest.fn().mockReturnValue('asdf')
-    await $fetch(getURL('ok'), { parse: parser })
+    await $fetch(getURL('ok'), { parseResponse: parser })
     expect(parser).toHaveBeenCalledTimes(1)
-  })
-
-  it('custom parse false', async () => {
-    expect(await $fetch(getURL('ok'), { parse: false })).toBe('ok')
   })
 
   it('baseURL', async () => {

@@ -25,7 +25,7 @@ Import:
 // ESM / Typescript
 import { $fetch } from 'ohmyfetch'
 
-// CommonJS (only $fetch export is available)
+// CommonJS
 const { $fetch } = require('ohmyfetch')
 ```
 

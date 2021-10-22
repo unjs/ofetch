@@ -1,3 +1,6 @@
-exports.$fetch = (...args) => import('../dist/index.mjs')
-  .then(r => r.$fetch)
-  .then($fetch => $fetch(...args))
+const getExport = name => import('../dist/index.mjs').then(r => r[name])
+const createCaller = name => (...args) => getExport(name).then(fn => fn(...args))
+
+exports.fetch = createCaller('fetch')
+exports.$fetch = createCaller('$fetch')
+exports.$fetch.raw = (...args) => getExport('$fetch').then($fetch => $fetch.raw(...args))

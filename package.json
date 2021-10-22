@@ -9,23 +9,24 @@
     ".": {
       "node": {
         "import": "./dist/node.mjs",
-        "require": "./dist/node.cjs"
+        "require": "./cjs/node.cjs"
       },
       "default": {
         "import": "./dist/index.mjs",
-        "require": "./dist/index.cjs"
+        "require": "./cjs/index.cjs"
       }
     },
     "./node": {
       "import": "./dist/node.mjs",
-      "require": "./dist/node.cjs"
+      "require": "./cjs/node.cjs"
     }
   },
-  "main": "./dist/node.cjs",
+  "main": "./cjs/node.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "cjs"
   ],
   "scripts": {
     "build": "unbuild",
@@ -37,7 +38,7 @@
   },
   "dependencies": {
     "destr": "^1.1.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.0.0",
     "ufo": "^0.7.9"
   },
   "devDependencies": {
@@ -45,7 +46,7 @@
     "@types/flat": "latest",
     "@types/jest": "latest",
     "@types/node": "latest",
-    "@types/node-fetch": "^2.5.12",
+    "@types/node-fetch": "^3.0.3",
     "eslint": "^7",
     "h3": "latest",
     "jest": "latest",

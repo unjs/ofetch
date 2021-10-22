@@ -53,7 +53,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.params) {
         request = withQuery(request, opts.params)
       }
-      if (opts.body && opts.body.toString() === '[object Object]' && payloadMethods.includes(opts.method?.toLowerCase() || '')) {
+      if (opts.body && opts.body.toString() === '[object Object]' && payloadMethods.includes((opts.method || '').toLowerCase() || '')) {
         opts.body = JSON.stringify(opts.body)
         setHeader(opts, 'content-type', 'application/json')
       }

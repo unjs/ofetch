@@ -9,25 +9,23 @@
     ".": {
       "node": {
         "import": "./dist/node.mjs",
-        "require": "./dist/node.js"
+        "require": "./dist/node.cjs"
       },
       "default": {
         "import": "./dist/index.mjs",
-        "require": "./dist/index.js"
+        "require": "./dist/index.cjs"
       }
     },
     "./node": {
       "import": "./dist/node.mjs",
-      "require": "./dist/node.js"
+      "require": "./dist/node.cjs"
     }
   },
-  "main": "./dist/node.js",
+  "main": "./dist/node.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist",
-    "node.*",
-    "index.*"
+    "dist"
   ],
   "scripts": {
     "build": "unbuild",

@@ -83,6 +83,16 @@ In order to bypass errors as response you can use `error.data`:
 await $fetch(...).catch((error) => error.data)
 ```
 
+## ✔️ Auto Retry
+
+`$fetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT` and `PATCH` methods that is `0`)
+
+```ts
+await $fetch('http://google.com/404', {
+  retry: 3
+})
+```
+
 ## ✔️ Type Friendly
 
 Response can be type assisted:

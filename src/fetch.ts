@@ -17,6 +17,7 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
   params?: SearchParams
   parseResponse?: (responseText: string) => any
   response?: boolean
+  retry?: number
 }
 
 export interface FetchResponse<T> extends Response { data?: T }
@@ -45,7 +46,8 @@ export function setHeader (options: FetchOptions, _key: string, value: string) {
 }
 
 export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
-  const raw: $Fetch['raw'] = async function (request, opts = {}) {
+  const $fetchRaw: $Fetch['raw'] = async function (request, opts = {}) {
+    const hasPayload = payloadMethods.includes((opts.method || '').toLowerCase())
     if (typeof request === 'string') {
       if (opts.baseURL) {
         request = joinURL(opts.baseURL, request)
@@ -53,7 +55,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.params) {
         request = withQuery(request, opts.params)
       }
-      if (opts.body && opts.body.toString() === '[object Object]' && payloadMethods.includes((opts.method || '').toLowerCase() || '')) {
+      if (opts.body && opts.body.toString() === '[object Object]' && hasPayload) {
         opts.body = JSON.stringify(opts.body)
         setHeader(opts, 'content-type', 'application/json')
       }
@@ -63,16 +65,23 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
     const parseFn = opts.parseResponse || destr
     response.data = parseFn(text)
     if (!response.ok) {
+      const retries = opts.retry ?? (hasPayload ? 0 : 1)
+      if (retries > 0) {
+        return $fetchRaw(request, {
+          ...opts,
+          retry: retries - 1
+        })
+      }
       throw createFetchError(request, response)
     }
     return response
   }
 
   const $fetch = function (request, opts) {
-    return raw(request, opts).then(r => r.data)
+    return $fetchRaw(request, opts).then(r => r.data)
   } as $Fetch
 
-  $fetch.raw = raw
+  $fetch.raw = $fetchRaw
 
   return $fetch
 }

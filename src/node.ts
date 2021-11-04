@@ -39,6 +39,6 @@ function createNodeFetch () {
   }
 }
 
-export const _fetch = globalThis.fetch || createNodeFetch()
+export const fetch = globalThis.fetch || createNodeFetch()
 
-export const $fetch = createFetch({ fetch: _fetch })
+export const $fetch = createFetch({ fetch })

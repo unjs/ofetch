@@ -26,6 +26,7 @@ function normalizeStack (stack: string = '') {
     .filter(l =>
       !l.includes('createFetchError') &&
       !l.includes('at $fetch') &&
+      !l.includes('at raw') &&
       !l.includes('processTicksAndRejections')
     )
     .join('\n')

@@ -34,10 +34,10 @@ const { $fetch } = require('ohmyfetch')
   <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
 </details>
 
-## ✔️ Works in Node.js
+## ✔️ Works with Node.js
 
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
- and automatically use [node-fetch](https://github.com/node-fetch/node-fetch) polyfill! No changes required.
+ and automatically use [node-fetch](https://github.com/node-fetch/node-fetch).
 
 ## ✔️ Parsing Response
 

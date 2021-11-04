@@ -34,10 +34,16 @@ const { $fetch } = require('ohmyfetch')
   <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
 </details>
 
-## ✔️ Works in Node.js
+## ✔️ Works with Node.js
 
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
- and automatically use [node-fetch](https://github.com/node-fetch/node-fetch) polyfill! No changes required.
+ and automatically use [node-fetch](https://github.com/node-fetch/node-fetch).
+
+For performance, http and https agents will be auto registered with `keepAlive` enabled. This keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
+
+You can disable this behavior by setting `FETCH_AGENT` or `FETCH_KEEP_ALIVE` environment variables to `false`.
+
+You can also control default `maxSockets` value (16) using `FETCH_AGENT_MAX_SOCKETS` environment variable.
 
 ## ✔️ Parsing Response
 

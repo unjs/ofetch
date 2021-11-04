@@ -6,36 +6,24 @@ import { createFetch } from './base'
 
 export * from './base'
 
-function createNodeFetch () {
-  const nodeFetchOptions = {}
-
-  // https://github.com/node-fetch/node-fetch#custom-agent
-  if (JSON.parse(process.env.FETCH_AGENT || 'true')) {
-    const agentOpts: AgentOptions = {
-      keepAlive: JSON.parse(process.env.FETCH_KEEP_ALIVE || 'true'),
-      maxSockets: JSON.parse(process.env.FETCH_AGENT_MAX_SOCKETS || '16'),
-      timeout: 1000
-    }
-    const httpAgent = new http.Agent(agentOpts)
-    const httpsAgent = new https.Agent(agentOpts)
-    Object.assign(nodeFetchOptions, {
-      agent (_parsedURL: any) {
-        if (_parsedURL.protocol === 'http:') {
-          return httpAgent
-        } else {
-          return httpsAgent
-        }
-      }
-    })
+export function createNodeFetch () {
+  const useKeepAlive = JSON.parse(process.env.FETCH_KEEP_ALIVE || 'false')
+  if (!useKeepAlive) {
+    return nodeFetch
   }
 
-  return function (input: RequestInfo, init?: RequestInit) {
-    return (nodeFetch as any)(input, {
-      ...nodeFetchOptions,
-      ...init
-    }).catch((err: Error) => {
-      throw err
-    })
+  // https://github.com/node-fetch/node-fetch#custom-agent
+  const agentOpts: AgentOptions = { keepAlive: true }
+  const httpAgent = new http.Agent(agentOpts)
+  const httpsAgent = new https.Agent(agentOpts)
+  const nodeFetchOptions = {
+    agent (parsedURL: any) {
+      return parsedURL.protocol === 'http:' ? httpAgent : httpsAgent
+    }
+  }
+
+  return function nodeFetchWithKeepAlive (input: RequestInfo, init?: RequestInit) {
+    return (nodeFetch as any)(input, { ...nodeFetchOptions, ...init })
   }
 }
 

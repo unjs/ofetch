@@ -39,7 +39,7 @@ const { $fetch } = require('ohmyfetch')
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
  and automatically use [node-fetch](https://github.com/node-fetch/node-fetch). If `globalThis.fetch` is available, will be used instead.
 
-### undici support
+### `undici` support
 
 In order to use experimental fetch implementation from [nodejs/undici](https://github.com/nodejs/undici), You can import from `ohmyfetch/undici`.
 
@@ -49,11 +49,11 @@ import { $fetch } from 'ohmyfetch/undici'
 
 On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
 
-For performance, http and https agents will be auto registered with `keepAlive` enabled. This keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
+### `keepAlive` support
 
-You can disable this behavior by setting `FETCH_AGENT` or `FETCH_KEEP_ALIVE` environment variables to `false`.
+By setting `FETCH_KEEP_ALIVE` environment variable to true, A node agent will be registred that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
 
-You can also control default `maxSockets` value (16) using `FETCH_AGENT_MAX_SOCKETS` environment variable.
+**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/unjs/ohmyfetch/pull/22).
 
 ## ✔️ Parsing Response
 

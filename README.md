@@ -39,7 +39,7 @@ const { $fetch } = require('ohmyfetch')
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
  and automatically use [node-fetch](https://github.com/node-fetch/node-fetch). If `globalThis.fetch` is available, will be used instead.
 
-### undici support
+### `undici` support
 
 In order to use experimental fetch implementation from [nodejs/undici](https://github.com/nodejs/undici), You can import from `ohmyfetch/undici`.
 
@@ -48,6 +48,12 @@ import { $fetch } from 'ohmyfetch/undici'
 ```
 
 On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
+
+### `keepAlive` support
+
+By setting `FETCH_KEEP_ALIVE` environment variable to `true`, A http/https agent will be registred that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
+
+**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/unjs/ohmyfetch/pull/22).
 
 ## ✔️ Parsing Response
 

@@ -37,7 +37,17 @@ const { $fetch } = require('ohmyfetch')
 ## ✔️ Works with Node.js
 
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
- and automatically use [node-fetch](https://github.com/node-fetch/node-fetch).
+ and automatically use [node-fetch](https://github.com/node-fetch/node-fetch). If `globalThis.fetch` is available, will be used instead.
+
+### undici support
+
+In order to use experimental fetch implementation from [nodejs/undici](https://github.com/nodejs/undici), You can import from `ohmyfetch/undici`.
+
+```js
+import { $fetch } from 'ohmyfetch/undici'
+```
+
+On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
 
 For performance, http and https agents will be auto registered with `keepAlive` enabled. This keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
 
@@ -87,6 +97,16 @@ In order to bypass errors as response you can use `error.data`:
 
 ```ts
 await $fetch(...).catch((error) => error.data)
+```
+
+## ✔️ Auto Retry
+
+`$fetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT` and `PATCH` methods that is `0`)
+
+```ts
+await $fetch('http://google.com/404', {
+  retry: 3
+})
 ```
 
 ## ✔️ Type Friendly

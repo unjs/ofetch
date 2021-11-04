@@ -39,6 +39,16 @@ const { $fetch } = require('ohmyfetch')
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
  and automatically use [node-fetch](https://github.com/node-fetch/node-fetch). If `globalThis.fetch` is available, will be used instead.
 
+### undici support
+
+In order to use experimental fetch implementation from [nodejs/undici](https://github.com/nodejs/undici), You can import from `ohmyfetch/undici`.
+
+```js
+import { $fetch } from 'ohmyfetch/undici'
+```
+
+On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
+
 ## ✔️ Parsing Response
 
 `$fetch` Smartly parses JSON and native values using [destr](https://github.com/unjs/destr) and fallback to text if it fails to parse.

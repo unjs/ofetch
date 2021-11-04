@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.3](https://github.com/unjs/ohmyfetch/compare/v0.4.2...v0.4.3) (2021-11-04)
+
+
+### Features
+
+* experimental undici support ([dfa0b55](https://github.com/unjs/ohmyfetch/commit/dfa0b554c72f1fe03bf3dc3cb0f47b7d306edb63))
+* **node:** pick `globalThis.fetch` when available over `node-fetch` ([54b779b](https://github.com/unjs/ohmyfetch/commit/54b779b97a6722542bdfe4b0f6dd9e82e59a7010))
+* **node:** support http agent with `keepAlive` ([#22](https://github.com/unjs/ohmyfetch/issues/22)) ([18a952a](https://github.com/unjs/ohmyfetch/commit/18a952af10eb40823086837f71a921221e49c559))
+* support retry and default to `1` ([ec83366](https://github.com/unjs/ohmyfetch/commit/ec83366ae3a0cbd2b2b093b92b99ef7fbb561ceb))
+
+
+### Bug Fixes
+
+* remove `at raw` from stack ([82351a8](https://github.com/unjs/ohmyfetch/commit/82351a8b6f5fea0b062bff76881bd8b740352ca8))
+
 ### [0.4.2](https://github.com/unjs/ohmyfetch/compare/v0.4.1...v0.4.2) (2021-10-22)
 
 

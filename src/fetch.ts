@@ -17,7 +17,7 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
   params?: SearchParams
   parseResponse?: (responseText: string) => any
   response?: boolean
-  retry?: number
+  retry?: number | false
 }
 
 export interface FetchResponse<T> extends Response { data?: T }
@@ -65,12 +65,14 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
     const parseFn = opts.parseResponse || destr
     response.data = parseFn(text)
     if (!response.ok) {
-      const retries = opts.retry ?? (hasPayload ? 0 : 1)
-      if (retries > 0) {
-        return $fetchRaw(request, {
-          ...opts,
-          retry: retries - 1
-        })
+      if (opts.retry !== false) {
+        const retries = typeof opts.retry === 'number' ? opts.retry : (hasPayload ? 0 : 1)
+        if (retries > 0) {
+          return $fetchRaw(request, {
+            ...opts,
+            retry: retries - 1
+          })
+        }
       }
       throw createFetchError(request, response)
     }

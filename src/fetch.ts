@@ -46,8 +46,26 @@ export function setHeader (options: FetchOptions, _key: string, value: string) {
 }
 
 export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
-  const $fetchRaw: $Fetch['raw'] = async function (request, opts = {}) {
-    const hasPayload = payloadMethods.includes((opts.method || '').toLowerCase())
+  function onError (request: FetchRequest, opts: FetchOptions, error?: Error, response?: FetchResponse<any>): Promise<FetchResponse<any>> {
+    // Retry
+    if (opts.retry !== false) {
+      const hasPayload = payloadMethods.includes((opts.method || '').toLowerCase())
+      const retries = typeof opts.retry === 'number' ? opts.retry : (hasPayload ? 0 : 1)
+      if (retries > 0) {
+        return $fetchRaw(request, {
+          ...opts,
+          retry: retries - 1
+        })
+      }
+    }
+
+    // Throw normalized error
+    const err = createFetchError(request, error, response)
+    Error.captureStackTrace(err, $fetchRaw)
+    throw err
+  }
+
+  const $fetchRaw: $Fetch['raw'] = async function $fetchRaw (request, opts = {}) {
     if (typeof request === 'string') {
       if (opts.baseURL) {
         request = joinURL(opts.baseURL, request)
@@ -55,31 +73,20 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.params) {
         request = withQuery(request, opts.params)
       }
+      const hasPayload = payloadMethods.includes((opts.method || '').toLowerCase())
       if (opts.body && opts.body.toString() === '[object Object]' && hasPayload) {
         opts.body = JSON.stringify(opts.body)
         setHeader(opts, 'content-type', 'application/json')
       }
     }
-    const response: FetchResponse<any> = await fetch(request, opts as RequestInit)
+    const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))
     const text = await response.text()
     const parseFn = opts.parseResponse || destr
     response.data = parseFn(text)
-    if (!response.ok) {
-      if (opts.retry !== false) {
-        const retries = typeof opts.retry === 'number' ? opts.retry : (hasPayload ? 0 : 1)
-        if (retries > 0) {
-          return $fetchRaw(request, {
-            ...opts,
-            retry: retries - 1
-          })
-        }
-      }
-      throw createFetchError(request, response)
-    }
-    return response
+    return response.ok ? response : onError(request, opts, undefined, response)
   }
 
-  const $fetch = function (request, opts) {
+  const $fetch = function $fetch (request, opts) {
     return $fetchRaw(request, opts).then(r => r.data)
   } as $Fetch
 

@@ -7,27 +7,20 @@ export class FetchError<T = any> extends Error {
   data?: T
 }
 
-export function createFetchError<T = any> (request: FetchRequest, response: FetchResponse<T>): FetchError<T> {
-  const message = `${response.status} ${response.statusText} (${request.toString()})`
-  const error: FetchError<T> = new FetchError(message)
+export function createFetchError<T = any> (request: FetchRequest, error?: Error, response?: FetchResponse<T>): FetchError<T> {
+  let message = ''
+  if (request && response) {
+    message = `${response.status} ${response.statusText} (${request.toString()})`
+  }
+  if (error) {
+    message = `${error.message} (${message})`
+  }
 
-  Object.defineProperty(error, 'request', { get () { return request } })
-  Object.defineProperty(error, 'response', { get () { return response } })
-  Object.defineProperty(error, 'data', { get () { return response.data } })
+  const fetchError: FetchError<T> = new FetchError(message)
 
-  const stack = error.stack
-  Object.defineProperty(error, 'stack', { get () { return normalizeStack(stack) } })
+  Object.defineProperty(fetchError, 'request', { get () { return request } })
+  Object.defineProperty(fetchError, 'response', { get () { return response } })
+  Object.defineProperty(fetchError, 'data', { get () { return response && response.data } })
 
-  return error
-}
-
-function normalizeStack (stack: string = '') {
-  return stack.split('\n')
-    .filter(l =>
-      !l.includes('createFetchError') &&
-      !l.includes('at $fetch') &&
-      !l.includes('at $fetchRaw') &&
-      !l.includes('processTicksAndRejections')
-    )
-    .join('\n')
+  return fetchError
 }

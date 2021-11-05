@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.5](https://github.com/unjs/ohmyfetch/compare/v0.4.4...v0.4.5) (2021-11-05)
+
+
+### Bug Fixes
+
+* improve error handling for non-user errors ([6b965a5](https://github.com/unjs/ohmyfetch/commit/6b965a5206bd3eb64b86d550dbba2932495bf67d))
+
 ### [0.4.4](https://github.com/unjs/ohmyfetch/compare/v0.4.3...v0.4.4) (2021-11-04)
 
 

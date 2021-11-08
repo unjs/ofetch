@@ -54,6 +54,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (retries > 0) {
         return $fetchRaw(request, {
           ...opts,
+          baseURL: '',
           retry: retries - 1
         })
       }

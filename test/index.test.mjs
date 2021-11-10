@@ -61,4 +61,9 @@ describe('ohmyfetch', () => {
     expect(err.response?.data).to.deep.eq(err.data)
     expect(err.request).to.equal(getURL('404'))
   })
+
+  it('baseURL with retry', async () => {
+    const err = await $fetch('', { baseURL: getURL('404'), retry: 3 }).catch(err => err)
+    expect(err.request).to.equal(getURL('404'))
+  })
 })

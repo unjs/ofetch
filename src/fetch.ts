@@ -1,5 +1,5 @@
 import destr from 'destr'
-import { joinURL, withQuery } from 'ufo'
+import { withBase, withQuery } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
 
@@ -68,7 +68,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
   const $fetchRaw: $Fetch['raw'] = async function $fetchRaw (request, opts = {}) {
     if (typeof request === 'string') {
       if (opts.baseURL) {
-        request = joinURL(opts.baseURL, request)
+        request = withBase(request, opts.baseURL)
       }
       if (opts.params) {
         request = withQuery(request, opts.params)

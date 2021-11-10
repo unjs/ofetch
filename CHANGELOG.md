@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.6](https://github.com/unjs/ohmyfetch/compare/v0.4.5...v0.4.6) (2021-11-10)
+
+
+### Bug Fixes
+
+* add check for using `Error.captureStackTrace` ([#27](https://github.com/unjs/ohmyfetch/issues/27)) ([0c55e1e](https://github.com/unjs/ohmyfetch/commit/0c55e1ec1bf21fcb3a7fc6ed570956b4dfba80d5))
+* remove baseurl append on retry ([#25](https://github.com/unjs/ohmyfetch/issues/25)) ([7e1b54d](https://github.com/unjs/ohmyfetch/commit/7e1b54d1363ba3f5fe57fe8089babab921a8e9ea))
+
 ### [0.4.5](https://github.com/unjs/ohmyfetch/compare/v0.4.4...v0.4.5) (2021-11-05)
 
 

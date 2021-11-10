@@ -61,7 +61,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
 
     // Throw normalized error
     const err = createFetchError(request, error, response)
-    Error.captureStackTrace(err, $fetchRaw)
+    if (Error.captureStackTrace) Error.captureStackTrace(err, $fetchRaw)
     throw err
   }
 

@@ -41,6 +41,9 @@ describe('ohmyfetch', () => {
     const { body } = await $fetch(getURL('post'), { method: 'POST', body: { num: 42 } })
     expect(body).to.deep.eq({ num: 42 })
 
+    const body2 = (await $fetch(getURL('post'), { method: 'POST', body: [{ num: 42 }, { num: 43 }] })).body
+    expect(body2).to.deep.eq([{ num: 42 }, { num: 43 }])
+
     const headerFetches = [
       [['Content-Type', 'text/html']],
       [],

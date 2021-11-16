@@ -77,7 +77,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
         request = withQuery(request, opts.params)
       }
       const hasPayload = payloadMethods.includes((opts.method || '').toLowerCase())
-      if (opts.body && opts.body.toString().includes('[object Object]') && hasPayload) {
+      if (opts.body && typeof opts.body === 'object' && hasPayload) {
         opts.body = JSON.stringify(opts.body)
         setHeader(opts, 'content-type', 'application/json')
       }

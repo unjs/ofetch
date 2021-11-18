@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.7](https://github.com/unjs/ohmyfetch/compare/v0.4.6...v0.4.7) (2021-11-18)
+
+
+### Bug Fixes
+
+* use `application/json` for array body  ([#29](https://github.com/unjs/ohmyfetch/issues/29)) ([e794b1e](https://github.com/unjs/ohmyfetch/commit/e794b1e4644f803e9c18c8813c432b29c7f9ef33))
+
 ### [0.4.6](https://github.com/unjs/ohmyfetch/compare/v0.4.5...v0.4.6) (2021-11-10)
 
 

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.8](https://github.com/unjs/ohmyfetch/compare/v0.4.7...v0.4.8) (2021-11-22)
+
+
+### Bug Fixes
+
+* add accept header when using json payload ([#30](https://github.com/unjs/ohmyfetch/issues/30)) ([662145f](https://github.com/unjs/ohmyfetch/commit/662145f8b74a18ba7d07e8eb6f3fd1af91941a22))
+
 ### [0.4.7](https://github.com/unjs/ohmyfetch/compare/v0.4.6...v0.4.7) (2021-11-18)
 
 

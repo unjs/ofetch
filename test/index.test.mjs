@@ -54,6 +54,7 @@ describe('ohmyfetch', () => {
     for (const sentHeaders of headerFetches) {
       const { headers } = await $fetch(getURL('post'), { method: 'POST', body: { num: 42 }, headers: sentHeaders })
       expect(headers).to.include({ 'content-type': 'application/json' })
+      expect(headers).to.include({ accept: 'application/json' })
     }
   })
 

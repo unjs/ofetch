@@ -80,6 +80,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.body && typeof opts.body === 'object' && hasPayload) {
         opts.body = JSON.stringify(opts.body)
         setHeader(opts, 'content-type', 'application/json')
+        setHeader(opts, 'accept', 'application/json')
       }
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))

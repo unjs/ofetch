@@ -75,7 +75,7 @@ await $fetch('/movie?lang=en', { parseResponse: txt => txt })
 
 ## ✔️ JSON Body
 
-`$fetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` headers (for `put`, `patch` and `post` requests).
+`$fetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
 
 ```js
 const { users } = await $fetch('/api/users', { method: 'POST', body: { some: 'json' } })

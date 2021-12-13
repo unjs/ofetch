@@ -2,14 +2,13 @@ import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
+import { isPayloadMethod, isJSONSerializable } from './utils'
 
 export interface CreateFetchOptions { fetch: Fetch }
 
 export type FetchRequest = RequestInfo
 
 export interface SearchParams { [key: string]: any }
-
-const payloadMethods = ['patch', 'post', 'put']
 
 export interface FetchOptions extends Omit<RequestInit, 'body'> {
   baseURL?: string
@@ -49,8 +48,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
   function onError (request: FetchRequest, opts: FetchOptions, error?: Error, response?: FetchResponse<any>): Promise<FetchResponse<any>> {
     // Retry
     if (opts.retry !== false) {
-      const hasPayload = payloadMethods.includes((opts.method || '').toLowerCase())
-      const retries = typeof opts.retry === 'number' ? opts.retry : (hasPayload ? 0 : 1)
+      const retries = typeof opts.retry === 'number' ? opts.retry : (isPayloadMethod(opts.method) ? 0 : 1)
       if (retries > 0) {
         return $fetchRaw(request, {
           ...opts,
@@ -76,11 +74,12 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.params) {
         request = withQuery(request, opts.params)
       }
-      const hasPayload = payloadMethods.includes((opts.method || '').toLowerCase())
-      if (opts.body && typeof opts.body === 'object' && hasPayload) {
-        opts.body = JSON.stringify(opts.body)
-        setHeader(opts, 'content-type', 'application/json')
-        setHeader(opts, 'accept', 'application/json')
+      if (opts.body && isPayloadMethod(opts.method)) {
+        if (isJSONSerializable(opts.body)) {
+          opts.body = JSON.stringify(opts.body)
+          setHeader(opts, 'content-type', 'application/json')
+          setHeader(opts, 'accept', 'application/json')
+        }
       }
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))

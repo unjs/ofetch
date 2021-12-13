@@ -4,6 +4,7 @@ import { createApp, useBody } from 'h3'
 import { expect } from 'chai'
 import { Headers } from 'node-fetch'
 import { $fetch } from 'ohmyfetch'
+import { FormData } from 'formdata-polyfill/esm.min.js'
 
 describe('ohmyfetch', () => {
   let listener
@@ -56,6 +57,19 @@ describe('ohmyfetch', () => {
       expect(headers).to.include({ 'content-type': 'application/json' })
       expect(headers).to.include({ accept: 'application/json' })
     }
+  })
+
+  it('Bypass FormData body', async () => {
+    const data = new FormData()
+    data.append('foo', 'bar')
+    const { body } = await $fetch(getURL('post'), { method: 'POST', body: data })
+    expect(body).to.include('form-data; name="foo"')
+  })
+
+  it('Bypass URLSearchParams body', async () => {
+    const data = new URLSearchParams({ foo: 'bar' })
+    const { body } = await $fetch(getURL('post'), { method: 'POST', body: data })
+    expect(body).to.eq('foo=bar')
   })
 
   it('404', async () => {

@@ -10,12 +10,21 @@ export type FetchRequest = RequestInfo
 
 export interface SearchParams { [key: string]: any }
 
-export interface FetchOptions extends Omit<RequestInit, 'body'> {
+interface ResponseMap {
+  blob: Blob
+  text: string
+  arrayBuffer: ArrayBuffer
+}
+
+type ResponseType = keyof ResponseMap | 'json'
+type MappedType<R extends ResponseType, JsonType = any> = R extends keyof ResponseMap ? ResponseMap[R] : JsonType
+
+export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
   parseResponse?: (responseText: string) => any
-  responseType?: 'blob' | 'json' | 'text' | 'arrayBuffer'
+  responseType?: R
   response?: boolean
   retry?: number | false
 }
@@ -23,8 +32,8 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
 export interface FetchResponse<T> extends Response { data?: T }
 
 export interface $Fetch {
-  <T = any>(request: FetchRequest, opts?: FetchOptions): Promise<T>
-  raw<T = any>(request: FetchRequest, opts?: FetchOptions): Promise<FetchResponse<T>>
+  <T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<MappedType<R, T>>
+  raw<T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
 }
 
 export function setHeader (options: FetchOptions, _key: string, value: string) {

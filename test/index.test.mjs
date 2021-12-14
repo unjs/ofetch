@@ -40,9 +40,10 @@ describe('ohmyfetch', () => {
   })
 
   it('allows specifying FetchResponse method', async () => {
-    expect(await $fetch(getURL('params?test=true'), { parseResponse: 'json' })).to.deep.equal({ test: 'true' })
-    expect(await $fetch(getURL('params?test=true'), { parseResponse: 'blob' })).to.be.instanceOf(Blob)
-    expect(await $fetch(getURL('params?test=true'), { parseResponse: 'text' })).to.deep.equal({ test: 'true' })
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'json' })).to.deep.equal({ test: 'true' })
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'blob' })).to.be.instanceOf(Blob)
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'text' })).to.deep.equal({ test: 'true' })
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'arrayBuffer' })).to.be.instanceOf(ArrayBuffer)
   })
 
   it('returns a blob for binary content-type', async () => {

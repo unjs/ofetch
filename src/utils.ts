@@ -20,21 +20,27 @@ export function isJSONSerializable (val: any) {
   return val.constructor?.name === 'Object' || typeof val.toJSON === 'function'
 }
 
-// This provides reasonable defaults for the correct parser based on Content-Type header
-export function detectContentMethod (contentType = ''): 'text' | 'blob' {
-  // Value might look like: `application/json; charset=utf-8`
-  switch (true) {
-    case !contentType:
-    case contentType.startsWith('text/'):
-    case contentType.startsWith('image/svg'):
-    case contentType.startsWith('application/xml'):
-    case contentType.startsWith('application/xhtml'):
-    case contentType.startsWith('application/html'):
-    case contentType.startsWith('application/json'):
-    case contentType.startsWith('application/ld+json'):
-      return 'text'
+const textTypes = new Set([
+  'image/svg',
+  'application/xml',
+  'application/xhtml',
+  'application/html',
+  'application/json',
+  'application/ld+json'
+])
 
-    default:
-      return 'blob'
+// This provides reasonable defaults for the correct parser based on Content-Type header
+export function detectContentMethod (_contentType = ''): 'text' | 'blob' | 'json' | 'arrayBuffer' {
+  if (!_contentType) {
+    return 'text'
   }
+
+  // Value might look like: `application/json; charset=utf-8`
+  const contentType = _contentType.split(';').shift()!
+
+  if (textTypes.has(contentType) || contentType.startsWith('text/')) {
+    return 'text'
+  }
+
+  return 'blob'
 }

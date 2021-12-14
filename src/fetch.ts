@@ -14,7 +14,8 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
-  parseResponse?: 'blob' | 'json' | 'text' | ((responseText: string) => any)
+  parseResponse?: (responseText: string) => any
+  responseType?: 'blob' | 'json' | 'text' | 'arrayBuffer'
   response?: boolean
   retry?: number | false
 }
@@ -84,18 +85,17 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))
 
-    const contentMethod = typeof opts.parseResponse === 'string'
-      ? opts.parseResponse
-      : detectContentMethod(response.headers.get('content-type') || '')
+    const responseType = opts.parseResponse ? 'text' : opts.responseType || detectContentMethod(response.headers.get('content-type') || '')
 
-    const data = await response[contentMethod]()
+    const data = await response[responseType]()
 
-    if (contentMethod === 'text') {
-      const parseFn = typeof opts.parseResponse === 'function' ? opts.parseResponse : destr
+    if (responseType === 'text') {
+      const parseFn = opts.parseResponse || destr
       response.data = parseFn(data)
     } else {
       response.data = data
     }
+
     return response.ok ? response : onError(request, opts, undefined, response)
   }
 

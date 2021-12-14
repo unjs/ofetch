@@ -2,7 +2,7 @@ import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
-import { isPayloadMethod, isJSONSerializable, detectContentMethod } from './utils'
+import { isPayloadMethod, isJSONSerializable, detectResponseType } from './utils'
 
 export interface CreateFetchOptions { fetch: Fetch }
 
@@ -16,7 +16,7 @@ interface ResponseMap {
   arrayBuffer: ArrayBuffer
 }
 
-type ResponseType = keyof ResponseMap | 'json'
+export type ResponseType = keyof ResponseMap | 'json'
 type MappedType<R extends ResponseType, JsonType = any> = R extends keyof ResponseMap ? ResponseMap[R] : JsonType
 
 export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
@@ -94,7 +94,7 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))
 
-    const responseType = opts.parseResponse ? 'json' : opts.responseType || detectContentMethod(response.headers.get('content-type') || '')
+    const responseType = opts.parseResponse ? 'json' : opts.responseType || detectResponseType(response.headers.get('content-type') || '')
 
     // We override the `.json()` method to parse the body more securely with `destr`
     if (responseType === 'json') {

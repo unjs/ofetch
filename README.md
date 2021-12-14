@@ -57,13 +57,15 @@ By setting `FETCH_KEEP_ALIVE` environment variable to `true`, A http/https agent
 
 ## ✔️ Parsing Response
 
-`$fetch` Smartly parses JSON and native values using [destr](https://github.com/unjs/destr) and fallback to text if it fails to parse.
+`$fetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr) (and fall back to text if it fails to parse).
 
 ```js
 const { users } = await $fetch('/api/users')
 ```
 
-You can optionally provde a different parser than destr.
+For binary content types, `$fetch` will instead return a `Blob` object.
+
+You can optionally provde a different parser than destr, or specify `blob` or `json` to force parsing the body with the respective `FetchResponse` method.
 
 ```js
 // Use JSON.parse
@@ -71,6 +73,9 @@ await $fetch('/movie?lang=en', { parseResponse: JSON.parse })
 
 // Return text as is
 await $fetch('/movie?lang=en', { parseResponse: txt => txt })
+
+// Get a blob
+await $fetch('/movie?lang=en', { parseResponse: 'blob' })
 ```
 
 ## ✔️ JSON Body

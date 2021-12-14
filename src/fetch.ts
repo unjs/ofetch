@@ -2,7 +2,7 @@ import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
-import { isPayloadMethod, isJSONSerializable } from './utils'
+import { isPayloadMethod, isJSONSerializable, detectContentMethod } from './utils'
 
 export interface CreateFetchOptions { fetch: Fetch }
 
@@ -14,7 +14,7 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
-  parseResponse?: (responseText: string) => any
+  parseResponse?: 'blob' | 'json' | 'text' | ((responseText: string) => any)
   response?: boolean
   retry?: number | false
 }
@@ -83,9 +83,19 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       }
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))
-    const text = await response.text()
-    const parseFn = opts.parseResponse || destr
-    response.data = parseFn(text)
+
+    const contentMethod = typeof opts.parseResponse === 'string'
+      ? opts.parseResponse
+      : detectContentMethod(response.headers.get('content-type') || '')
+
+    const data = await response[contentMethod]()
+
+    if (contentMethod === 'text') {
+      const parseFn = typeof opts.parseResponse === 'function' ? opts.parseResponse : destr
+      response.data = parseFn(data)
+    } else {
+      response.data = data
+    }
     return response.ok ? response : onError(request, opts, undefined, response)
   }
 

@@ -65,7 +65,7 @@ const { users } = await $fetch('/api/users')
 
 For binary content types, `$fetch` will instead return a `Blob` object.
 
-You can optionally provde a different parser than destr, or specify `blob` or `json` to force parsing the body with the respective `FetchResponse` method.
+You can optionally provde a different parser than destr, or specify `blob`, `arrayBuffer` or `text` to force parsing the body with the respective `FetchResponse` method.
 
 ```js
 // Use JSON.parse

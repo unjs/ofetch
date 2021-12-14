@@ -17,5 +17,6 @@ export function isJSONSerializable (val: any) {
   if (Array.isArray(val)) {
     return true
   }
-  return val.constructor?.name === 'Object' || typeof val.toJSON === 'function'
+  return (val.constructor && val.constructor.name === 'Object') ||
+   typeof val.toJSON === 'function'
 }

@@ -85,15 +85,15 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))
 
-    const responseType = opts.parseResponse ? 'text' : opts.responseType || detectContentMethod(response.headers.get('content-type') || '')
+    const responseType = opts.parseResponse ? 'json' : opts.responseType || detectContentMethod(response.headers.get('content-type') || '')
 
-    const data = await response[responseType]()
-
-    if (responseType === 'text') {
+    // We override the `.json()` method to parse the body more securely with `destr`
+    if (responseType === 'json') {
+      const data = await response.text()
       const parseFn = opts.parseResponse || destr
       response.data = parseFn(data)
     } else {
-      response.data = data
+      response.data = await response[responseType]()
     }
 
     return response.ok ? response : onError(request, opts, undefined, response)

@@ -42,7 +42,7 @@ describe('ohmyfetch', () => {
   it('allows specifying FetchResponse method', async () => {
     expect(await $fetch(getURL('params?test=true'), { responseType: 'json' })).to.deep.equal({ test: 'true' })
     expect(await $fetch(getURL('params?test=true'), { responseType: 'blob' })).to.be.instanceOf(Blob)
-    expect(await $fetch(getURL('params?test=true'), { responseType: 'text' })).to.deep.equal({ test: 'true' })
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'text' })).to.equal('{"test":"true"}')
     expect(await $fetch(getURL('params?test=true'), { responseType: 'arrayBuffer' })).to.be.instanceOf(ArrayBuffer)
   })
 

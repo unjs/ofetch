@@ -24,19 +24,23 @@ const textTypes = new Set([
   'image/svg',
   'application/xml',
   'application/xhtml',
-  'application/html',
-  'application/json',
-  'application/ld+json'
+  'application/html'
 ])
 
-// This provides reasonable defaults for the correct parser based on Content-Type header
+const jsonTypes = new Set(['application/json', 'application/ld+json'])
+
+// This provides reasonable defaults for the correct parser based on Content-Type header.
 export function detectContentMethod (_contentType = ''): 'text' | 'blob' | 'json' | 'arrayBuffer' {
   if (!_contentType) {
-    return 'text'
+    return 'json'
   }
 
   // Value might look like: `application/json; charset=utf-8`
   const contentType = _contentType.split(';').shift()!
+
+  if (jsonTypes.has(contentType)) {
+    return 'json'
+  }
 
   if (textTypes.has(contentType) || contentType.startsWith('text/')) {
     return 'text'

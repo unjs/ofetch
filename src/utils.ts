@@ -1,5 +1,3 @@
-import type { ResponseType } from '.'
-
 const payloadMethods = new Set(Object.freeze(['PATCH', 'POST', 'PUT', 'DELETE']))
 export function isPayloadMethod (method: string = 'GET') {
   return payloadMethods.has(method.toUpperCase())
@@ -30,6 +28,15 @@ const textTypes = new Set([
 ])
 
 const jsonTypes = new Set(['application/json', 'application/ld+json'])
+
+interface ResponseMap {
+  blob: Blob
+  text: string
+  arrayBuffer: ArrayBuffer
+}
+
+export type ResponseType = keyof ResponseMap | 'json'
+export type MappedType<R extends ResponseType, JsonType = any> = R extends keyof ResponseMap ? ResponseMap[R] : JsonType
 
 // This provides reasonable defaults for the correct parser based on Content-Type header.
 export function detectResponseType (_contentType = ''): ResponseType {

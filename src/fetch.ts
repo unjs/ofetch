@@ -2,22 +2,13 @@ import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
-import { isPayloadMethod, isJSONSerializable, detectResponseType } from './utils'
+import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
 
 export interface CreateFetchOptions { fetch: Fetch }
 
 export type FetchRequest = RequestInfo
 
 export interface SearchParams { [key: string]: any }
-
-interface ResponseMap {
-  blob: Blob
-  text: string
-  arrayBuffer: ArrayBuffer
-}
-
-export type ResponseType = keyof ResponseMap | 'json'
-type MappedType<R extends ResponseType, JsonType = any> = R extends keyof ResponseMap ? ResponseMap[R] : JsonType
 
 export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
   baseURL?: string

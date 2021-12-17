@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.11](https://github.com/unjs/ohmyfetch/compare/v0.4.10...v0.4.11) (2021-12-17)
+
+
+### Features
+
+* return blob if `content-type` isn't text, svg, xml or json ([#39](https://github.com/unjs/ohmyfetch/issues/39)) ([1029b9e](https://github.com/unjs/ohmyfetch/commit/1029b9e2c982991d21d77ea33036d7c20a4536bb))
+
 ### [0.4.10](https://github.com/unjs/ohmyfetch/compare/v0.4.9...v0.4.10) (2021-12-14)
 
 

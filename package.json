@@ -55,6 +55,7 @@
     "@types/node-fetch": "^3.0.3",
     "chai": "latest",
     "eslint": "latest",
+    "fetch-blob": "^3.1.3",
     "formdata-polyfill": "^4.0.10",
     "h3": "latest",
     "jiti": "latest",

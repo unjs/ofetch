@@ -2,7 +2,7 @@ import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
-import { isPayloadMethod, isJSONSerializable } from './utils'
+import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
 
 export interface CreateFetchOptions { fetch: Fetch }
 
@@ -10,11 +10,12 @@ export type FetchRequest = RequestInfo
 
 export interface SearchParams { [key: string]: any }
 
-export interface FetchOptions extends Omit<RequestInit, 'body'> {
+export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
   parseResponse?: (responseText: string) => any
+  responseType?: R
   response?: boolean
   retry?: number | false
 }
@@ -22,8 +23,8 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
 export interface FetchResponse<T> extends Response { data?: T }
 
 export interface $Fetch {
-  <T = any>(request: FetchRequest, opts?: FetchOptions): Promise<T>
-  raw<T = any>(request: FetchRequest, opts?: FetchOptions): Promise<FetchResponse<T>>
+  <T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<MappedType<R, T>>
+  raw<T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
 }
 
 export function setHeader (options: FetchOptions, _key: string, value: string) {
@@ -83,9 +84,18 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       }
     }
     const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))
-    const text = await response.text()
-    const parseFn = opts.parseResponse || destr
-    response.data = parseFn(text)
+
+    const responseType = opts.parseResponse ? 'json' : opts.responseType || detectResponseType(response.headers.get('content-type') || '')
+
+    // We override the `.json()` method to parse the body more securely with `destr`
+    if (responseType === 'json') {
+      const data = await response.text()
+      const parseFn = opts.parseResponse || destr
+      response.data = parseFn(data)
+    } else {
+      response.data = await response[responseType]()
+    }
+
     return response.ok ? response : onError(request, opts, undefined, response)
   }
 

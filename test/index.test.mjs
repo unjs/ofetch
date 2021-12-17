@@ -4,6 +4,7 @@ import { createApp, useBody } from 'h3'
 import { expect } from 'chai'
 import { Headers } from 'node-fetch'
 import { $fetch } from 'ohmyfetch'
+import { Blob } from 'fetch-blob'
 import { FormData } from 'formdata-polyfill/esm.min.js'
 
 describe('ohmyfetch', () => {
@@ -16,6 +17,10 @@ describe('ohmyfetch', () => {
       .use('/params', req => (getQuery(req.url || '')))
       .use('/url', req => req.url)
       .use('/post', async req => ({ body: await useBody(req), headers: req.headers }))
+      .use('/binary', (_req, res) => {
+        res.setHeader('Content-Type', 'application/octet-stream')
+        return new Blob(['binary'])
+      })
     listener = await listen(app)
   })
 
@@ -32,6 +37,17 @@ describe('ohmyfetch', () => {
     const parser = (r) => { called++; return 'C' + r }
     expect(await $fetch(getURL('ok'), { parseResponse: parser })).to.equal('Cok')
     expect(called).to.equal(1)
+  })
+
+  it('allows specifying FetchResponse method', async () => {
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'json' })).to.deep.equal({ test: 'true' })
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'blob' })).to.be.instanceOf(Blob)
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'text' })).to.equal('{"test":"true"}')
+    expect(await $fetch(getURL('params?test=true'), { responseType: 'arrayBuffer' })).to.be.instanceOf(ArrayBuffer)
+  })
+
+  it('returns a blob for binary content-type', async () => {
+    expect(await $fetch(getURL('binary'))).to.be.instanceOf(Blob)
   })
 
   it('baseURL', async () => {

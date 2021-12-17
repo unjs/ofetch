@@ -20,3 +20,41 @@ export function isJSONSerializable (val: any) {
   return (val.constructor && val.constructor.name === 'Object') ||
    typeof val.toJSON === 'function'
 }
+
+const textTypes = new Set([
+  'image/svg',
+  'application/xml',
+  'application/xhtml',
+  'application/html'
+])
+
+const jsonTypes = new Set(['application/json', 'application/ld+json'])
+
+interface ResponseMap {
+  blob: Blob
+  text: string
+  arrayBuffer: ArrayBuffer
+}
+
+export type ResponseType = keyof ResponseMap | 'json'
+export type MappedType<R extends ResponseType, JsonType = any> = R extends keyof ResponseMap ? ResponseMap[R] : JsonType
+
+// This provides reasonable defaults for the correct parser based on Content-Type header.
+export function detectResponseType (_contentType = ''): ResponseType {
+  if (!_contentType) {
+    return 'json'
+  }
+
+  // Value might look like: `application/json; charset=utf-8`
+  const contentType = _contentType.split(';').shift()!
+
+  if (jsonTypes.has(contentType)) {
+    return 'json'
+  }
+
+  if (textTypes.has(contentType) || contentType.startsWith('text/')) {
+    return 'text'
+  }
+
+  return 'blob'
+}

@@ -5,6 +5,8 @@ import { createFetchError } from './error'
 import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
 
 export interface CreateFetchOptions {
+  // eslint-disable-next-line no-use-before-define
+  defaults?: FetchOptions
   fetch: Fetch
   Headers: typeof Headers
 }
@@ -39,6 +41,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType> extends Omi
 export interface $Fetch {
   <T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<MappedType<R, T>>
   raw<T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
+  create(defaults: FetchOptions): $Fetch
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -53,7 +56,7 @@ const retryStatusCodes = new Set([
   504 //  Gateway Timeout
 ])
 
-export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
+export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
   function onError (ctx: FetchContext): Promise<FetchResponse<any>> {
     // Retry
     if (ctx.options.retry !== false) {
@@ -83,7 +86,7 @@ export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
   const $fetchRaw: $Fetch['raw'] = async function $fetchRaw (_request, _opts = {}) {
     const ctx: FetchContext = {
       request: _request,
-      options: _opts,
+      options: { ...globalOptions.defaults, ..._opts },
       response: undefined,
       error: undefined
     }
@@ -102,7 +105,7 @@ export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
       if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
         if (isJSONSerializable(ctx.options.body)) {
           ctx.options.body = JSON.stringify(ctx.options.body)
-          ctx.options.headers = new Headers(ctx.options.headers)
+          ctx.options.headers = new globalOptions.Headers(ctx.options.headers)
           if (!ctx.options.headers.has('content-type')) {
             ctx.options.headers.set('content-type', 'application/json')
           }
@@ -113,7 +116,7 @@ export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
       }
     }
 
-    ctx.response = await fetch(ctx.request, ctx.options as RequestInit).catch(async (error) => {
+    ctx.response = await globalOptions.fetch(ctx.request, ctx.options as RequestInit).catch(async (error) => {
       ctx.error = error
       if (ctx.options.onRequestError) {
         await ctx.options.onRequestError(ctx as any)
@@ -152,6 +155,14 @@ export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
   } as $Fetch
 
   $fetch.raw = $fetchRaw
+
+  $fetch.create = (defaultOptions = {}) => createFetch({
+    ...globalOptions,
+    defaults: {
+      ...globalOptions.defaults,
+      ...defaultOptions
+    }
+  })
 
   return $fetch
 }

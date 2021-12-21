@@ -141,7 +141,9 @@ await $fetch('/movie?lang=en', { params: { id: 123 } })
 
 ## ✔️ Interceptors
 
-It is possible to provide async interceptors to hook into lifecycle of each `fetch` call
+It is possible to provide async interceptors to hook into lifecycle events of `fetch` call.
+
+You might want to use `$fetch.create` to set set shared interceptors.
 
 ### `onRequest({ request, options })`
 
@@ -198,6 +200,18 @@ await $fetch('/api', {
     console.log('[fetch response error]', request, reponse.code, response.body)
   }
 })
+```
+
+### ✔️ Create fetch with default options
+
+This utility is useful if you need to use common options across serveral fetch calls.
+
+**Note:** Defaults will be cloned at one level and inherrited. Be careful about nested options like `headers`.
+
+```js
+const apiFetch = $fetch.create({ baseURL: '/api' })
+
+apiFetch('/test') // Same as $fetch('/test', { baseURL: '/api' })
 ```
 
 ## 💡 Adding headers

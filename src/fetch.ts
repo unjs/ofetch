@@ -27,22 +27,57 @@ export interface $Fetch {
   raw<T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
 }
 
-export function setHeader (options: FetchOptions, _key: string, value: string) {
-  const key = _key.toLowerCase()
+export function normalizeHeaders (options: FetchOptions): Pick<Headers, 'get' | 'set'> {
   options.headers = options.headers || {}
+
   if ('set' in options.headers) {
-    ;(options.headers as Headers).set(key, value)
-  } else if (Array.isArray(options.headers)) {
-    const existingHeader = options.headers.find(([header]) => header.toLowerCase() === key)
-    if (existingHeader) {
-      existingHeader[1] = value
-    } else {
-      options.headers.push([key, value])
-    }
-  } else {
-    const existingHeader = Object.keys(options.headers).find(header => header.toLowerCase() === key)
-    options.headers[existingHeader || key] = value
+    return options.headers as Pick<Headers, 'get' | 'set'>
   }
+
+  if (Array.isArray(options.headers)) {
+    const headers = options.headers
+    const findHeader = (key: string) => headers.find(([header]) => header.toLowerCase() === key)
+    return {
+      get: (_key: string) => {
+        const key = _key.toLowerCase()
+        return findHeader(_key)?.[1] || null
+      },
+      set: (_key: string, value: string) => {
+        const key = _key.toLowerCase()
+        const existingHeader = findHeader(key)
+        if (existingHeader) {
+          existingHeader[1] = value
+        } else {
+          headers.push([key, value])
+        }
+      }
+    }
+  }
+
+  const headers = options.headers
+  const findHeaderKey = (key: string) => Object.keys(headers).find(header => header.toLowerCase() === key)
+  return {
+    get: (_key: string) => {
+      const key = _key.toLowerCase()
+      const existingHeader = findHeaderKey(key)
+      return existingHeader ? headers[existingHeader] : null
+    },
+    set: (_key: string, value: string) => {
+      const key = _key.toLowerCase()
+      const existingHeader = findHeaderKey(key)
+      headers[existingHeader || key] = value
+    }
+  }
+}
+
+export const getHeader = (options: FetchOptions, _key: string) => {
+  const headers = normalizeHeaders(options)
+  return headers.get(_key)
+}
+
+export const setHeader = (options: FetchOptions, _key: string, value: string) => {
+  const headers = normalizeHeaders(options)
+  headers.set(_key, value)
 }
 
 export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
@@ -78,8 +113,9 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.body && isPayloadMethod(opts.method)) {
         if (isJSONSerializable(opts.body)) {
           opts.body = JSON.stringify(opts.body)
-          setHeader(opts, 'content-type', 'application/json')
-          setHeader(opts, 'accept', 'application/json')
+          const headers = normalizeHeaders(opts)
+          headers.set('content-type', headers.get('content-type') || 'application/json')
+          headers.set('accept', headers.get('accept') || 'application/json')
         }
       }
     }

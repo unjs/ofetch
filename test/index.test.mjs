@@ -2,8 +2,7 @@ import { listen } from 'listhen'
 import { getQuery, joinURL } from 'ufo'
 import { createApp, useBody } from 'h3'
 import { expect } from 'chai'
-import { Headers } from 'node-fetch'
-import { $fetch } from 'ohmyfetch'
+import { Headers, $fetch } from 'ohmyfetch'
 import { Blob } from 'fetch-blob'
 import { FormData } from 'formdata-polyfill/esm.min.js'
 
@@ -62,15 +61,14 @@ describe('ohmyfetch', () => {
     expect(body2).to.deep.eq([{ num: 42 }, { num: 43 }])
 
     const headerFetches = [
-      [['Content-Type', 'text/html']],
-      [],
-      { 'Content-Type': 'text/html' },
-      new Headers()
+      [['X-header', '1']],
+      { 'x-header': '1' },
+      new Headers({ 'x-header': '1' })
     ]
 
     for (const sentHeaders of headerFetches) {
       const { headers } = await $fetch(getURL('post'), { method: 'POST', body: { num: 42 }, headers: sentHeaders })
-      expect(headers).to.include({ 'content-type': 'application/json' })
+      expect(headers).to.include({ 'x-header': '1' })
       expect(headers).to.include({ accept: 'application/json' })
     }
   })

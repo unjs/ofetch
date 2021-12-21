@@ -1,9 +1,11 @@
 import { fetch as undiciFetch } from 'undici'
-import { createNodeFetch } from './node'
+import { createNodeFetch, Headers } from './node'
 import { createFetch } from './base'
 
 export * from './base'
 
 export const fetch = globalThis.fetch || undiciFetch || createNodeFetch()
 
-export const $fetch = createFetch({ fetch })
+export { Headers } from './node'
+
+export const $fetch = createFetch({ fetch, Headers })

@@ -4,7 +4,10 @@ import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
 import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
 
-export interface CreateFetchOptions { fetch: Fetch }
+export interface CreateFetchOptions {
+  fetch: Fetch
+  Headers: typeof Headers
+}
 
 export type FetchRequest = RequestInfo
 
@@ -27,25 +30,7 @@ export interface $Fetch {
   raw<T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
 }
 
-export function setHeader (options: FetchOptions, _key: string, value: string) {
-  const key = _key.toLowerCase()
-  options.headers = options.headers || {}
-  if ('set' in options.headers) {
-    ;(options.headers as Headers).set(key, value)
-  } else if (Array.isArray(options.headers)) {
-    const existingHeader = options.headers.find(([header]) => header.toLowerCase() === key)
-    if (existingHeader) {
-      existingHeader[1] = value
-    } else {
-      options.headers.push([key, value])
-    }
-  } else {
-    const existingHeader = Object.keys(options.headers).find(header => header.toLowerCase() === key)
-    options.headers[existingHeader || key] = value
-  }
-}
-
-export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
+export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
   function onError (request: FetchRequest, opts: FetchOptions, error?: Error, response?: FetchResponse<any>): Promise<FetchResponse<any>> {
     // Retry
     if (opts.retry !== false) {
@@ -78,8 +63,13 @@ export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
       if (opts.body && isPayloadMethod(opts.method)) {
         if (isJSONSerializable(opts.body)) {
           opts.body = JSON.stringify(opts.body)
-          setHeader(opts, 'content-type', 'application/json')
-          setHeader(opts, 'accept', 'application/json')
+          opts.headers = new Headers(opts.headers)
+          if (!opts.headers.has('content-type')) {
+            opts.headers.set('content-type', 'application/json')
+          }
+          if (!opts.headers.has('accept')) {
+            opts.headers.set('accept', 'application/json')
+          }
         }
       }
     }

@@ -1,6 +1,6 @@
 import http from 'http'
 import https, { AgentOptions } from 'https'
-import nodeFetch from 'node-fetch'
+import nodeFetch, { Headers as _Headers } from 'node-fetch'
 
 import { createFetch } from './base'
 
@@ -29,4 +29,6 @@ export function createNodeFetch () {
 
 export const fetch = globalThis.fetch || createNodeFetch()
 
-export const $fetch = createFetch({ fetch })
+export const Headers = globalThis.Headers || _Headers
+
+export const $fetch = createFetch({ fetch, Headers })

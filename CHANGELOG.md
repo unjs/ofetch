@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.13](https://github.com/unjs/ohmyfetch/compare/v0.4.12...v0.4.13) (2021-12-21)
+
+
+### Features
+
+* `$fetch.create` support ([d7fb8f6](https://github.com/unjs/ohmyfetch/commit/d7fb8f688c2b3f574430b40f7139ee144850be23))
+* initial interceptor support (resolves [#19](https://github.com/unjs/ohmyfetch/issues/19)) ([1bf2dd9](https://github.com/unjs/ohmyfetch/commit/1bf2dd928935b79b13a4e7a8fbd93365b082835f))
+
 ### [0.4.12](https://github.com/unjs/ohmyfetch/compare/v0.4.11...v0.4.12) (2021-12-21)
 
 

@@ -62,9 +62,9 @@ describe('ohmyfetch', () => {
     expect(body2).to.deep.eq([{ num: 42 }, { num: 43 }])
 
     const headerFetches = [
-      [['Content-Type', 'text/html']],
+      [['Authorization', 'Bearer 123456']],
       [],
-      { 'Content-Type': 'text/html' },
+      { Authorization: 'Bearer 123456' },
       new Headers()
     ]
 
@@ -72,6 +72,22 @@ describe('ohmyfetch', () => {
       const { headers } = await $fetch(getURL('post'), { method: 'POST', body: { num: 42 }, headers: sentHeaders })
       expect(headers).to.include({ 'content-type': 'application/json' })
       expect(headers).to.include({ accept: 'application/json' })
+    }
+  })
+
+  it('allows overriding automatic headers', async () => {
+    const headers = new Headers()
+    headers.set('Content-Type', 'application/merge-patch+json')
+
+    const headerFetches = [
+      [['Content-Type', 'application/merge-patch+json']],
+      { 'Content-Type': 'application/merge-patch+json' },
+      headers
+    ]
+
+    for (const sentHeaders of headerFetches) {
+      const { headers } = await $fetch(getURL('post'), { method: 'POST', body: { num: 42 }, headers: sentHeaders })
+      expect(headers).to.include({ 'content-type': 'application/merge-patch+json' })
     }
   })
 

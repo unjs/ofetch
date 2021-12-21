@@ -70,15 +70,9 @@ export function normalizeHeaders (options: FetchOptions): Pick<Headers, 'get' | 
   }
 }
 
-export const getHeader = (options: FetchOptions, _key: string) => {
-  const headers = normalizeHeaders(options)
-  return headers.get(_key)
-}
+export const getHeader = (options: FetchOptions, key: string) => normalizeHeaders(options).get(key)
 
-export const setHeader = (options: FetchOptions, _key: string, value: string) => {
-  const headers = normalizeHeaders(options)
-  headers.set(_key, value)
-}
+export const setHeader = (options: FetchOptions, key: string, value: string) => normalizeHeaders(options).set(key, value)
 
 export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
   function onError (request: FetchRequest, opts: FetchOptions, error?: Error, response?: FetchResponse<any>): Promise<FetchResponse<any>> {

@@ -27,25 +27,30 @@ export interface $Fetch {
   raw<T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
 }
 
-export function normalizeHeaders (opts: FetchOptions): Pick<Headers, 'get' | 'set' | 'has'> {
+export function normalizeHeaders (_opts: FetchOptions): Pick<Headers, 'get' | 'set' | 'has'> {
+  const opts = (_opts as FetchOptions & { _headers: Pick<Headers, 'get' | 'set' | 'has'> })
+
+  // @ts-ignore
+  if (opts._headers) { return opts._headers }
+
   opts.headers = opts.headers || {}
   if ('set' in opts.headers) { return opts.headers as Pick<Headers, 'get' | 'set' | 'has'> }
 
+  let headers: Record<string, string>
   if (Array.isArray(opts.headers)) {
-    opts.headers = Object.fromEntries(opts.headers.map(([key, value]) => [key.toLowerCase(), value]))
+    headers = Object.fromEntries(opts.headers.map(([key, value]) => [key.toLowerCase(), value]))
   } else {
-    opts.headers = Object.fromEntries(Object.entries(opts.headers).map(([key, value]) => [key.toLowerCase(), value]))
+    headers = Object.fromEntries(Object.entries(opts.headers).map(([key, value]) => [key.toLowerCase(), value]))
   }
 
-  const headers: Record<string, string> = opts.headers
-
-  return {
+  opts._headers = {
     get: key => headers[key.toLowerCase()],
     has: key => key.toLowerCase() in headers,
     set: (key, value) => {
       headers[key.toLowerCase()] = value
     }
   }
+  return opts._headers
 }
 
 export const getHeader = (options: FetchOptions, key: string) => normalizeHeaders(options).get(key)

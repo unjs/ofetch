@@ -30,18 +30,13 @@ export interface $Fetch {
 export function normalizeHeaders (options: FetchOptions): Pick<Headers, 'get' | 'set'> {
   options.headers = options.headers || {}
 
-  if ('set' in options.headers) {
-    return options.headers as Pick<Headers, 'get' | 'set'>
-  }
+  if ('set' in options.headers) { return options.headers as Pick<Headers, 'get' | 'set'> }
 
   if (Array.isArray(options.headers)) {
     const headers = options.headers
     const findHeader = (key: string) => headers.find(([header]) => header.toLowerCase() === key)
     return {
-      get: (_key) => {
-        const key = _key.toLowerCase()
-        return findHeader(key)?.[1] || null
-      },
+      get: key => findHeader(key.toLowerCase())?.[1] || null,
       set: (_key, value) => {
         const key = _key.toLowerCase()
         const existingHeader = findHeader(key)
@@ -57,9 +52,8 @@ export function normalizeHeaders (options: FetchOptions): Pick<Headers, 'get' | 
   const headers = options.headers
   const findHeaderKey = (key: string) => Object.keys(headers).find(header => header.toLowerCase() === key)
   return {
-    get: (_key) => {
-      const key = _key.toLowerCase()
-      const existingHeader = findHeaderKey(key)
+    get: (key) => {
+      const existingHeader = findHeaderKey(key.toLowerCase())
       return existingHeader ? headers[existingHeader] : null
     },
     set: (_key, value) => {

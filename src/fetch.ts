@@ -41,6 +41,7 @@ export function normalizeHeaders (_opts: FetchOptions): Pick<Headers, 'get' | 's
     headers = Object.fromEntries(Object.entries(opts.headers).map(([key, value]) => [key.toLowerCase(), value]))
   }
 
+  opts.headers = headers
   opts._headers = {
     get: key => headers[key.toLowerCase()],
     has: key => key.toLowerCase() in headers,

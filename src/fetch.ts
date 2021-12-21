@@ -10,8 +10,16 @@ export interface CreateFetchOptions {
 }
 
 export type FetchRequest = RequestInfo
-
+export interface FetchResponse<T> extends Response { data?: T }
 export interface SearchParams { [key: string]: any }
+
+export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
+  request: FetchRequest
+  // eslint-disable-next-line no-use-before-define
+  options: FetchOptions<R>,
+  response?: FetchResponse<T>
+  error?: Error
+}
 
 export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
   baseURL?: string
@@ -21,9 +29,11 @@ export interface FetchOptions<R extends ResponseType = ResponseType> extends Omi
   responseType?: R
   response?: boolean
   retry?: number | false
-}
 
-export interface FetchResponse<T> extends Response { data?: T }
+  onRequest?(ctx: FetchContext): Promise<void>
+  onResponse?(ctx: FetchContext): Promise<void>
+  onError?(ctx: FetchContext): Promise<void>
+}
 
 export interface $Fetch {
   <T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<MappedType<R, T>>
@@ -43,22 +53,30 @@ const retryStatusCodes = new Set([
 ])
 
 export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
-  function onError (request: FetchRequest, opts: FetchOptions, error?: Error, response?: FetchResponse<any>): Promise<FetchResponse<any>> {
-    // Retry
-    if (opts.retry !== false) {
-      const retries = typeof opts.retry === 'number' ? opts.retry : (isPayloadMethod(opts.method) ? 0 : 1)
+  async function onError (ctx: FetchContext): Promise<FetchResponse<any>> {
+    // Use user-defined handler
+    if (ctx.options.onError) {
+      await ctx.options.onError(ctx)
+    }
 
-      const responseCode = (response && response.status) || 500
+    // Retry
+    if (ctx.options.retry !== false) {
+      const retries = typeof ctx.options.retry === 'number'
+        ? ctx.options.retry
+        : (isPayloadMethod(ctx.options.method) ? 0 : 1)
+
+      const responseCode = (ctx.response && ctx.response.status) || 500
       if (retries > 0 && retryStatusCodes.has(responseCode)) {
-        return $fetchRaw(request, {
-          ...opts,
+        return $fetchRaw(ctx.request, {
+          ...ctx.options,
           retry: retries - 1
         })
       }
     }
 
     // Throw normalized error
-    const err = createFetchError(request, error, response)
+    const err = createFetchError(ctx.request, ctx.error, ctx.response)
+
     // Only available on V8 based runtimes (https://v8.dev/docs/stack-trace-api)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(err, $fetchRaw)
@@ -66,41 +84,66 @@ export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
     throw err
   }
 
-  const $fetchRaw: $Fetch['raw'] = async function $fetchRaw (request, opts = {}) {
-    if (typeof request === 'string') {
-      if (opts.baseURL) {
-        request = withBase(request, opts.baseURL)
+  const $fetchRaw: $Fetch['raw'] = async function $fetchRaw (_request, _opts = {}) {
+    const ctx: FetchContext = {
+      request: _request,
+      options: _opts,
+      response: undefined,
+      error: undefined
+    }
+
+    if (ctx.options.onRequest) {
+      await ctx.options.onRequest(ctx)
+    }
+
+    if (typeof ctx.request === 'string') {
+      if (ctx.options.baseURL) {
+        ctx.request = withBase(ctx.request, ctx.options.baseURL)
       }
-      if (opts.params) {
-        request = withQuery(request, opts.params)
+      if (ctx.options.params) {
+        ctx.request = withQuery(ctx.request, ctx.options.params)
       }
-      if (opts.body && isPayloadMethod(opts.method)) {
-        if (isJSONSerializable(opts.body)) {
-          opts.body = JSON.stringify(opts.body)
-          opts.headers = new Headers(opts.headers)
-          if (!opts.headers.has('content-type')) {
-            opts.headers.set('content-type', 'application/json')
+      if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
+        if (isJSONSerializable(ctx.options.body)) {
+          ctx.options.body = JSON.stringify(ctx.options.body)
+          ctx.options.headers = new Headers(ctx.options.headers)
+          if (!ctx.options.headers.has('content-type')) {
+            ctx.options.headers.set('content-type', 'application/json')
           }
-          if (!opts.headers.has('accept')) {
-            opts.headers.set('accept', 'application/json')
+          if (!ctx.options.headers.has('accept')) {
+            ctx.options.headers.set('accept', 'application/json')
           }
         }
       }
     }
-    const response: FetchResponse<any> = await fetch(request, opts as RequestInit).catch(error => onError(request, opts, error, undefined))
 
-    const responseType = opts.parseResponse ? 'json' : opts.responseType || detectResponseType(response.headers.get('content-type') || '')
+    ctx.response = await fetch(ctx.request, ctx.options as RequestInit).catch((error) => {
+      ctx.error = error
+      return onError(ctx)
+    })
+
+    const responseType =
+      (ctx.options.parseResponse ? 'json' : ctx.options.responseType) ||
+      detectResponseType(ctx.response.headers.get('content-type') || '')
 
     // We override the `.json()` method to parse the body more securely with `destr`
     if (responseType === 'json') {
-      const data = await response.text()
-      const parseFn = opts.parseResponse || destr
-      response.data = parseFn(data)
+      const data = await ctx.response.text()
+      const parseFn = ctx.options.parseResponse || destr
+      ctx.response.data = parseFn(data)
     } else {
-      response.data = await response[responseType]()
+      ctx.response.data = await ctx.response[responseType]()
     }
 
-    return response.ok ? response : onError(request, opts, undefined, response)
+    if (ctx.options.onResponse) {
+      await ctx.options.onResponse(ctx)
+    }
+
+    if (!ctx.response.ok || ctx.error) {
+      await onError(ctx)
+    }
+
+    return ctx.response.ok ? ctx.response : onError(ctx)
   }
 
   const $fetch = function $fetch (request, opts) {

@@ -139,6 +139,54 @@ By using `params` option, `$fetch` adds params to URL by preserving params in re
 await $fetch('/movie?lang=en', { params: { id: 123 } })
 ```
 
+## ✔️ Interceptors
+
+It is possible to provide async interceptors to hook into lifecycle of each `fetch` call
+
+### `onRequest({ request, options })`
+
+`onRequest` is called as soon as `$fetch` is being called, allowing to modify options or just do simple logging.
+
+```js
+await $fetch('/api', {
+  async onRequest({ request, options }) {
+    // Log request
+    console.log('[fetch request]', request, options)
+
+    // Add `?t=1640125211170` to query params
+    options.params = options.params
+    options.params.t = new Date()
+  }
+})
+```
+
+### `onResponse({ request, options, response })`
+
+`onResponse` will be called after `fetch` call and parsing body.
+
+```js
+await $fetch('/api', {
+  async onResponse({ request, response, options }) {
+    // Log response
+    console.log('[fetch response]', request, reponse.body)
+  }
+})
+```
+
+
+### `onError({ request, options, response? })`
+
+`onError` will be called if `response.ok` is not `true` or a request error happens (in this case `response` is `undefined`)
+
+```js
+await $fetch('/api', {
+  async onError({ request, response, options, error }) {
+    // Log error
+    console.log('[fetch error]', request, reponse?.code, error)
+  }
+})
+```
+
 ## 💡 Adding headers
 
 By using `headers` option, `$fetch` adds extra headers in addition to the request default headers:

@@ -30,12 +30,26 @@ export interface $Fetch {
   raw<T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+const retryStatusCodes = new Set([
+  408, // Request Timeout
+  409, // Conflict
+  425, // Too Early
+  429, // Too Many Requests
+  500, // Internal Server Error
+  502, // Bad Gateway
+  503, // Service Unavailable
+  504 //  Gateway Timeout
+])
+
 export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
   function onError (request: FetchRequest, opts: FetchOptions, error?: Error, response?: FetchResponse<any>): Promise<FetchResponse<any>> {
     // Retry
     if (opts.retry !== false) {
       const retries = typeof opts.retry === 'number' ? opts.retry : (isPayloadMethod(opts.method) ? 0 : 1)
-      if (retries > 0) {
+
+      const responseCode = (response && response.status) || 500
+      if (retries > 0 && retryStatusCodes.has(responseCode)) {
         return $fetchRaw(request, {
           ...opts,
           retry: retries - 1

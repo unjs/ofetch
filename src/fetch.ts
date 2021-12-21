@@ -40,7 +40,7 @@ export function normalizeHeaders (options: FetchOptions): Pick<Headers, 'get' | 
     return {
       get: (_key: string) => {
         const key = _key.toLowerCase()
-        return findHeader(_key)?.[1] || null
+        return findHeader(key)?.[1] || null
       },
       set: (_key: string, value: string) => {
         const key = _key.toLowerCase()

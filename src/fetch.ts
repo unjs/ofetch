@@ -52,10 +52,6 @@ export function normalizeHeaders (_opts: FetchOptions): Pick<Headers, 'get' | 's
   return opts._headers
 }
 
-export const getHeader = (options: FetchOptions, key: string) => normalizeHeaders(options).get(key)
-
-export const setHeader = (options: FetchOptions, key: string, value: string) => normalizeHeaders(options).set(key, value)
-
 export function createFetch ({ fetch }: CreateFetchOptions): $Fetch {
   function onError (request: FetchRequest, opts: FetchOptions, error?: Error, response?: FetchResponse<any>): Promise<FetchResponse<any>> {
     // Retry

@@ -160,6 +160,20 @@ await $fetch('/api', {
 })
 ```
 
+### `onRequestError({ request, options, error })`
+
+`onRequestError` will be called when fetch request fails.
+
+```js
+await $fetch('/api', {
+  async onRequestError({ request, options, error }) {
+    // Log error
+    console.log('[fetch request error]', request, error)
+  }
+})
+```
+
+
 ### `onResponse({ request, options, response })`
 
 `onResponse` will be called after `fetch` call and parsing body.
@@ -168,21 +182,20 @@ await $fetch('/api', {
 await $fetch('/api', {
   async onResponse({ request, response, options }) {
     // Log response
-    console.log('[fetch response]', request, reponse.body)
+    console.log('[fetch response]', request, response.code, reponse.body)
   }
 })
 ```
 
+### `onResponseError({ request, options, response })`
 
-### `onError({ request, options, response? })`
-
-`onError` will be called if `response.ok` is not `true` or a request error happens (in this case `response` is `undefined`)
+`onResponseError` is same as `onResponse` but will be called when fetch happens but `response.ok` is not `true`.
 
 ```js
 await $fetch('/api', {
-  async onError({ request, response, options, error }) {
+  async onResponseError({ request, response, options }) {
     // Log error
-    console.log('[fetch error]', request, reponse?.code, error)
+    console.log('[fetch response error]', request, reponse.code, response.body)
   }
 })
 ```

@@ -31,8 +31,9 @@ export interface FetchOptions<R extends ResponseType = ResponseType> extends Omi
   retry?: number | false
 
   onRequest?(ctx: FetchContext): Promise<void>
-  onResponse?(ctx: FetchContext): Promise<void>
-  onError?(ctx: FetchContext): Promise<void>
+  onRequestError?(ctx: FetchContext & { error: Error }): Promise<void>
+  onResponse?(ctx: FetchContext & { response: FetchResponse<R> }): Promise<void>
+  onResponseError?(ctx: FetchContext & { response: FetchResponse<R> }): Promise<void>
 }
 
 export interface $Fetch {
@@ -53,12 +54,7 @@ const retryStatusCodes = new Set([
 ])
 
 export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
-  async function onError (ctx: FetchContext): Promise<FetchResponse<any>> {
-    // Use user-defined handler
-    if (ctx.options.onError) {
-      await ctx.options.onError(ctx)
-    }
-
+  function onError (ctx: FetchContext): Promise<FetchResponse<any>> {
     // Retry
     if (ctx.options.retry !== false) {
       const retries = typeof ctx.options.retry === 'number'
@@ -117,8 +113,11 @@ export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
       }
     }
 
-    ctx.response = await fetch(ctx.request, ctx.options as RequestInit).catch((error) => {
+    ctx.response = await fetch(ctx.request, ctx.options as RequestInit).catch(async (error) => {
       ctx.error = error
+      if (ctx.options.onRequestError) {
+        await ctx.options.onRequestError(ctx as any)
+      }
       return onError(ctx)
     })
 
@@ -136,11 +135,13 @@ export function createFetch ({ fetch, Headers }: CreateFetchOptions): $Fetch {
     }
 
     if (ctx.options.onResponse) {
-      await ctx.options.onResponse(ctx)
+      await ctx.options.onResponse(ctx as any)
     }
 
-    if (!ctx.response.ok || ctx.error) {
-      await onError(ctx)
+    if (!ctx.response.ok) {
+      if (ctx.options.onResponseError) {
+        await ctx.options.onResponseError(ctx as any)
+      }
     }
 
     return ctx.response.ok ? ctx.response : onError(ctx)

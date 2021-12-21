@@ -202,7 +202,7 @@ await $fetch('/api', {
 })
 ```
 
-### ✔️ Create fetch with default options
+## ✔️ Create fetch with default options
 
 This utility is useful if you need to use common options across serveral fetch calls.
 

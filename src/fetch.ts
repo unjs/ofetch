@@ -29,8 +29,6 @@ export interface $Fetch {
 
 export function normalizeHeaders (_opts: FetchOptions): Pick<Headers, 'get' | 'set' | 'has'> {
   const opts = (_opts as FetchOptions & { _headers: Pick<Headers, 'get' | 'set' | 'has'> })
-
-  // @ts-ignore
   if (opts._headers) { return opts._headers }
 
   opts.headers = opts.headers || {}

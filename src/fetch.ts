@@ -38,11 +38,11 @@ export function normalizeHeaders (options: FetchOptions): Pick<Headers, 'get' | 
     const headers = options.headers
     const findHeader = (key: string) => headers.find(([header]) => header.toLowerCase() === key)
     return {
-      get: (_key: string) => {
+      get: (_key) => {
         const key = _key.toLowerCase()
         return findHeader(key)?.[1] || null
       },
-      set: (_key: string, value: string) => {
+      set: (_key, value) => {
         const key = _key.toLowerCase()
         const existingHeader = findHeader(key)
         if (existingHeader) {
@@ -57,12 +57,12 @@ export function normalizeHeaders (options: FetchOptions): Pick<Headers, 'get' | 
   const headers = options.headers
   const findHeaderKey = (key: string) => Object.keys(headers).find(header => header.toLowerCase() === key)
   return {
-    get: (_key: string) => {
+    get: (_key) => {
       const key = _key.toLowerCase()
       const existingHeader = findHeaderKey(key)
       return existingHeader ? headers[existingHeader] : null
     },
-    set: (_key: string, value: string) => {
+    set: (_key, value) => {
       const key = _key.toLowerCase()
       const existingHeader = findHeaderKey(key)
       headers[existingHeader || key] = value

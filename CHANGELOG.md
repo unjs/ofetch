@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.12](https://github.com/unjs/ohmyfetch/compare/v0.4.11...v0.4.12) (2021-12-21)
+
+
+### Bug Fixes
+
+* avoid overriding headers ([4b74e45](https://github.com/unjs/ohmyfetch/commit/4b74e45f9989a993e725e7fe4d2e098442e457f1)), closes [#40](https://github.com/unjs/ohmyfetch/issues/40) [#41](https://github.com/unjs/ohmyfetch/issues/41)
+* only retry on known response codes (resolves [#31](https://github.com/unjs/ohmyfetch/issues/31)) ([f7fff24](https://github.com/unjs/ohmyfetch/commit/f7fff24acfde76029051fe26a88f993518a95735))
+
 ### [0.4.11](https://github.com/unjs/ohmyfetch/compare/v0.4.10...v0.4.11) (2021-12-17)
 
 

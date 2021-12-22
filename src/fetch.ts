@@ -57,6 +57,8 @@ const retryStatusCodes = new Set([
 ])
 
 export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
+  const { fetch, Headers } = globalOptions
+
   function onError (ctx: FetchContext): Promise<FetchResponse<any>> {
     // Retry
     if (ctx.options.retry !== false) {
@@ -105,7 +107,7 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
         if (isJSONSerializable(ctx.options.body)) {
           ctx.options.body = JSON.stringify(ctx.options.body)
-          ctx.options.headers = new globalOptions.Headers(ctx.options.headers)
+          ctx.options.headers = new Headers(ctx.options.headers)
           if (!ctx.options.headers.has('content-type')) {
             ctx.options.headers.set('content-type', 'application/json')
           }
@@ -116,7 +118,7 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       }
     }
 
-    ctx.response = await globalOptions.fetch(ctx.request, ctx.options as RequestInit).catch(async (error) => {
+    ctx.response = await fetch(ctx.request, ctx.options as RequestInit).catch(async (error) => {
       ctx.error = error
       if (ctx.options.onRequestError) {
         await ctx.options.onRequestError(ctx as any)

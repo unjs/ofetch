@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.14](https://github.com/unjs/ohmyfetch/compare/v0.4.13...v0.4.14) (2021-12-22)
+
+
+### Bug Fixes
+
+* avoid calling `fetch` with `globalOptions` context ([8ea2d2b](https://github.com/unjs/ohmyfetch/commit/8ea2d2b5f9dcda333de5824862a7377085fd8bb4))
+
 ### [0.4.13](https://github.com/unjs/ohmyfetch/compare/v0.4.12...v0.4.13) (2021-12-21)
 
 

@@ -4,3 +4,4 @@ const createCaller = name => (input, init) => getExport(name).then(fn => fn(inpu
 exports.fetch = createCaller('fetch')
 exports.$fetch = createCaller('$fetch')
 exports.$fetch.raw = (input, init) => getExport('$fetch').then($fetch => $fetch.raw(input, init))
+exports.$fetch.create = (input, init) => getExport('$fetch').then($fetch => $fetch.create(input, init))

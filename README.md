@@ -184,7 +184,7 @@ await $fetch('/api', {
 await $fetch('/api', {
   async onResponse({ request, response, options }) {
     // Log response
-    console.log('[fetch response]', request, response.code, reponse.body)
+    console.log('[fetch response]', request, response.status, response.body)
   }
 })
 ```
@@ -197,7 +197,7 @@ await $fetch('/api', {
 await $fetch('/api', {
   async onResponseError({ request, response, options }) {
     // Log error
-    console.log('[fetch response error]', request, reponse.code, response.body)
+    console.log('[fetch response error]', request, response.status, response.body)
   }
 })
 ```

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.15](https://github.com/unjs/ohmyfetch/compare/v0.4.14...v0.4.15) (2022-01-18)
+
+
+### Bug Fixes
+
+* use `_data` rather than `data` to store deserialized response ([#49](https://github.com/unjs/ohmyfetch/issues/49)) ([babb331](https://github.com/unjs/ohmyfetch/commit/babb331c3c2dc52d682f87b3c2c660d23cf056b3))
+
 ### [0.4.14](https://github.com/unjs/ohmyfetch/compare/v0.4.13...v0.4.14) (2021-12-22)
 
 

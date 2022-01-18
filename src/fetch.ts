@@ -12,7 +12,7 @@ export interface CreateFetchOptions {
 }
 
 export type FetchRequest = RequestInfo
-export interface FetchResponse<T> extends Response { data?: T }
+export interface FetchResponse<T> extends Response { _data?: T }
 export interface SearchParams { [key: string]: any }
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
@@ -134,9 +134,9 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
     if (responseType === 'json') {
       const data = await ctx.response.text()
       const parseFn = ctx.options.parseResponse || destr
-      ;(ctx.response as any)._data = parseFn(data)
+      ctx.response._data = parseFn(data)
     } else {
-      ;(ctx.response as any)._data = await ctx.response[responseType]()
+      ctx.response._data = await ctx.response[responseType]()
     }
 
     if (ctx.options.onResponse) {
@@ -153,7 +153,7 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
   }
 
   const $fetch = function $fetch (request, opts) {
-    return $fetchRaw(request, opts).then(r => (r as any)._data)
+    return $fetchRaw(request, opts).then(r => r._data)
   } as $Fetch
 
   $fetch.raw = $fetchRaw

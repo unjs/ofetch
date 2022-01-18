@@ -20,7 +20,7 @@ export function createFetchError<T = any> (request: FetchRequest, error?: Error,
 
   Object.defineProperty(fetchError, 'request', { get () { return request } })
   Object.defineProperty(fetchError, 'response', { get () { return response } })
-  Object.defineProperty(fetchError, 'data', { get () { return response && response.data } })
+  Object.defineProperty(fetchError, 'data', { get () { return response && response._data } })
 
   return fetchError
 }

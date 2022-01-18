@@ -90,7 +90,7 @@ describe('ohmyfetch', () => {
     const err = await $fetch(getURL('404')).catch(err => err)
     expect(err.toString()).to.contain('404 Not Found')
     expect(err.data).to.deep.eq({ stack: [], statusCode: 404, statusMessage: 'Not Found' })
-    expect(err.response?.data).to.deep.eq(err.data)
+    expect(err.response?._data).to.deep.eq(err.data)
     expect(err.request).to.equal(getURL('404'))
   })
 

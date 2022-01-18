@@ -134,9 +134,9 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
     if (responseType === 'json') {
       const data = await ctx.response.text()
       const parseFn = ctx.options.parseResponse || destr
-      ctx.response.data = parseFn(data)
+      ;(ctx.response as any)._data = parseFn(data)
     } else {
-      ctx.response.data = await ctx.response[responseType]()
+      ;(ctx.response as any)._data = await ctx.response[responseType]()
     }
 
     if (ctx.options.onResponse) {
@@ -153,7 +153,7 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
   }
 
   const $fetch = function $fetch (request, opts) {
-    return $fetchRaw(request, opts).then(r => r.data)
+    return $fetchRaw(request, opts).then(r => (r as any)._data)
   } as $Fetch
 
   $fetch.raw = $fetchRaw

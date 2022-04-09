@@ -45,7 +45,7 @@
     "destr": "^1.1.0",
     "node-fetch": "^3.0.0",
     "ufo": "^0.7.9",
-    "undici": "^4.9.5"
+    "undici": "^5.0.0"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",

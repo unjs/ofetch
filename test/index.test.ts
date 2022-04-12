@@ -1,16 +1,16 @@
 import { listen } from 'listhen'
 import { getQuery, joinURL } from 'ufo'
 import { createApp, useBody } from 'h3'
-import { expect } from 'chai'
-import { Headers, $fetch } from 'ohmyfetch'
 import { Blob } from 'fetch-blob'
 import { FormData } from 'formdata-polyfill/esm.min.js'
+import { describe, beforeEach, afterEach, it, expect } from 'vitest'
+import { Headers, $fetch } from '../src/node'
 
 describe('ohmyfetch', () => {
   let listener
   const getURL = url => joinURL(listener.url, url)
 
-  before(async () => {
+  beforeEach(async () => {
     const app = createApp()
       .use('/ok', () => 'ok')
       .use('/params', req => (getQuery(req.url || '')))
@@ -23,7 +23,7 @@ describe('ohmyfetch', () => {
     listener = await listen(app)
   })
 
-  after(async () => {
+  afterEach(async () => {
     await listener.close()
   })
 

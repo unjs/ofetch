@@ -35,11 +35,12 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "prepack": "yarn build",
+    "dev": "vitest",
     "lint": "eslint --ext .ts .",
+    "prepack": "pnpm build",
     "play": "jiti playground/index.ts",
-    "release": "yarn test && standard-version && git push --follow-tags && npm publish",
-    "test": "yarn build && mocha ./test/*.test.*"
+    "release": "pnpm test && standard-version && git push --follow-tags && pnpm publish",
+    "test": "pnpm lint && vitest run"
   },
   "dependencies": {
     "destr": "^1.1.1",
@@ -50,19 +51,19 @@
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
     "@types/flat": "latest",
-    "@types/mocha": "latest",
     "@types/node": "latest",
     "@types/node-fetch": "^3.0.3",
-    "chai": "latest",
+    "c8": "^7.11.0",
     "eslint": "latest",
     "fetch-blob": "^3.1.5",
     "formdata-polyfill": "^4.0.10",
     "h3": "latest",
     "jiti": "latest",
     "listhen": "latest",
-    "mocha": "latest",
     "standard-version": "latest",
     "typescript": "latest",
-    "unbuild": "latest"
-  }
+    "unbuild": "latest",
+    "vitest": "^0.9.3"
+  },
+  "packageManager": "pnpm@6.32.3"
 }

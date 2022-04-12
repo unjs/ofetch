@@ -8,8 +8,7 @@
     "strict": true,
     "declaration": true,
     "types": [
-      "node",
-      "mocha"
+      "node"
     ]
   },
   "include": [

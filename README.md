@@ -241,7 +241,7 @@ You can add/overwrite `$fetch` options on a method-level as well:
 ```js
 const response = await api.users.get({
   headers: {
-    Accept: 'application/json'
+    'Cache-Control': 'no-cache'
   }
 })
 ```

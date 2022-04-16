@@ -5,30 +5,30 @@ import type { FetchOptions } from './fetch'
 import type { ResponseType, MappedType } from './types'
 import { $fetch } from './undici'
 
-export type ClientMethodHandler = <T = any, R extends ResponseType = 'json'>(
+export type ApiClientMethodHandler = <T = any, R extends ResponseType = 'json'>(
   data?: RequestInit['body'] | Record<string, any>,
   opts?: Omit<FetchOptions<R>, 'baseURL' | 'method'>
 ) => Promise<MappedType<R, T>>
 
-export type ClientBuilder = {
-  [key: string]: ClientBuilder;
-  (...segmentsOrIds: (string | number)[]): ClientBuilder
+export type ApiClientBuilder = {
+  [key: string]: ApiClientBuilder;
+  (...segmentsOrIds: (string | number)[]): ApiClientBuilder
 } & {
-  get: ClientMethodHandler
-  post: ClientMethodHandler
-  put: ClientMethodHandler
-  delete: ClientMethodHandler
-  patch: ClientMethodHandler
+  get: ApiClientMethodHandler
+  post: ApiClientMethodHandler
+  put: ApiClientMethodHandler
+  delete: ApiClientMethodHandler
+  patch: ApiClientMethodHandler
 }
 
 export function createClient<R extends ResponseType = 'json'> (
   url: string,
   defaults: Omit<FetchOptions<R>, 'method'> = {}
-): ClientBuilder {
+): ApiClientBuilder {
   // Callable internal target required to use `apply` on it
-  const internalTarget = (() => {}) as ClientBuilder
+  const internalTarget = (() => {}) as ApiClientBuilder
 
-  const p = (url: string): ClientBuilder =>
+  const p = (url: string): ApiClientBuilder =>
     new Proxy(internalTarget, {
       get (_target, key: string) {
         const method = key.toUpperCase()
@@ -37,7 +37,7 @@ export function createClient<R extends ResponseType = 'json'> (
           return p(resolveURL(url, key))
         }
 
-        const handler: ClientMethodHandler = <T = any, R extends ResponseType = 'json'>(
+        const handler: ApiClientMethodHandler = <T = any, R extends ResponseType = 'json'>(
           data?: RequestInit['body'] | Record<string, any>,
           opts: FetchOptions<R> = {}
         ) => {

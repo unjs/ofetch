@@ -28,8 +28,8 @@ export function createClient<R extends ResponseType = 'json'> (
   // Callable internal target required to use `apply` on it
   const internalTarget = (() => {}) as ClientBuilder
 
-  const p = (url: string): ClientBuilder =>
-    new Proxy(internalTarget, {
+  function p (url: string): ClientBuilder {
+    return new Proxy(internalTarget, {
       get (_target, key: string) {
         const method = key.toUpperCase()
 
@@ -43,7 +43,9 @@ export function createClient<R extends ResponseType = 'json'> (
         ) => {
           switch (method) {
             case 'GET':
-              if (data) { url = withQuery(url, data as QueryObject) }
+              if (data) {
+                url = withQuery(url, data as QueryObject)
+              }
               break
             case 'POST':
             case 'PUT':
@@ -62,6 +64,7 @@ export function createClient<R extends ResponseType = 'json'> (
         return p(resolveURL(url, ...args.map(i => `${i}`)))
       }
     })
+  }
 
   return p(url)
 }

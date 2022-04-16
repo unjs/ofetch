@@ -234,6 +234,10 @@ const users = await api.users.get<UserResponse>()
 // For GET request you can add search params
 // <baseURL>/users?search=john
 const users = await api.users.get<UserResponse>({ search: 'john' })
+
+// Chains can get as deep as you wish
+// <baseURL>/deeply/nested
+const data = await api.deeply.nested.get()
 ```
 
 To include dynamic API path segments, you have two options:

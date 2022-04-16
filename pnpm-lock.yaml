@@ -30,7 +30,7 @@ dependencies:
 devDependencies:
   '@nuxtjs/eslint-config-typescript': 9.0.0_eslint@8.13.0+typescript@4.6.3
   '@types/flat': 5.0.2
-  '@types/node': 17.0.23
+  '@types/node': 17.0.24
   '@types/node-fetch': 3.0.3
   c8: 7.11.0
   eslint: 8.13.0
@@ -41,7 +41,7 @@ devDependencies:
   listhen: 0.2.8
   standard-version: 9.3.2
   typescript: 4.6.3
-  unbuild: 0.7.3
+  unbuild: 0.7.4
   vitest: 0.9.3_c8@7.11.0
 
 packages:
@@ -490,8 +490,8 @@ packages:
       node-fetch: 3.2.3
     dev: true
 
-  /@types/node/17.0.23:
-    resolution: {integrity: sha512-UxDxWn7dl97rKVeVS61vErvw086aCYhDLyvRQZ5Rk65rZKepaFdm53GeqXaKBuOhED4e9uWq34IC3TdSdJJ2Gw==}
+  /@types/node/17.0.24:
+    resolution: {integrity: sha512-aveCYRQbgTH9Pssp1voEP7HiuWlD2jW2BO56w+bVrJn04i61yh6mRfoKO6hEYQD9vF+W8Chkwc6j1M36uPkx4g==}
     dev: true
 
   /@types/normalize-package-data/2.4.1:
@@ -501,7 +501,7 @@ packages:
   /@types/resolve/1.17.1:
     resolution: {integrity: sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==}
     dependencies:
-      '@types/node': 17.0.23
+      '@types/node': 17.0.24
     dev: true
 
   /@typescript-eslint/eslint-plugin/5.19.0_f34adc8488d2e4f014fe61432d70cbf2:
@@ -2933,8 +2933,8 @@ packages:
     resolution: {integrity: sha512-zMq5n3cOf4fOzA4WoeulxagbAgMChdev3MgP6K51k7M0u2whTXxupfIY4VVzws4vxkiWhwH1rVQcsw7zDGfRhA==}
     dev: true
 
-  /mlly/0.5.1:
-    resolution: {integrity: sha512-0axKqxbYyQvaAfi6BNqDluCJqg6RkjdsdFxSDoiP6l5HplSTr3ie5Vkxvw9U9ogdj65x56amTnAn+xSoP727Rg==}
+  /mlly/0.5.2:
+    resolution: {integrity: sha512-4GTELSSErv6ZZJYU98fZNuIBJcXSz+ktHdRrCYEqU1m6ZlebOCG0jwZ+IEd9vOrbpYsVBBMC5OTrEyLnKRcauQ==}
     dependencies:
       pathe: 0.2.0
       pkg-types: 0.3.2
@@ -3839,8 +3839,8 @@ packages:
       which-boxed-primitive: 1.0.2
     dev: true
 
-  /unbuild/0.7.3:
-    resolution: {integrity: sha512-P3w2ZBhQ9bBOBbIEJx1n9I9lhe+WMfqHk6nIqd0D71kW8Vua+Rpn4IhWCsLYIxwP5sgy90ZRXUKa2Fbox/KITw==}
+  /unbuild/0.7.4:
+    resolution: {integrity: sha512-gJvfMw4h5Q7xieMCeW/d3wtNKZDpFyDR9651s8kL+AGp95sMNhAFRLxy24AUKC3b5EQbB74vaDoU5R+XwsZC6A==}
     hasBin: true
     dependencies:
       '@rollup/plugin-alias': 3.1.9_rollup@2.70.1
@@ -3858,7 +3858,7 @@ packages:
       magic-string: 0.26.1
       mkdirp: 1.0.4
       mkdist: 0.3.10_typescript@4.6.3
-      mlly: 0.5.1
+      mlly: 0.5.2
       mri: 1.2.0
       pathe: 0.2.0
       pkg-types: 0.3.2

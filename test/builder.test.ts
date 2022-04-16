@@ -2,16 +2,16 @@ import { type Listener, listen } from 'listhen'
 import { getQuery } from 'ufo'
 import { createApp, useBody } from 'h3'
 import { describe, beforeEach, afterEach, it, expect } from 'vitest'
-import { type ClientBuilder, createClient } from '../src/builder'
+import { type ApiClientBuilder, createClient } from '../src/builder'
 
 // Test TypeScript support
-interface TypedResponse {
+interface TypedGetResponse {
   foo: string
 }
 
 describe('rest client', () => {
   let listener: Listener
-  let client: ClientBuilder
+  let client: ApiClientBuilder
 
   beforeEach(async () => {
     const app = createApp()
@@ -25,7 +25,11 @@ describe('rest client', () => {
       }))
       .use('/params', req => getQuery(req.url || ''))
     listener = await listen(app, { port: 3001 })
-    client = createClient(listener.url)
+    client = createClient(listener.url, {
+      headers: {
+        'X-Foo': 'bar'
+      }
+    })
   })
 
   afterEach(async () => {
@@ -33,7 +37,7 @@ describe('rest client', () => {
   })
 
   it('GET request', async () => {
-    const response = await client.foo.get<TypedResponse>()
+    const response = await client.foo.get()
     expect(response).to.deep.equal({ foo: 'bar' })
   })
 
@@ -60,29 +64,38 @@ describe('rest client', () => {
     expect(response.method).to.equal('PATCH')
   })
 
-  it('Query parameter', async () => {
+  it('query parameter', async () => {
     const response = await client.params.get({ test: 'true' })
     expect(response).to.deep.equal({ test: 'true' })
   })
 
-  it('Bracket syntax for path segment', async () => {
-    const response = await client.foo['1'].get<TypedResponse>()
+  it('default options', async () => {
+    const { headers } = await client.bar.post()
+    expect(headers).to.include({ 'x-foo': 'bar' })
+  })
+
+  it('override default options', async () => {
+    const { headers } = await client.bar.post({}, { headers: { 'X-Foo': 'baz' } })
+    expect(headers).to.include({ 'x-foo': 'baz' })
+  })
+
+  it('bracket syntax for path segment', async () => {
+    const response = await client.foo['1'].get<TypedGetResponse>()
     expect(response).to.deep.equal({ foo: '1' })
   })
 
-  it('Chain syntax for path segment', async () => {
-    const response = await client.foo(1).get<TypedResponse>()
+  it('chain syntax for path segment', async () => {
+    const response = await client.foo(1).get<TypedGetResponse>()
     expect(response).to.deep.equal({ foo: '1' })
   })
 
-  it('Multiple path segments', async () => {
-    const response = await client('foo', '1').get<TypedResponse>()
+  it('multiple path segments', async () => {
+    const response = await client('foo', '1').get<TypedGetResponse>()
     expect(response).to.deep.equal({ foo: '1' })
   })
 
-  it('Invalid api endpoint', async () => {
-    await client.baz.get<TypedResponse>().catch((e) => {
-      expect(e.message).toMatch(/404 Not Found/)
-    })
+  it('invalid api endpoint', async () => {
+    const err = await client.baz.get<TypedGetResponse>().catch(err => err)
+    expect(err.message).to.contain('404 Not Found')
   })
 })

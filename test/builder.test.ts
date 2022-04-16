@@ -2,7 +2,7 @@ import { type Listener, listen } from 'listhen'
 import { getQuery } from 'ufo'
 import { createApp, useBody } from 'h3'
 import { describe, beforeEach, afterEach, it, expect } from 'vitest'
-import { type ApiClientBuilder, createClient } from '../src/builder'
+import { type ClientBuilder, createClient } from '../src/builder'
 
 // Test TypeScript support
 interface TypedGetResponse {
@@ -11,7 +11,7 @@ interface TypedGetResponse {
 
 describe('rest client', () => {
   let listener: Listener
-  let client: ApiClientBuilder
+  let client: ClientBuilder
 
   beforeEach(async () => {
     const app = createApp()

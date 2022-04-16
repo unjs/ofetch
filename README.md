@@ -29,7 +29,7 @@ yarn add ofetch
 Import:
 
 ```js
-// ESM / Typescript
+// ESM / TypeScript
 import { ofetch } from 'ofetch'
 
 // CommonJS

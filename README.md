@@ -11,8 +11,8 @@ A better fetch API. Works on node, browser and workers.
 
 ## 🧩 Features
 
-- 🦾 Works in the browser, workers and Node.js
-- 🪵 [Type-safe REST client](#-rest-client)
+- 🦾 Works everywhere: browser, workers and Node.js
+- 🪵 [Type-safe REST client](#-rest-client-with-createclient)
 
 ## 🚀 Quick Start
 
@@ -199,7 +199,7 @@ await ofetch('/api', {
 })
 ```
 
-## ✔️ Create fetch with default options
+## ✔️ Create Fetch With Default Options
 
 This utility is useful if you need to use common options across several fetch calls.
 
@@ -211,30 +211,62 @@ const apiFetch = ofetch.create({ baseURL: '/api' })
 apiFetch('/test') // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
-## 🪵 REST client
+## 🪵 REST Client With `createClient`
 
-You can build a minimal, type-safe REST client for any given API. It uses JS proxies under the hood.
+You can use `ohmyfetch` as a minimal, type-safe REST client for any given API. The API builder uses JS proxies under the hood.
 
 ```js
-import { createClient } from 'ohmyfetch';
+import { createClient } from 'ohmyfetch'
 
-const api = createApi('<baseURL>', {
+const api = createClient('<baseURL>', {
   // Set optional defaults for `$fetch`
-});
+})
+```
 
+### Path Segment Chaining
+
+Chain single path segments or path ids by a dot. You can even type the response of your request!
+
+```js
 // GET request to <baseURL>/users
-const allUsers = await api.users.get()
+const users = await api.users.get<UserResponse>()
 
+// For GET request you can add search params
+// <baseURL>/users?search=john
+const users = await api.users.get<UserResponse>({ search: 'john' })
+```
+
+To include dynamic API path segments, you have two options:
+
+```js
 // Typed GET request to <baseURL>/users/1
 const userId = 1
 // … using the chain syntax:
 const user = await api.users(userId).get<UserResponse>()
 // … or the bracket syntax:
 const user = await api.users[`${userId}`].get<UserResponse>()
+```
 
+### HTTP Request Methods
+
+Add the appropriate method to the end of your API call. The following methods are supported:
+
+- `get()`
+- `post()`
+- `put()`
+- `delete()`
+- `patch()`
+
+### Payload Requests
+
+For HTTP request methods supporting a payload, add it to the method call:
+
+```js
 // POST request to <baseURL>/users
 const response = await api.users.post({ name: 'foo' })
 ```
+
+### Overwrite Default Options
 
 You can add/overwrite `$fetch` options on a method-level as well:
 
@@ -246,7 +278,7 @@ const response = await api.users.get({
 })
 ```
 
-## 💡 Adding headers
+## 💡 Adding Headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:
 

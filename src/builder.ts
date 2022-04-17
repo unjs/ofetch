@@ -41,16 +41,10 @@ export function createClient<R extends ResponseType = 'json'> (
           data?: RequestInit['body'] | Record<string, any>,
           opts: FetchOptions<R> = {}
         ) => {
-          switch (method) {
-            case 'GET':
-              if (data) {
-                url = withQuery(url, data as QueryObject)
-              }
-              break
-            case 'POST':
-            case 'PUT':
-            case 'PATCH':
-              opts.body = data
+          if (method === 'GET' && data) {
+            url = withQuery(url, data as QueryObject)
+          } else if (['POST', 'PUT', 'PATCH'].includes(method)) {
+            opts.body = data
           }
 
           opts.method = method

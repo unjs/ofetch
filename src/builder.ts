@@ -1,6 +1,7 @@
 import { resolveURL, withQuery } from 'ufo'
 import { defu } from 'defu'
 import type { QueryObject } from 'ufo'
+import { isPayloadMethod } from './utils'
 import type { FetchOptions } from './fetch'
 import type { ResponseType, MappedType } from './types'
 import { $fetch } from './undici'
@@ -42,7 +43,7 @@ export function createClient<R extends ResponseType = 'json'> (
         ) => {
           if (method === 'GET' && data) {
             url = withQuery(url, data as QueryObject)
-          } else if (['POST', 'PUT', 'PATCH'].includes(method)) {
+          } else if (isPayloadMethod(method)) {
             opts.body = data
           }
 

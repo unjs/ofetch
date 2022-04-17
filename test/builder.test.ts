@@ -25,7 +25,8 @@ describe('rest client', () => {
       }))
       .use('/params', req => getQuery(req.url || ''))
     listener = await listen(app, { port: 3001 })
-    client = createClient(listener.url, {
+    client = createClient({
+      baseURL: listener.url,
       headers: {
         'X-Foo': 'bar'
       }

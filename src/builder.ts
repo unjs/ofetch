@@ -22,8 +22,7 @@ export type ClientBuilder = {
 }
 
 export function createClient<R extends ResponseType = 'json'> (
-  url: string,
-  defaults: Omit<FetchOptions<R>, 'method'> = {}
+  globalOptions: Omit<FetchOptions<R>, 'method'> = {}
 ): ClientBuilder {
   // Callable internal target required to use `apply` on it
   const internalTarget = (() => {}) as ClientBuilder
@@ -49,7 +48,7 @@ export function createClient<R extends ResponseType = 'json'> (
 
           opts.method = method
 
-          return $fetch<T, R>(url, defu(opts, defaults) as FetchOptions<R>)
+          return $fetch<T, R>(url, defu(opts, globalOptions) as FetchOptions<R>)
         }
 
         return handler
@@ -60,5 +59,5 @@ export function createClient<R extends ResponseType = 'json'> (
     })
   }
 
-  return p(url)
+  return p(globalOptions.baseURL ?? '/')
 }

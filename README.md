@@ -218,10 +218,13 @@ You can use `ohmyfetch` as a minimal, type-safe REST client for any given API. T
 ```js
 import { createClient } from 'ohmyfetch'
 
-const api = createClient('<baseURL>', {
+const api = createClient({
   // Set optional defaults for `$fetch`
+  baseURL: '<baseURL>'
 })
 ```
+
+The `baseURL` will default to `/` if not set.
 
 ### Path Segment Chaining
 

@@ -59,5 +59,5 @@ export function createClient<R extends ResponseType = 'json'> (
     })
   }
 
-  return p(globalOptions.baseURL ?? '/')
+  return p(globalOptions.baseURL || '/')
 }

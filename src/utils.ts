@@ -4,7 +4,10 @@ export function isPayloadMethod (method: string = 'GET') {
 }
 
 export function isJSONSerializable (val: any) {
-  if (val === undefined) {
+  if (val === undefined || val === null) {
+    return false
+  }
+  if (val instanceof FormData || val instanceof Blob || val instanceof File) {
     return false
   }
   const t = typeof val

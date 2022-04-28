@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "destr": "^1.1.1",
-    "node-fetch": "^3.2.3",
+    "node-fetch": "^3.2.4",
     "ufo": "^0.8.3",
     "undici": "^5.0.0"
   },
@@ -53,7 +53,7 @@
     "@types/flat": "latest",
     "@types/node": "latest",
     "@types/node-fetch": "^3.0.3",
-    "c8": "^7.11.0",
+    "c8": "^7.11.2",
     "eslint": "latest",
     "fetch-blob": "^3.1.5",
     "formdata-polyfill": "^4.0.10",
@@ -63,7 +63,7 @@
     "standard-version": "latest",
     "typescript": "latest",
     "unbuild": "latest",
-    "vitest": "^0.9.3"
+    "vitest": "^0.10.0"
   },
-  "packageManager": "pnpm@6.32.7"
+  "packageManager": "pnpm@6.32.11"
 }

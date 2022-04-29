@@ -28,7 +28,7 @@ const textTypes = new Set([
   'application/html'
 ])
 
-const jsonTypes = new Set(['application/json', 'application/ld+json'])
+const JSON_RE = /^application\/(?:[\w!#$%&*`\-.^~]*\+)?json(;.+)?$/i
 
 interface ResponseMap {
   blob: Blob
@@ -48,7 +48,7 @@ export function detectResponseType (_contentType = ''): ResponseType {
   // Value might look like: `application/json; charset=utf-8`
   const contentType = _contentType.split(';').shift()!
 
-  if (jsonTypes.has(contentType)) {
+  if (JSON_RE.test(contentType)) {
     return 'json'
   }
 

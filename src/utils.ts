@@ -28,7 +28,7 @@ const textTypes = new Set([
   'application/html'
 ])
 
-const JSON_RE = /^application\/(?:[\w!#$%&*`\-.^~]*\+)?json$/i
+const JSON_RE = /^application\/(?:[\w!#$%&*`\-.^~]*\+)?json(;.+)?$/i
 
 interface ResponseMap {
   blob: Blob

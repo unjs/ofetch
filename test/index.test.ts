@@ -1,6 +1,6 @@
 import { listen } from 'listhen'
 import { getQuery, joinURL } from 'ufo'
-import { createApp, useBody } from 'h3'
+import { createApp, useBody, useRawBody } from 'h3'
 import { Blob } from 'fetch-blob'
 import { FormData } from 'formdata-polyfill/esm.min.js'
 import { describe, beforeEach, afterEach, it, expect } from 'vitest'
@@ -20,6 +20,7 @@ describe('ohmyfetch', () => {
         res.setHeader('Content-Type', 'application/octet-stream')
         return new Blob(['binary'])
       })
+      .use('/echo', async req => ({ body: await useRawBody(req) }))
     listener = await listen(app)
   })
 
@@ -71,6 +72,12 @@ describe('ohmyfetch', () => {
       expect(headers).to.include({ 'x-header': '1' })
       expect(headers).to.include({ accept: 'application/json' })
     }
+  })
+
+  it('does not stringify body when content type != application/json', async () => {
+    const msg = '"Hallo von Pascal"'
+    const { body } = await $fetch(getURL('echo'), { method: 'POST', body: msg, headers: { 'Content-Type': 'text/plain' } })
+    expect(body).to.deep.eq(msg)
   })
 
   it('Bypass FormData body', async () => {

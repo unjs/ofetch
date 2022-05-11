@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.17](https://github.com/unjs/ohmyfetch/compare/v0.4.16...v0.4.17) (2022-05-11)
+
+
+### Features
+
+* use `node-fetch-native` ([a881acb](https://github.com/unjs/ohmyfetch/commit/a881acb4067406092e25a1f97ff576040e279bce))
+
 ### [0.4.16](https://github.com/unjs/ohmyfetch/compare/v0.4.15...v0.4.16) (2022-04-29)
 
 

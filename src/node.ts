@@ -1,6 +1,6 @@
 import http from 'http'
 import https, { AgentOptions } from 'https'
-import nodeFetch, { Headers as _Headers } from 'node-fetch'
+import nodeFetch, { Headers as _Headers } from 'node-fetch-native'
 
 import { createFetch } from './base'
 

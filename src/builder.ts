@@ -1,4 +1,5 @@
 import { resolveURL, withQuery } from 'ufo'
+import { defu } from 'defu'
 import type { QueryObject } from 'ufo'
 import type { FetchOptions } from './fetch'
 import type { ResponseType, MappedType } from './types'
@@ -38,7 +39,7 @@ export function createClient<R extends ResponseType = 'json'> (
 
         const handler: ClientMethodHandler = <T = any, R extends ResponseType = 'json'>(
           data?: RequestInit['body'] | Record<string, any>,
-          opts: Omit<FetchOptions<R>, 'baseURL' | 'method'> = {}
+          opts: FetchOptions<R> = {}
         ) => {
           switch (method) {
             case 'GET':
@@ -50,11 +51,9 @@ export function createClient<R extends ResponseType = 'json'> (
               opts.body = data
           }
 
-          return $fetch<T, R>(url, {
-            ...(defaults as unknown as FetchOptions<R>),
-            ...opts,
-            method
-          })
+          opts.method = method
+
+          return $fetch<T, R>(url, defu(opts, defaults) as FetchOptions<R>)
         }
 
         return handler

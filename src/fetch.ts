@@ -114,6 +114,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
     if (Error.captureStackTrace) {
       Error.captureStackTrace(error, $fetchRaw);
     }
+
     throw error;
   }
 

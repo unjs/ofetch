@@ -1,5 +1,4 @@
 import { resolveURL, withQuery } from 'ufo'
-import { defu } from 'defu'
 import type { QueryObject } from 'ufo'
 import { isPayloadMethod } from './utils'
 import type { FetchOptions } from './fetch'
@@ -47,9 +46,11 @@ export function createClient<R extends ResponseType = 'json'> (
             opts.body = data
           }
 
-          opts.method = method
-
-          return $fetch<T, R>(url, defu(opts, globalOptions) as FetchOptions<R>)
+          return $fetch<T, R>(url, {
+            ...(globalOptions as FetchOptions<R>),
+            ...opts,
+            method
+          })
         }
 
         return handler

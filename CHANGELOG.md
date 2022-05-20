@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.18](https://github.com/unjs/ohmyfetch/compare/v0.4.17...v0.4.18) (2022-05-20)
+
+
+### Bug Fixes
+
+* only serialize JSON bodies ([#80](https://github.com/unjs/ohmyfetch/issues/80)) ([dc237d4](https://github.com/unjs/ohmyfetch/commit/dc237d489a68936996c9ab95dce35ca9e0d2b2e4))
+
 ### [0.4.17](https://github.com/unjs/ohmyfetch/compare/v0.4.16...v0.4.17) (2022-05-11)
 
 

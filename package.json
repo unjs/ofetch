@@ -62,7 +62,7 @@
     "standard-version": "latest",
     "typescript": "latest",
     "unbuild": "latest",
-    "vitest": "^0.12.6"
+    "vitest": "^0.12.7"
   },
   "packageManager": "pnpm@7.1.2"
 }

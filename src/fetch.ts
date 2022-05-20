@@ -106,7 +106,13 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       }
       if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
         if (isJSONSerializable(ctx.options.body)) {
-          ctx.options.body = JSON.stringify(ctx.options.body)
+          // Automatically JSON stringify request bodies, when not already a string.
+          ctx.options.body = typeof ctx.options.body === 'string'
+            ? ctx.options.body
+            : JSON.stringify(ctx.options.body)
+
+          // Set Content-Type and Accept headers to application/json by default
+          // for JSON serializable request bodies.
           ctx.options.headers = new Headers(ctx.options.headers)
           if (!ctx.options.headers.has('content-type')) {
             ctx.options.headers.set('content-type', 'application/json')

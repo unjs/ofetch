@@ -1,6 +1,6 @@
 import { resolveURL, withQuery } from 'ufo'
 import type { QueryObject } from 'ufo'
-import { isPayloadMethod } from './utils'
+import { headersToObject, isPayloadMethod } from './utils'
 import type { FetchOptions } from './fetch'
 import type { ResponseType, MappedType } from './types'
 import { $fetch } from './undici'
@@ -49,6 +49,10 @@ export function createClient<R extends ResponseType = 'json'> (
           return $fetch<T, R>(url, {
             ...(globalOptions as FetchOptions<R>),
             ...opts,
+            headers: {
+              ...(headersToObject(globalOptions.headers) || {}),
+              ...(headersToObject(opts.headers) || {})
+            },
             method
           })
         }

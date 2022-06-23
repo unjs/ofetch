@@ -141,6 +141,8 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       const data = await ctx.response.text()
       const parseFn = ctx.options.parseResponse || destr
       ctx.response._data = parseFn(data)
+    } else if (responseType === 'stream') {
+      ctx.response._data = ctx.response.body
     } else {
       ctx.response._data = await ctx.response[responseType]()
     }

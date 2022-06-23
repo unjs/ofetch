@@ -34,6 +34,7 @@ interface ResponseMap {
   blob: Blob
   text: string
   arrayBuffer: ArrayBuffer
+  stream: ReadableStream<Uint8Array>
 }
 
 export type ResponseType = keyof ResponseMap | 'json'

@@ -13,7 +13,7 @@ export interface CreateFetchOptions {
 
 export type FetchRequest = RequestInfo
 export interface FetchResponse<T> extends Response { _data?: T }
-export interface SearchParams { [key: string]: any }
+export type SearchQuery = Record<string, any>
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest
@@ -26,7 +26,7 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
 export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
-  params?: SearchParams
+  query?: SearchQuery
   parseResponse?: (responseText: string) => any
   responseType?: R
   response?: boolean
@@ -105,8 +105,8 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       if (ctx.options.baseURL) {
         ctx.request = withBase(ctx.request, ctx.options.baseURL)
       }
-      if (ctx.options.params) {
-        ctx.request = withQuery(ctx.request, ctx.options.params)
+      if (ctx.options.query) {
+        ctx.request = withQuery(ctx.request, ctx.options.query)
       }
       if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
         if (isJSONSerializable(ctx.options.body)) {

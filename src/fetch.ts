@@ -1,8 +1,9 @@
+import defu from 'defu'
 import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
-import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
-import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
+import type { Fetch, RequestInfo, RequestInit, Response } from './types'
+import { detectResponseType, isJSONSerializable, isPayloadMethod, MappedType, ResponseType } from './utils'
 
 export interface CreateFetchOptions {
   // eslint-disable-next-line no-use-before-define
@@ -68,10 +69,7 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
 
       const responseCode = (ctx.response && ctx.response.status) || 500
       if (retries > 0 && retryStatusCodes.has(responseCode)) {
-        return $fetchRaw(ctx.request, {
-          ...ctx.options,
-          retry: retries - 1
-        })
+        return $fetchRaw(ctx.request, defu({ retry: retries - 1 }, ctx.options))
       }
     }
 
@@ -88,7 +86,8 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
   const $fetchRaw: $Fetch['raw'] = async function $fetchRaw (_request, _opts = {}) {
     const ctx: FetchContext = {
       request: _request,
-      options: { ...globalOptions.defaults, ..._opts },
+      // @ts-expect-error
+      options: defu(_opts, globalOptions.defaults), // defu has already handled `undefined` for 2nd param
       response: undefined,
       error: undefined
     }
@@ -164,13 +163,9 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
 
   $fetch.raw = $fetchRaw
 
-  $fetch.create = (defaultOptions = {}) => createFetch({
-    ...globalOptions,
-    defaults: {
-      ...globalOptions.defaults,
-      ...defaultOptions
-    }
-  })
+  $fetch.create = (defaultOptions = {}) => createFetch(
+    defu({ defaults: defaultOptions }, globalOptions)
+  )
 
   return $fetch
 }

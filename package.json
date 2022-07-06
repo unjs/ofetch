@@ -43,6 +43,7 @@
     "test": "pnpm lint && vitest run"
   },
   "dependencies": {
+    "defu": "^6.0.0",
     "destr": "^1.1.1",
     "node-fetch-native": "^0.1.4",
     "ufo": "^0.8.4",

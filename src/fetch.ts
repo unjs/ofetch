@@ -1,8 +1,8 @@
 import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
-import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
-import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
+import type { Fetch, RequestInfo, RequestInit, Response } from './types'
+import { detectResponseType, isJSONSerializable, isPayloadMethod, MappedType, ResponseType } from './utils'
 
 export interface CreateFetchOptions {
   // eslint-disable-next-line no-use-before-define
@@ -26,6 +26,7 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
 export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
+  params?: SearchQuery
   query?: SearchQuery
   parseResponse?: (responseText: string) => any
   responseType?: R
@@ -95,6 +96,13 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       options: { ...globalOptions.defaults, ..._opts },
       response: undefined,
       error: undefined
+    }
+
+    if (typeof ctx.options.params !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.warn('`params` has been renamed to `query` and will be deprecated.')
+      ctx.options.query = { ...ctx.options.params }
+      delete ctx.options.params
     }
 
     if (ctx.options.onRequest) {

@@ -1,10 +1,10 @@
-import { listen } from 'listhen'
-import { getQuery, joinURL } from 'ufo'
-import { createApp, useBody, useRawBody } from 'h3'
 import { Blob } from 'fetch-blob'
 import { FormData } from 'formdata-polyfill/esm.min.js'
-import { describe, beforeEach, afterEach, it, expect } from 'vitest'
-import { Headers, $fetch } from '../src/node'
+import { createApp, useBody, useRawBody } from 'h3'
+import { listen } from 'listhen'
+import { getQuery, joinURL } from 'ufo'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { $fetch, Headers } from '../src/node'
 
 describe('ohmyfetch', () => {
   let listener
@@ -114,5 +114,13 @@ describe('ohmyfetch', () => {
       console.log('res', res)
     }
     expect(abortHandle()).rejects.toThrow(/aborted/)
+  })
+
+  it('shows deprecated warning for `params`', async () => {
+    vi.spyOn(console, 'warn')
+    const res = await $fetch('/search', { baseURL: getURL('url'), params: { foo: 'bar' } })
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith('`params` has been renamed to `query` and will be deprecated.')
+    expect(res).to.equal('/search?foo=bar')
   })
 })

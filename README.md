@@ -141,7 +141,7 @@ await $fetch('/movie?lang=en', { params: { id: 123 } })
 
 ## ✔️ Interceptors
 
-It is possible to provide async interceptors to hook into lifecycle events of `fetch` call.
+It is possible to provide async interceptors to hook into lifecycle events of `$fetch` call.
 
 You might want to use `$fetch.create` to set set shared interceptors.
 

@@ -105,4 +105,14 @@ describe('ohmyfetch', () => {
     const err = await $fetch('', { baseURL: getURL('404'), retry: 3 }).catch(err => err)
     expect(err.request).to.equal(getURL('404'))
   })
+
+  it('abort with retry', () => {
+    const controller = new AbortController()
+    async function abortHandle () {
+      controller.abort()
+      const res = await $fetch('', { baseURL: getURL('ok'), retry: 3, signal: controller.signal })
+      console.log('res', res)
+    }
+    expect(abortHandle()).rejects.toThrow(/aborted/)
+  })
 })

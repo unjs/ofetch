@@ -60,8 +60,12 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
   const { fetch, Headers } = globalOptions
 
   function onError (ctx: FetchContext): Promise<FetchResponse<any>> {
+    // Is Abort
+    // If it is an active abort, it will not retry automatically.
+    // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
+    const isAbort = (ctx.error && ctx.error.name === 'AbortError') || false
     // Retry
-    if (ctx.options.retry !== false) {
+    if (ctx.options.retry !== false && !isAbort) {
       const retries = typeof ctx.options.retry === 'number'
         ? ctx.options.retry
         : (isPayloadMethod(ctx.options.method) ? 0 : 1)

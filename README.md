@@ -51,7 +51,7 @@ On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
 
 ### `keepAlive` support
 
-By setting `FETCH_KEEP_ALIVE` environment variable to `true`, A http/https agent will be registred that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
+By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an http/https agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
 
 **Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
 

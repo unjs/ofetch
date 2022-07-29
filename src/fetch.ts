@@ -1,5 +1,5 @@
 import destr from 'destr'
-import { withBase, withQuery } from 'ufo'
+import { withBase, withQuery, hasProtocol } from 'ufo'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
 import { createFetchError } from './error'
 import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
@@ -98,7 +98,7 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
     }
 
     if (typeof ctx.request === 'string') {
-      if (ctx.options.baseURL) {
+      if (ctx.options.baseURL && !hasProtocol(ctx.request)) {
         ctx.request = withBase(ctx.request, ctx.options.baseURL)
       }
       if (ctx.options.params) {

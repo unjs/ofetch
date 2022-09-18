@@ -45,16 +45,16 @@
   "dependencies": {
     "destr": "^1.1.1",
     "node-fetch-native": "^0.1.4",
-    "ufo": "^0.8.4",
-    "undici": "^5.5.1"
+    "ufo": "^0.8.5",
+    "undici": "^5.10.0"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
     "@types/flat": "latest",
     "@types/node": "latest",
-    "c8": "^7.11.3",
+    "c8": "^7.12.0",
     "eslint": "latest",
-    "fetch-blob": "^3.1.5",
+    "fetch-blob": "^3.2.0",
     "formdata-polyfill": "^4.0.10",
     "h3": "latest",
     "jiti": "latest",
@@ -62,7 +62,7 @@
     "standard-version": "latest",
     "typescript": "latest",
     "unbuild": "latest",
-    "vitest": "^0.15.1"
+    "vitest": "^0.23.4"
   },
-  "packageManager": "pnpm@7.3.0"
+  "packageManager": "pnpm@7.12.0"
 }

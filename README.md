@@ -125,15 +125,15 @@ const article = await $fetch<Article>(`/api/article/${id}`)
 
 ## ✔️ Adding `baseURL`
 
-By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and search query for baseURL using [ufo](https://github.com/unjs/ufo):
+By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
 
 ```js
 await $fetch('/config', { baseURL })
 ```
 
-## ✔️ Adding Search Query Params
+## ✔️ Adding Query Search Params
 
-By using `query` option, `$fetch` adds search query to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
+By using `query` option (or `params` as alias), `$fetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
 
 ```js
 await $fetch('/movie?lang=en', { query: { id: 123 } })
@@ -155,7 +155,7 @@ await $fetch('/api', {
     // Log request
     console.log('[fetch request]', request, options)
 
-    // Add `?t=1640125211170` to search query
+    // Add `?t=1640125211170` to query search params
     options.query = options.query
     options.query.t = new Date()
   }

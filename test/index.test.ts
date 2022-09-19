@@ -1,10 +1,10 @@
-import { Blob } from 'fetch-blob'
-import { FormData } from 'formdata-polyfill/esm.min.js'
-import { createApp, useBody, useRawBody } from 'h3'
 import { listen } from 'listhen'
 import { getQuery, joinURL } from 'ufo'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { $fetch, Headers } from '../src/node'
+import { createApp, useBody, useRawBody } from 'h3'
+import { Blob } from 'fetch-blob'
+import { FormData } from 'formdata-polyfill/esm.min.js'
+import { describe, beforeEach, afterEach, it, expect } from 'vitest'
+import { Headers, $fetch } from '../src/node'
 
 describe('ohmyfetch', () => {
   let listener

@@ -1,8 +1,8 @@
 import destr from 'destr'
 import { withBase, withQuery } from 'ufo'
-import { createFetchError } from './error'
 import type { Fetch, RequestInfo, RequestInit, Response } from './types'
-import { detectResponseType, isJSONSerializable, isPayloadMethod, MappedType, ResponseType } from './utils'
+import { createFetchError } from './error'
+import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
 
 export interface CreateFetchOptions {
   // eslint-disable-next-line no-use-before-define

@@ -34,6 +34,7 @@ interface ResponseMap {
   blob: Blob
   text: string
   arrayBuffer: ArrayBuffer
+  stream: ReadableStream<Uint8Array>
 }
 
 export type ResponseType = keyof ResponseMap | 'json'
@@ -51,6 +52,11 @@ export function detectResponseType (_contentType = ''): ResponseType {
   if (JSON_RE.test(contentType)) {
     return 'json'
   }
+
+  // TODO
+  // if (contentType === 'application/octet-stream') {
+  //   return 'stream'
+  // }
 
   if (textTypes.has(contentType) || contentType.startsWith('text/')) {
     return 'text'

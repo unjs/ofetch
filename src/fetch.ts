@@ -27,6 +27,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType> extends Omi
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
+  query?: SearchParams
   parseResponse?: (responseText: string) => any
   responseType?: R
   response?: boolean
@@ -105,8 +106,8 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       if (ctx.options.baseURL) {
         ctx.request = withBase(ctx.request, ctx.options.baseURL)
       }
-      if (ctx.options.params) {
-        ctx.request = withQuery(ctx.request, ctx.options.params)
+      if (ctx.options.query || ctx.options.params) {
+        ctx.request = withQuery(ctx.request, { ...ctx.options.params, ...ctx.options.query })
       }
       if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
         if (isJSONSerializable(ctx.options.body)) {

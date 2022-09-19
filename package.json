@@ -40,7 +40,7 @@
     "prepack": "pnpm build",
     "play": "jiti playground/index.ts",
     "release": "pnpm test && standard-version && git push --follow-tags && pnpm publish",
-    "test": "pnpm lint && vitest run"
+    "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
     "destr": "^1.1.1",
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^11.0.0",
     "@types/node": "^18.7.18",
-    "c8": "^7.12.0",
+    "@vitest/coverage-c8": "^0.23.4",
     "eslint": "^8.23.1",
     "fetch-blob": "^3.2.0",
     "formdata-polyfill": "^4.0.10",

@@ -156,7 +156,7 @@ await $fetch('/api', {
     console.log('[fetch request]', request, options)
 
     // Add `?t=1640125211170` to query search params
-    options.query = options.query
+    options.query = options.query || {}
     options.query.t = new Date()
   }
 })

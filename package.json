@@ -40,29 +40,28 @@
     "prepack": "pnpm build",
     "play": "jiti playground/index.ts",
     "release": "pnpm test && standard-version && git push --follow-tags && pnpm publish",
-    "test": "pnpm lint && vitest run"
+    "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
     "destr": "^1.1.1",
-    "node-fetch-native": "^0.1.4",
-    "ufo": "^0.8.4",
-    "undici": "^5.5.1"
+    "node-fetch-native": "^0.1.5",
+    "ufo": "^0.8.5",
+    "undici": "^5.10.0"
   },
   "devDependencies": {
-    "@nuxtjs/eslint-config-typescript": "latest",
-    "@types/flat": "latest",
-    "@types/node": "latest",
-    "c8": "^7.11.3",
-    "eslint": "latest",
-    "fetch-blob": "^3.1.5",
+    "@nuxtjs/eslint-config-typescript": "^11.0.0",
+    "@types/node": "^18.7.18",
+    "@vitest/coverage-c8": "^0.23.4",
+    "eslint": "^8.23.1",
+    "fetch-blob": "^3.2.0",
     "formdata-polyfill": "^4.0.10",
-    "h3": "latest",
-    "jiti": "latest",
-    "listhen": "latest",
-    "standard-version": "latest",
-    "typescript": "latest",
-    "unbuild": "latest",
-    "vitest": "^0.15.1"
+    "h3": "^0.7.21",
+    "jiti": "^1.16.0",
+    "listhen": "^0.3.1",
+    "standard-version": "^9.5.0",
+    "typescript": "^4.8.3",
+    "unbuild": "^0.8.11",
+    "vitest": "^0.23.4"
   },
-  "packageManager": "pnpm@7.3.0"
+  "packageManager": "pnpm@7.12.0"
 }

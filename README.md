@@ -51,7 +51,7 @@ On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
 
 ### `keepAlive` support
 
-By setting `FETCH_KEEP_ALIVE` environment variable to `true`, A http/https agent will be registred that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
+By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an http/https agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
 
 **Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
 
@@ -125,23 +125,23 @@ const article = await $fetch<Article>(`/api/article/${id}`)
 
 ## ✔️ Adding `baseURL`
 
-By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query params for baseURL using [ufo](https://github.com/unjs/ufo):
+By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
 
 ```js
 await $fetch('/config', { baseURL })
 ```
 
-## ✔️ Adding params
+## ✔️ Adding Query Search Params
 
-By using `params` option, `$fetch` adds params to URL by preserving params in request itself using [ufo](https://github.com/unjs/ufo):
+By using `query` option (or `params` as alias), `$fetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
 
 ```js
-await $fetch('/movie?lang=en', { params: { id: 123 } })
+await $fetch('/movie?lang=en', { query: { id: 123 } })
 ```
 
 ## ✔️ Interceptors
 
-It is possible to provide async interceptors to hook into lifecycle events of `fetch` call.
+It is possible to provide async interceptors to hook into lifecycle events of `$fetch` call.
 
 You might want to use `$fetch.create` to set set shared interceptors.
 
@@ -155,9 +155,9 @@ await $fetch('/api', {
     // Log request
     console.log('[fetch request]', request, options)
 
-    // Add `?t=1640125211170` to query params
-    options.params = options.params
-    options.params.t = new Date()
+    // Add `?t=1640125211170` to query search params
+    options.query = options.query || {}
+    options.query.t = new Date()
   }
 })
 ```

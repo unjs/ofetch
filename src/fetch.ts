@@ -27,6 +27,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType> extends Omi
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
   params?: SearchParams
+  query?: SearchParams
   parseResponse?: (responseText: string) => any
   responseType?: R
   response?: boolean
@@ -60,8 +61,12 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
   const { fetch, Headers } = globalOptions
 
   function onError (ctx: FetchContext): Promise<FetchResponse<any>> {
+    // Is Abort
+    // If it is an active abort, it will not retry automatically.
+    // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
+    const isAbort = (ctx.error && ctx.error.name === 'AbortError') || false
     // Retry
-    if (ctx.options.retry !== false) {
+    if (ctx.options.retry !== false && !isAbort) {
       const retries = typeof ctx.options.retry === 'number'
         ? ctx.options.retry
         : (isPayloadMethod(ctx.options.method) ? 0 : 1)
@@ -101,8 +106,8 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       if (ctx.options.baseURL) {
         ctx.request = withBase(ctx.request, ctx.options.baseURL)
       }
-      if (ctx.options.params) {
-        ctx.request = withQuery(ctx.request, ctx.options.params)
+      if (ctx.options.query || ctx.options.params) {
+        ctx.request = withQuery(ctx.request, { ...ctx.options.params, ...ctx.options.query })
       }
       if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
         if (isJSONSerializable(ctx.options.body)) {

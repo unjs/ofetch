@@ -1,41 +1,39 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@nuxtjs/eslint-config-typescript': latest
-  '@types/flat': latest
-  '@types/node': latest
+  '@nuxtjs/eslint-config-typescript': ^11.0.0
+  '@types/node': ^18.7.18
   c8: ^7.12.0
   destr: ^1.1.1
-  eslint: latest
+  eslint: ^8.23.1
   fetch-blob: ^3.2.0
   formdata-polyfill: ^4.0.10
-  h3: latest
-  jiti: latest
-  listhen: latest
-  node-fetch-native: ^0.1.4
-  standard-version: latest
-  typescript: latest
+  h3: ^0.7.21
+  jiti: ^1.16.0
+  listhen: ^0.3.1
+  node-fetch-native: ^0.1.5
+  standard-version: ^9.5.0
+  typescript: ^4.8.3
   ufo: ^0.8.5
-  unbuild: latest
+  unbuild: ^0.8.11
   undici: ^5.10.0
   vitest: ^0.23.4
 
 dependencies:
   destr: 1.1.1
-  node-fetch-native: 0.1.4
+  node-fetch-native: 0.1.5
   ufo: 0.8.5
   undici: 5.10.0
 
 devDependencies:
   '@nuxtjs/eslint-config-typescript': 11.0.0_irgkl5vooow2ydyo6aokmferha
-  '@types/flat': 5.0.2
   '@types/node': 18.7.18
   c8: 7.12.0
   eslint: 8.23.1
   fetch-blob: 3.2.0
   formdata-polyfill: 4.0.10
   h3: 0.7.21
-  jiti: 1.15.0
+  jiti: 1.16.0
   listhen: 0.3.1
   standard-version: 9.5.0
   typescript: 4.8.3
@@ -50,15 +48,6 @@ packages:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
-
-  /@babel/code-frame/7.16.7:
-    resolution: {integrity: sha512-iAXqUn8IIeBTNd72xsFlgaXHkMBMt6y4HJp1tIaK465CWLT/fG1aqB7ykr95gHHmlBdGbFeWWfyB4NJJ0nmeIg==}
-    engines: {node: '>=6.9.0'}
-    requiresBuild: true
-    dependencies:
-      '@babel/highlight': 7.17.9
-    dev: true
-    optional: true
 
   /@babel/code-frame/7.18.6:
     resolution: {integrity: sha512-TDCmlK5eOvH+eH7cdAFlNXeVJqWIQ7gW9tY1GJIpUtFb6CmjVyq2VM3u71bOyR8CRihcCgMUYoDNyLXao3+70Q==}
@@ -199,16 +188,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
-
-  /@babel/highlight/7.17.9:
-    resolution: {integrity: sha512-J9PfEKCbFIv2X5bjTMiZu6Vf341N05QIY+d6FvVKynkG1S7G0j3I0QoRtWIrXhZ+/Nlb5Q0MzqL7TokEJ5BNHg==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      '@babel/helper-validator-identifier': 7.19.1
-      chalk: 2.4.2
-      js-tokens: 4.0.0
-    dev: true
-    optional: true
 
   /@babel/highlight/7.18.6:
     resolution: {integrity: sha512-u7stbOuYjaPezCuLj29hNW1v64M2Md2qupEKP1fHc7WdOA3DgLh37suiSrZYY7haUB7iBeQZ9P1uiRF359do3g==}
@@ -474,7 +453,7 @@ packages:
       glob: 7.2.0
       is-reference: 1.2.1
       magic-string: 0.25.9
-      resolve: 1.22.0
+      resolve: 1.22.1
       rollup: 2.79.0
     dev: true
 
@@ -498,7 +477,7 @@ packages:
       deepmerge: 4.2.2
       is-builtin-module: 3.1.0
       is-module: 1.0.0
-      resolve: 1.22.0
+      resolve: 1.22.1
       rollup: 2.79.0
     dev: true
 
@@ -548,10 +527,6 @@ packages:
 
   /@types/estree/0.0.51:
     resolution: {integrity: sha512-CuPgU6f3eT/XgKKPqKd/gLZV1Xmvf1a2R5POBOGQa6uv82xpls89HU5zKeVoyR8XzHd1RGNOlQlvUe3CFkjWNQ==}
-    dev: true
-
-  /@types/flat/5.0.2:
-    resolution: {integrity: sha512-3zsplnP2djeps5P9OyarTxwRpMLoe5Ash8aL9iprw0JxB+FAHjY+ifn4yZUuW4/9hqtnmor6uvjSRzJhiVbrEQ==}
     dev: true
 
   /@types/istanbul-lib-coverage/2.0.4:
@@ -1987,7 +1962,7 @@ packages:
       is-glob: 4.0.3
       minimatch: 3.1.2
       object.values: 1.1.5
-      resolve: 1.22.0
+      resolve: 1.22.1
       tsconfig-paths: 3.14.1
     transitivePeerDependencies:
       - eslint-import-resolver-typescript
@@ -2023,7 +1998,7 @@ packages:
       eslint-utils: 2.1.0
       ignore: 5.2.0
       minimatch: 3.1.2
-      resolve: 1.22.0
+      resolve: 1.22.1
       semver: 6.3.0
     dev: true
 
@@ -2876,8 +2851,8 @@ packages:
       istanbul-lib-report: 3.0.0
     dev: true
 
-  /jiti/1.15.0:
-    resolution: {integrity: sha512-cClBkETOCVIpPMjX3ULlivuBvmt8l2Xtz+SHrULO06OqdtV0QFR2cuhc4FJnXByjUUX4CY0pl1nph0aFh9D3yA==}
+  /jiti/1.16.0:
+    resolution: {integrity: sha512-L3BJStEf5NAqNuzrpfbN71dp43mYIcBUlCRea/vdyv5dW/AYa1d4bpelko4SHdY3I6eN9Wzyasxirj1/vv5kmg==}
     hasBin: true
     dev: true
 
@@ -2938,10 +2913,6 @@ packages:
     resolution: {integrity: sha512-1hqLFMSrGHRHxav9q9gNjJ5EXznIxGVO09xQRrwplcS8qs28pZ8s8hupZAmqDwZUmVZ2Qb2jnyPOWcDH8m8dlA==}
     engines: {node: '>=6'}
     hasBin: true
-    dev: true
-
-  /jsonc-parser/3.0.0:
-    resolution: {integrity: sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==}
     dev: true
 
   /jsonc-parser/3.2.0:
@@ -3173,7 +3144,7 @@ packages:
       esbuild: 0.14.54
       fs-extra: 10.0.1
       globby: 11.1.0
-      jiti: 1.15.0
+      jiti: 1.16.0
       mri: 1.2.0
       pathe: 0.2.0
       typescript: 4.8.3
@@ -3229,8 +3200,8 @@ packages:
     engines: {node: '>=10.5.0'}
     dev: true
 
-  /node-fetch-native/0.1.4:
-    resolution: {integrity: sha512-10EKpOCQPXwZVFh3U1ptOMWBgKTbsN7Vvo6WVKt5pw4hp8zbv6ZVBZPlXw+5M6Tyi1oc1iD4/sNPd71KYA16tQ==}
+  /node-fetch-native/0.1.5:
+    resolution: {integrity: sha512-4NYY0JOTYFsahDjKy4gId6uuf7TPzkIDSDMuvtmlFd2Jf25tj9fQsDD5+kLdzM7sm6BbG8lL/154tdrsgN25Zw==}
     dev: false
 
   /node-forge/1.3.1:
@@ -3680,7 +3651,7 @@ packages:
       rollup: 2.79.0
       typescript: 4.8.3
     optionalDependencies:
-      '@babel/code-frame': 7.16.7
+      '@babel/code-frame': 7.18.6
     dev: true
 
   /rollup-plugin-esbuild/4.10.1_smomlxmjgt6y4akd764agnhchu:
@@ -3695,7 +3666,7 @@ packages:
       es-module-lexer: 0.9.3
       esbuild: 0.15.8
       joycon: 3.1.1
-      jsonc-parser: 3.0.0
+      jsonc-parser: 3.2.0
       rollup: 2.79.0
     transitivePeerDependencies:
       - supports-color
@@ -4138,7 +4109,7 @@ packages:
       esbuild: 0.15.8
       globby: 13.1.2
       hookable: 5.3.0
-      jiti: 1.15.0
+      jiti: 1.16.0
       magic-string: 0.26.3
       mkdirp: 1.0.4
       mkdist: 0.3.13_typescript@4.8.3

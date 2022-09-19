@@ -125,18 +125,18 @@ const article = await $fetch<Article>(`/api/article/${id}`)
 
 ## ✔️ Adding `baseURL`
 
-By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query params for baseURL using [ufo](https://github.com/unjs/ufo):
+By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
 
 ```js
 await $fetch('/config', { baseURL })
 ```
 
-## ✔️ Adding params
+## ✔️ Adding Query Search Params
 
-By using `params` option, `$fetch` adds params to URL by preserving params in request itself using [ufo](https://github.com/unjs/ufo):
+By using `query` option (or `params` as alias), `$fetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
 
 ```js
-await $fetch('/movie?lang=en', { params: { id: 123 } })
+await $fetch('/movie?lang=en', { query: { id: 123 } })
 ```
 
 ## ✔️ Interceptors
@@ -155,9 +155,9 @@ await $fetch('/api', {
     // Log request
     console.log('[fetch request]', request, options)
 
-    // Add `?t=1640125211170` to query params
-    options.params = options.params
-    options.params.t = new Date()
+    // Add `?t=1640125211170` to query search params
+    options.query = options.query
+    options.query.t = new Date()
   }
 })
 ```

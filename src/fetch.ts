@@ -13,7 +13,7 @@ export interface CreateFetchOptions {
 
 export type FetchRequest = RequestInfo
 export interface FetchResponse<T> extends Response { _data?: T }
-export type SearchQuery = Record<string, any>
+export interface SearchParams { [key: string]: any }
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest
@@ -26,8 +26,8 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
 export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
   baseURL?: string
   body?: RequestInit['body'] | Record<string, any>
-  params?: SearchQuery
-  query?: SearchQuery
+  params?: SearchParams
+  query?: SearchParams
   parseResponse?: (responseText: string) => any
   responseType?: R
   response?: boolean
@@ -98,13 +98,6 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       error: undefined
     }
 
-    if (typeof ctx.options.params !== 'undefined') {
-      // eslint-disable-next-line no-console
-      console.warn('`params` has been renamed to `query` and will be deprecated.')
-      ctx.options.query = { ...ctx.options.params }
-      delete ctx.options.params
-    }
-
     if (ctx.options.onRequest) {
       await ctx.options.onRequest(ctx)
     }
@@ -113,8 +106,8 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       if (ctx.options.baseURL) {
         ctx.request = withBase(ctx.request, ctx.options.baseURL)
       }
-      if (ctx.options.query) {
-        ctx.request = withQuery(ctx.request, ctx.options.query)
+      if (ctx.options.query || ctx.options.params) {
+        ctx.request = withQuery(ctx.request, { ...ctx.options.params, ...ctx.options.query })
       }
       if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
         if (isJSONSerializable(ctx.options.body)) {

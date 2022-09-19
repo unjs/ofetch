@@ -131,7 +131,7 @@ By using `baseURL` option, `$fetch` prepends it with respecting to trailing/lead
 await $fetch('/config', { baseURL })
 ```
 
-## ✔️ Adding query
+## ✔️ Adding Query Params
 
 By using `query` option, `$fetch` adds search query to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
 

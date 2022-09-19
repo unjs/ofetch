@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.19](https://github.com/unjs/ohmyfetch/compare/v0.4.18...v0.4.19) (2022-09-19)
+
+
+### Features
+
+* support `responseType: 'stream'` as `ReadableStream` ([#100](https://github.com/unjs/ohmyfetch/issues/100)) ([5a19f73](https://github.com/unjs/ohmyfetch/commit/5a19f73e97b13b6679ee2c75ad10b87480599d9b))
+
+
+### Bug Fixes
+
+* do not retry when fetch is aborted ([#112](https://github.com/unjs/ohmyfetch/issues/112)) ([b73fe67](https://github.com/unjs/ohmyfetch/commit/b73fe67aaa7d5d5b1a283b653e7cd7fb30a4cc21))
+
 ### [0.4.18](https://github.com/unjs/ohmyfetch/compare/v0.4.17...v0.4.18) (2022-05-20)
 
 

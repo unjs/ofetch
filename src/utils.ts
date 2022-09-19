@@ -53,9 +53,10 @@ export function detectResponseType (_contentType = ''): ResponseType {
     return 'json'
   }
 
-  if (contentType === 'application/octet-stream') {
-    return 'stream'
-  }
+  // TODO
+  // if (contentType === 'application/octet-stream') {
+  //   return 'stream'
+  // }
 
   if (textTypes.has(contentType) || contentType.startsWith('text/')) {
     return 'text'

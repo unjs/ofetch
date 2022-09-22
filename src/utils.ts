@@ -1,10 +1,9 @@
-import type { FetchOptions } from "./fetch";
+import type { ResponseType } from './types'
 
-const payloadMethods = new Set(
-  Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
-);
-export function isPayloadMethod(method = "GET") {
-  return payloadMethods.has(method.toUpperCase());
+const payloadMethods = new Set(['PATCH', 'POST', 'PUT', 'DELETE'])
+
+export function isPayloadMethod (method: string = 'GET') {
+  return payloadMethods.has(method.toUpperCase())
 }
 
 export function isJSONSerializable(value: any) {
@@ -35,19 +34,6 @@ const textTypes = new Set([
 ]);
 
 const JSON_RE = /^application\/(?:[\w!#$%&*.^`~-]*\+)?json(;.+)?$/i;
-
-export interface ResponseMap {
-  blob: Blob;
-  text: string;
-  arrayBuffer: ArrayBuffer;
-  stream: ReadableStream<Uint8Array>;
-}
-
-export type ResponseType = keyof ResponseMap | "json";
-export type MappedType<
-  R extends ResponseType,
-  JsonType = any
-> = R extends keyof ResponseMap ? ResponseMap[R] : JsonType;
 
 // This provides reasonable defaults for the correct parser based on Content-Type header.
 export function detectResponseType(_contentType = ""): ResponseType {

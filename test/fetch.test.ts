@@ -1,21 +1,15 @@
-import { listen } from "listhen";
-import { getQuery, joinURL } from "ufo";
-import {
-  createApp,
-  createError,
-  eventHandler,
-  readBody,
-  readRawBody,
-  toNodeListener,
-} from "h3";
-import { Blob } from "fetch-blob";
-import { FormData } from "formdata-polyfill/esm.min.js";
-import { describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Headers, $fetch } from "../src/node";
+import { listen } from 'listhen'
+import { getQuery, joinURL } from 'ufo'
+import { createApp, useBody, useRawBody } from 'h3'
+import { Blob } from 'fetch-blob'
+import { FormData } from 'formdata-polyfill/esm.min.js'
+import { describe, beforeEach, afterEach, it, expect } from 'vitest'
+import { Headers, $fetch } from '../src/node'
+import type { Listener } from 'listhen'
 
-describe("ofetch", () => {
-  let listener;
-  const getURL = (url) => joinURL(listener.url, url);
+describe('ofetch', () => {
+  let listener: Listener
+  const getURL = (url: string) => joinURL(listener.url, url)
 
   beforeAll(async () => {
     const app = createApp()

@@ -9,6 +9,11 @@
 
 A better fetch API. Works on node, browser and workers.
 
+## 🧩 Features
+
+- 🦾 Works in the browser, workers and Node.js
+- 🪵 [Type-safe REST client](#-rest-client)
+
 ## 🚀 Quick Start
 
 Install:
@@ -168,7 +173,6 @@ await ofetch('/api', {
 })
 ```
 
-
 ### `onResponse({ request, options, response })`
 
 `onResponse` will be called after `fetch` call and parsing body.
@@ -205,6 +209,41 @@ This utility is useful if you need to use common options across several fetch ca
 const apiFetch = ofetch.create({ baseURL: '/api' })
 
 apiFetch('/test') // Same as ofetch('/test', { baseURL: '/api' })
+```
+
+## 🪵 REST client
+
+You can build a minimal, type-safe REST client for any given API. It uses JS proxies under the hood.
+
+```js
+import { createClient } from 'ohmyfetch';
+
+const api = createApi('<baseURL>', {
+  // Set optional defaults for `$fetch`
+});
+
+// GET request to <baseURL>/users
+const allUsers = await api.users.get()
+
+// Typed GET request to <baseURL>/users/1
+const userId = 1
+// … using the chain syntax:
+const user = await api.users(userId).get<UserResponse>()
+// … or the bracket syntax:
+const user = await api.users[`${userId}`].get<UserResponse>()
+
+// POST request to <baseURL>/users
+const response = await api.users.post({ name: 'foo' })
+```
+
+You can add/overwrite `$fetch` options on a method-level as well:
+
+```js
+const response = await api.users.get({
+  headers: {
+    Accept: 'application/json'
+  }
+})
 ```
 
 ## 💡 Adding headers

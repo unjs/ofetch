@@ -34,9 +34,9 @@ export interface FetchOptions<R extends ResponseType = ResponseType> extends Omi
   retry?: number | false
 
   onRequest?(ctx: FetchContext): Promise<void> | void
-  onRequestError?(ctx: FetchContext & { error: Error }): Promise<void>
-  onResponse?(ctx: FetchContext & { response: FetchResponse<R> }): Promise<void>
-  onResponseError?(ctx: FetchContext & { response: FetchResponse<R> }): Promise<void>
+  onRequestError?(ctx: FetchContext & { error: Error }): Promise<void> | void
+  onResponse?(ctx: FetchContext & { response: FetchResponse<R> }): Promise<void> | void
+  onResponseError?(ctx: FetchContext & { response: FetchResponse<R> }): Promise<void> | void
 }
 
 export interface $Fetch {

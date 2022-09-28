@@ -59,7 +59,7 @@
     "jiti": "^1.16.0",
     "listhen": "^0.3.4",
     "standard-version": "^9.5.0",
-    "typescript": "^4.8.3",
+    "typescript": "^4.8.4",
     "unbuild": "^0.8.11",
     "vitest": "^0.23.4"
   },

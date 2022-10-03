@@ -9,19 +9,23 @@
   "exports": {
     ".": {
       "node": {
+        "types": "./dist/node.d.ts",
         "import": "./dist/node.mjs",
         "require": "./cjs/node.cjs"
       },
       "default": {
+        "types": "./dist/index.d.ts",
         "import": "./dist/index.mjs",
         "require": "./cjs/index.cjs"
       }
     },
     "./node": {
+      "types": "./dist/node.d.ts",
       "import": "./dist/node.mjs",
       "require": "./cjs/node.cjs"
     },
     "./undici": {
+      "types": "./dist/undici.d.ts",
       "import": "./dist/undici.mjs",
       "require": "./cjs/undici.cjs"
     }

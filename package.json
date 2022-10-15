@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "destr": "^1.1.1",
-    "node-fetch-native": "^0.1.7",
+    "node-fetch-native": "^0.1.8",
     "ufo": "^0.8.6",
     "undici": "^5.11.0"
   },

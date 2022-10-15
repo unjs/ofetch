@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^11.0.0",
-    "@types/node": "^18.7.18",
+    "@types/node": "^18.11.0",
     "@vitest/coverage-c8": "^0.24.3",
     "eslint": "^8.25.0",
     "fetch-blob": "^3.2.0",

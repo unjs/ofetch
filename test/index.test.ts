@@ -1,6 +1,6 @@
 import { listen } from 'listhen'
 import { getQuery, joinURL } from 'ufo'
-import { createApp, useBody, useRawBody } from 'h3'
+import { createApp, eventHandler, readBody, readRawBody, toNodeListener } from 'h3'
 import { Blob } from 'fetch-blob'
 import { FormData } from 'formdata-polyfill/esm.min.js'
 import { describe, beforeEach, afterEach, it, expect } from 'vitest'
@@ -12,16 +12,16 @@ describe('ohmyfetch', () => {
 
   beforeEach(async () => {
     const app = createApp()
-      .use('/ok', () => 'ok')
-      .use('/params', req => (getQuery(req.url || '')))
-      .use('/url', req => req.url)
-      .use('/post', async req => ({ body: await useBody(req), headers: req.headers }))
-      .use('/binary', (_req, res) => {
-        res.setHeader('Content-Type', 'application/octet-stream')
+      .use('/ok', eventHandler(() => 'ok'))
+      .use('/params', eventHandler(event => (getQuery(event.req.url || ''))))
+      .use('/url', eventHandler(event => event.req.url))
+      .use('/post', eventHandler(async event => ({ body: await readBody(event), headers: event.req.headers })))
+      .use('/binary', eventHandler((event) => {
+        event.res.setHeader('Content-Type', 'application/octet-stream')
         return new Blob(['binary'])
-      })
-      .use('/echo', async req => ({ body: await useRawBody(req) }))
-    listener = await listen(app)
+      }))
+      .use('/echo', async event => ({ body: await readRawBody(event) }))
+    listener = await listen(toNodeListener(app))
   })
 
   afterEach(async () => {
@@ -95,8 +95,8 @@ describe('ohmyfetch', () => {
 
   it('404', async () => {
     const err = await $fetch(getURL('404')).catch(err => err)
-    expect(err.toString()).to.contain('404 Not Found')
-    expect(err.data).to.deep.eq({ stack: [], statusCode: 404, statusMessage: 'Not Found' })
+    expect(err.toString()).to.contain('Cannot find any route matching /404.')
+    expect(err.data).to.deep.eq({ stack: [], statusCode: 404, statusMessage: 'Cannot find any route matching /404.' })
     expect(err.response?._data).to.deep.eq(err.data)
     expect(err.request).to.equal(getURL('404'))
   })

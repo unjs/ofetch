@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.20](https://github.com/unjs/ohmyfetch/compare/v0.4.19...v0.4.20) (2022-10-17)
+
+
+### Bug Fixes
+
+* add backwards-compatible subpath declarations ([#144](https://github.com/unjs/ohmyfetch/issues/144)) ([3a48c21](https://github.com/unjs/ohmyfetch/commit/3a48c21a0a5deb41be7ca8e9ea176c49e6d6ba56))
+* **types:** allow synchronous interceptors to be passed ([#128](https://github.com/unjs/ohmyfetch/issues/128)) ([46e8f3c](https://github.com/unjs/ohmyfetch/commit/46e8f3c70bbae09b123db42ab868631cdf9a45af))
+
 ### [0.4.19](https://github.com/unjs/ohmyfetch/compare/v0.4.18...v0.4.19) (2022-09-19)
 
 

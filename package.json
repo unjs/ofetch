@@ -35,6 +35,8 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "node.d.ts",
+    "undici.d.ts",
     "cjs"
   ],
   "scripts": {

@@ -49,19 +49,19 @@
     "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
-    "destr": "^1.1.1",
+    "destr": "^1.2.0",
     "node-fetch-native": "^0.1.8",
     "ufo": "^0.8.6",
     "undici": "^5.11.0"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^11.0.0",
-    "@types/node": "^18.11.0",
+    "@types/node": "^18.11.5",
     "@vitest/coverage-c8": "^0.24.3",
-    "eslint": "^8.25.0",
+    "eslint": "^8.26.0",
     "fetch-blob": "^3.2.0",
     "formdata-polyfill": "^4.0.10",
-    "h3": "^0.8.4",
+    "h3": "^0.8.5",
     "jiti": "^1.16.0",
     "listhen": "^0.3.4",
     "standard-version": "^9.5.0",
@@ -69,5 +69,5 @@
     "unbuild": "^0.9.4",
     "vitest": "^0.24.3"
   },
-  "packageManager": "pnpm@7.13.5"
+  "packageManager": "pnpm@7.14.0"
 }

@@ -40,9 +40,9 @@ export interface FetchOptions<R extends ResponseType = ResponseType> extends Omi
 }
 
 export interface $Fetch {
-  <T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<MappedType<R, T>>
-  raw<T = any, R extends ResponseType = 'json'>(request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
-  create(defaults: FetchOptions): $Fetch
+  <T = any, R extends ResponseType = 'json'> (request: FetchRequest, opts?: FetchOptions<R>): Promise<MappedType<R, T>>
+  raw<T = any, R extends ResponseType = 'json'> (request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
+  create (defaults: FetchOptions): $Fetch
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -156,13 +156,15 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       await ctx.options.onResponse(ctx as any)
     }
 
-    if (!ctx.response.ok) {
+    if (ctx.response.status >= 400 && ctx.response.status < 600) {
       if (ctx.options.onResponseError) {
         await ctx.options.onResponseError(ctx as any)
       }
+
+      return onError(ctx)
     }
 
-    return ctx.response.ok ? ctx.response : onError(ctx)
+    return ctx.response
   }
 
   const $fetch = function $fetch (request, opts) {

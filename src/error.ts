@@ -5,8 +5,8 @@ export class FetchError<T = any> extends Error {
   request?: FetchRequest
   response?: FetchResponse<T>
   data?: T
-  statusCode?: number
-  statusMessage?: string
+  status?: number
+  statusText?: string
 }
 
 export function createFetchError<T = any> (request: FetchRequest, error?: Error, response?: FetchResponse<T>): FetchError<T> {
@@ -23,8 +23,8 @@ export function createFetchError<T = any> (request: FetchRequest, error?: Error,
   Object.defineProperty(fetchError, 'request', { get () { return request } })
   Object.defineProperty(fetchError, 'response', { get () { return response } })
   Object.defineProperty(fetchError, 'data', { get () { return response && response._data } })
-  Object.defineProperty(fetchError, 'statusCode', { get () { return response && response.status } })
-  Object.defineProperty(fetchError, 'statusMessage', { get () { return response && response.statusText } })
+  Object.defineProperty(fetchError, 'status', { get () { return response && response.status } })
+  Object.defineProperty(fetchError, 'statusText', { get () { return response && response.statusText } })
 
   return fetchError
 }

@@ -61,7 +61,7 @@
     "eslint": "^8.26.0",
     "fetch-blob": "^3.2.0",
     "formdata-polyfill": "^4.0.10",
-    "h3": "^0.8.5",
+    "h3": "^0.8.6",
     "jiti": "^1.16.0",
     "listhen": "^0.3.4",
     "standard-version": "^9.5.0",

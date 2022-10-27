@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@nuxtjs/eslint-config-typescript': ^11.0.0
-  '@types/node': ^18.11.5
+  '@types/node': ^18.11.7
   '@vitest/coverage-c8': ^0.24.3
   destr: ^1.2.0
   eslint: ^8.26.0
@@ -27,7 +27,7 @@ dependencies:
 
 devDependencies:
   '@nuxtjs/eslint-config-typescript': 11.0.0_wyqvi574yv7oiwfeinomdzmc3m
-  '@types/node': 18.11.5
+  '@types/node': 18.11.7
   '@vitest/coverage-c8': 0.24.3
   eslint: 8.26.0
   fetch-blob: 3.2.0
@@ -554,8 +554,8 @@ packages:
     resolution: {integrity: sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==}
     dev: true
 
-  /@types/node/18.11.5:
-    resolution: {integrity: sha512-3JRwhbjI+cHLAkUorhf8RnqUbFXajvzX4q6fMn5JwkgtuwfYtRQYI3u4V92vI6NJuTsbBQWWh3RZjFsuevyMGQ==}
+  /@types/node/18.11.7:
+    resolution: {integrity: sha512-LhFTglglr63mNXUSRYD8A+ZAIu5sFqNJ4Y2fPuY7UlrySJH87rRRlhtVmMHplmfk5WkoJGmDjE9oiTfyX94CpQ==}
     dev: true
 
   /@types/normalize-package-data/2.4.1:
@@ -4257,7 +4257,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.3
       '@types/chai-subset': 1.3.3
-      '@types/node': 18.11.5
+      '@types/node': 18.11.7
       chai: 4.3.6
       debug: 4.3.4
       local-pkg: 0.4.2

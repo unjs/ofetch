@@ -8,7 +8,7 @@ specifiers:
   eslint: ^8.26.0
   fetch-blob: ^3.2.0
   formdata-polyfill: ^4.0.10
-  h3: ^0.8.5
+  h3: ^0.8.6
   jiti: ^1.16.0
   listhen: ^0.3.4
   node-fetch-native: ^0.1.8
@@ -32,7 +32,7 @@ devDependencies:
   eslint: 8.26.0
   fetch-blob: 3.2.0
   formdata-polyfill: 4.0.10
-  h3: 0.8.5
+  h3: 0.8.6
   jiti: 1.16.0
   listhen: 0.3.4
   standard-version: 9.5.0
@@ -2555,8 +2555,8 @@ packages:
     resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
     dev: true
 
-  /h3/0.8.5:
-    resolution: {integrity: sha512-A+rVzJ+31e67JJzlRf2Ycphu/mvl2qknbpch38xRfrs9HuGSKTtOWuzPnpgaEGIfnzuD/BsDOfhQLJevXEm3ag==}
+  /h3/0.8.6:
+    resolution: {integrity: sha512-CSWNOKa3QGo67rFU2PhbFTp0uPJtilNji2Z0pMiSRQt3+OkIW0u3E1WMJqIycLqaTgb9JyFqH/S4mcTyyGtvyQ==}
     dependencies:
       cookie-es: 0.5.0
       destr: 1.2.0

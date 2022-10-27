@@ -5,6 +5,8 @@ export class FetchError<T = any> extends Error {
   request?: FetchRequest
   response?: FetchResponse<T>
   data?: T
+  statusCode?: number
+  statusMessage?: string
 }
 
 export function createFetchError<T = any> (request: FetchRequest, error?: Error, response?: FetchResponse<T>): FetchError<T> {

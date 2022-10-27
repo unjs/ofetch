@@ -52,7 +52,7 @@
     "destr": "^1.2.0",
     "node-fetch-native": "^0.1.8",
     "ufo": "^0.8.6",
-    "undici": "^5.11.0"
+    "undici": "^5.12.0"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^11.0.0",

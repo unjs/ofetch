@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.21](https://github.com/unjs/ohmyfetch/compare/v0.4.20...v0.4.21) (2022-11-03)
+
+
+### Features
+
+* add `status` and `statusText` to fetch errors ([#152](https://github.com/unjs/ohmyfetch/issues/152)) ([784a7c0](https://github.com/unjs/ohmyfetch/commit/784a7c0524a60406b0ba09055502107ef57ef5c9))
+
+
+### Bug Fixes
+
+* only call error handler if status code is >= 400 ([#153](https://github.com/unjs/ohmyfetch/issues/153)) ([385f7fe](https://github.com/unjs/ohmyfetch/commit/385f7fe9c92d1ee614919c0ce3a9586acf031d05))
+
 ### [0.4.20](https://github.com/unjs/ohmyfetch/compare/v0.4.19...v0.4.20) (2022-10-17)
 
 

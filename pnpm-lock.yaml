@@ -14,7 +14,7 @@ specifiers:
   node-fetch-native: ^0.1.8
   standard-version: ^9.5.0
   typescript: ^4.8.4
-  ufo: ^0.8.6
+  ufo: ^1.0.0
   unbuild: ^0.9.4
   undici: ^5.12.0
   vitest: ^0.25.1
@@ -22,7 +22,7 @@ specifiers:
 dependencies:
   destr: 1.2.0
   node-fetch-native: 0.1.8
-  ufo: 0.8.6
+  ufo: 1.0.0
   undici: 5.12.0
 
 devDependencies:
@@ -4098,6 +4098,11 @@ packages:
 
   /ufo/0.8.6:
     resolution: {integrity: sha512-fk6CmUgwKCfX79EzcDQQpSCMxrHstvbLswFChHS0Vump+kFkw7nJBfTZoC1j0bOGoY9I7R3n2DGek5ajbcYnOw==}
+    dev: true
+
+  /ufo/1.0.0:
+    resolution: {integrity: sha512-DRty0ZBNlJ2R59y4mEupJRKLbkLQsc4qtxjpQv78AwEDuBkaUogMc2LkeqW3HddFlw6NwnXYfdThEZOiNgkmmQ==}
+    dev: false
 
   /uglify-js/3.15.4:
     resolution: {integrity: sha512-vMOPGDuvXecPs34V74qDKk4iJ/SN4vL3Ow/23ixafENYvtrNvtbcgUeugTcUGRGsOF/5fU8/NYSL5Hyb3l1OJA==}

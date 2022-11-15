@@ -6,7 +6,7 @@
 [![Codecov][codecov-src]][codecov-href]
 [![bundle][bundle-src]][bundle-href]
 
-> A better fetch API
+> A better fetch API. Works on node, browser and workers.
 
 ## 🚀 Quick Start
 

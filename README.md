@@ -1,3 +1,4 @@
+# ofetch
 
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
@@ -5,7 +6,7 @@
 [![Codecov][codecov-src]][codecov-href]
 [![bundle][bundle-src]][bundle-href]
 
-![😱 ohmyfetch](.github/banner.svg)
+> A better fetch API
 
 ## 🚀 Quick Start
 
@@ -13,20 +14,20 @@ Install:
 
 ```bash
 # npm
-npm i ohmyfetch
+npm i ofetch
 
 # yarn
-yarn add ohmyfetch
+yarn add ofetch
 ```
 
 Import:
 
 ```js
 // ESM / Typescript
-import { $fetch } from 'ohmyfetch'
+import { $fetch } from 'ofetch'
 
 // CommonJS
-const { $fetch } = require('ohmyfetch')
+const { $fetch } = require('ofetch')
 ```
 
 <details>
@@ -41,10 +42,10 @@ We use [conditional exports](https://nodejs.org/api/packages.html#packages_condi
 
 ### `undici` support
 
-In order to use experimental fetch implementation from [nodejs/undici](https://github.com/nodejs/undici), You can import from `ohmyfetch/undici`.
+In order to use experimental fetch implementation from [nodejs/undici](https://github.com/nodejs/undici), You can import from `ofetch/undici`.
 
 ```js
-import { $fetch } from 'ohmyfetch/undici'
+import { $fetch } from 'ofetch/undici'
 ```
 
 On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
@@ -243,14 +244,14 @@ const response = await $fetch.raw('/sushi')
 
 - All targets are exported with Module and CommonJS format and named exports
 - No export is transpiled for sake of modern syntax
-  - You probably need to transpile `ohmyfetch`, `destr` and `ufo` packages with babel for ES5 support
+  - You probably need to transpile `ofetch`, `destr` and `ufo` packages with babel for ES5 support
 - You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
 
 ## ❓ FAQ
 
 **Why export is called `$fetch` instead of `fetch`?**
 
-Using the same name of `fetch` can be confusing since API is different but still it is a fetch so using closest possible alternative. You can however, import `{ fetch }` from `ohmyfetch` which is auto polyfilled for Node.js and using native otherwise.
+Using the same name of `fetch` can be confusing since API is different but still it is a fetch so using closest possible alternative. You can however, import `{ fetch }` from `ofetch` which is auto polyfilled for Node.js and using native otherwise.
 
 **Why not having default export?**
 
@@ -269,17 +270,17 @@ If you need to support legacy users, you can optionally transpile the library in
 MIT. Made with 💖
 
 <!-- Badges -->
-[npm-version-src]: https://img.shields.io/npm/v/ohmyfetch?style=flat-square
-[npm-version-href]: https://npmjs.com/package/ohmyfetch
+[npm-version-src]: https://img.shields.io/npm/v/ofetch?style=flat-square
+[npm-version-href]: https://npmjs.com/package/ofetch
 
-[npm-downloads-src]: https://img.shields.io/npm/dm/ohmyfetch?style=flat-square
-[npm-downloads-href]: https://npmjs.com/package/ohmyfetch
+[npm-downloads-src]: https://img.shields.io/npm/dm/ofetch?style=flat-square
+[npm-downloads-href]: https://npmjs.com/package/ofetch
 
-[github-actions-src]: https://img.shields.io/github/workflow/status/unjs/ohmyfetch/ci/main?style=flat-square
-[github-actions-href]: https://github.com/unjs/ohmyfetch/actions?query=workflow%3Aci
+[github-actions-src]: https://img.shields.io/github/workflow/status/unjs/ofetch/ci/main?style=flat-square
+[github-actions-href]: https://github.com/unjs/ofetch/actions?query=workflow%3Aci
 
-[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ohmyfetch/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/unjs/ohmyfetch
+[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ofetch/main?style=flat-square
+[codecov-href]: https://codecov.io/gh/unjs/ofetch
 
-[bundle-src]: https://img.shields.io/bundlephobia/minzip/ohmyfetch?style=flat-square
-[bundle-href]: https://bundlephobia.com/result?p=ohmyfetch
+[bundle-src]: https://img.shields.io/bundlephobia/minzip/ofetch?style=flat-square
+[bundle-href]: https://bundlephobia.com/result?p=ofetch

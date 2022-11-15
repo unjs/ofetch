@@ -6,7 +6,7 @@ import { FormData } from "formdata-polyfill/esm.min.js";
 import { describe, beforeEach, afterEach, it, expect } from "vitest";
 import { Headers, $fetch } from "../src/node";
 
-describe("ohmyfetch", () => {
+describe("ofetch", () => {
   let listener;
   const getURL = url => joinURL(listener.url, url);
 

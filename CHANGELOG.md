@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.0](https://github.com/unjs/ofetch/compare/v0.4.21...v1.0.0) (2022-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop undici support
+
+### Features
+
+* expose `$fetch.native` ([ff697d7](https://github.com/unjs/ofetch/commit/ff697d7b4a43c4399897b69097485b3785dfd661))
+* expose `ofetch` named export ([d8fc46f](https://github.com/unjs/ofetch/commit/d8fc46f21a51f0aac75118905fb999a62d46c793))
+
+
+* drop undici support ([c7d8c93](https://github.com/unjs/ofetch/commit/c7d8c93b1dc9af6f556b713d63787d4295709908))
+
 ### [0.4.21](https://github.com/unjs/ofetch/compare/v0.4.20...v0.4.21) (2022-11-03)
 
 

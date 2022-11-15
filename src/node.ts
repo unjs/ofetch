@@ -31,4 +31,5 @@ export const fetch = globalThis.fetch || createNodeFetch();
 
 export const Headers = globalThis.Headers || _Headers;
 
-export const $fetch = createFetch({ fetch, Headers });
+export const ofetch = createFetch({ fetch, Headers });
+export const $fetch = ofetch;

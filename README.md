@@ -24,10 +24,10 @@ Import:
 
 ```js
 // ESM / Typescript
-import { $fetch } from 'ofetch'
+import { ofetch } from 'ofetch'
 
 // CommonJS
-const { $fetch } = require('ofetch')
+const { ofetch } = require('ofetch')
 ```
 
 <details>
@@ -45,7 +45,7 @@ We use [conditional exports](https://nodejs.org/api/packages.html#packages_condi
 In order to use experimental fetch implementation from [nodejs/undici](https://github.com/nodejs/undici), You can import from `ofetch/undici`.
 
 ```js
-import { $fetch } from 'ofetch/undici'
+import { ofetch } from 'ofetch/undici'
 ```
 
 On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
@@ -58,43 +58,43 @@ By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an http/https 
 
 ## ✔️ Parsing Response
 
-`$fetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to text if it fails to parse.
+`ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to text if it fails to parse.
 
 ```js
-const { users } = await $fetch('/api/users')
+const { users } = await ofetch('/api/users')
 ```
 
-For binary content types, `$fetch` will instead return a `Blob` object.
+For binary content types, `ofetch` will instead return a `Blob` object.
 
 You can optionally provide a different parser than destr, or specify `blob`, `arrayBuffer` or `text` to force parsing the body with the respective `FetchResponse` method.
 
 ```js
 // Use JSON.parse
-await $fetch('/movie?lang=en', { parseResponse: JSON.parse })
+await ofetch('/movie?lang=en', { parseResponse: JSON.parse })
 
 // Return text as is
-await $fetch('/movie?lang=en', { parseResponse: txt => txt })
+await ofetch('/movie?lang=en', { parseResponse: txt => txt })
 
 // Get the blob version of the response
-await $fetch('/api/generate-image', { responseType: 'blob' })
+await ofetch('/api/generate-image', { responseType: 'blob' })
 ```
 
 ## ✔️ JSON Body
 
-`$fetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
+`ofetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
 
 ```js
-const { users } = await $fetch('/api/users', { method: 'POST', body: { some: 'json' } })
+const { users } = await ofetch('/api/users', { method: 'POST', body: { some: 'json' } })
 ```
 
 ## ✔️ Handling Errors
 
-`$fetch` Automatically throw errors when `response.ok` is `false` with a friendly error message and compact stack (hiding internals).
+`ofetch` Automatically throw errors when `response.ok` is `false` with a friendly error message and compact stack (hiding internals).
 
 Parsed error body is available with `error.data`. You may also use `FetchError` type.
 
 ```ts
-await $fetch('http://google.com/404')
+await ofetch('http://google.com/404')
 // FetchError: 404 Not Found (http://google.com/404)
 //     at async main (/project/playground.ts:4:3)
 ```
@@ -102,15 +102,15 @@ await $fetch('http://google.com/404')
 In order to bypass errors as response you can use `error.data`:
 
 ```ts
-await $fetch(...).catch((error) => error.data)
+await ofetch(...).catch((error) => error.data)
 ```
 
 ## ✔️ Auto Retry
 
-`$fetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT` and `PATCH` methods that is `0`)
+`ofetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT` and `PATCH` methods that is `0`)
 
 ```ts
-await $fetch('http://google.com/404', {
+await ofetch('http://google.com/404', {
   retry: 3
 })
 ```
@@ -120,38 +120,38 @@ await $fetch('http://google.com/404', {
 Response can be type assisted:
 
 ```ts
-const article = await $fetch<Article>(`/api/article/${id}`)
+const article = await ofetch<Article>(`/api/article/${id}`)
 // Auto complete working with article.id
 ```
 
 ## ✔️ Adding `baseURL`
 
-By using `baseURL` option, `$fetch` prepends it with respecting to trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
+By using `baseURL` option, `ofetch` prepends it with respecting to trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
 
 ```js
-await $fetch('/config', { baseURL })
+await ofetch('/config', { baseURL })
 ```
 
 ## ✔️ Adding Query Search Params
 
-By using `query` option (or `params` as alias), `$fetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
+By using `query` option (or `params` as alias), `ofetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
 
 ```js
-await $fetch('/movie?lang=en', { query: { id: 123 } })
+await ofetch('/movie?lang=en', { query: { id: 123 } })
 ```
 
 ## ✔️ Interceptors
 
-It is possible to provide async interceptors to hook into lifecycle events of `$fetch` call.
+It is possible to provide async interceptors to hook into lifecycle events of `ofetch` call.
 
-You might want to use `$fetch.create` to set set shared interceptors.
+You might want to use `ofetch.create` to set set shared interceptors.
 
 ### `onRequest({ request, options })`
 
-`onRequest` is called as soon as `$fetch` is being called, allowing to modify options or just do simple logging.
+`onRequest` is called as soon as `ofetch` is being called, allowing to modify options or just do simple logging.
 
 ```js
-await $fetch('/api', {
+await ofetch('/api', {
   async onRequest({ request, options }) {
     // Log request
     console.log('[fetch request]', request, options)
@@ -168,7 +168,7 @@ await $fetch('/api', {
 `onRequestError` will be called when fetch request fails.
 
 ```js
-await $fetch('/api', {
+await ofetch('/api', {
   async onRequestError({ request, options, error }) {
     // Log error
     console.log('[fetch request error]', request, error)
@@ -182,7 +182,7 @@ await $fetch('/api', {
 `onResponse` will be called after `fetch` call and parsing body.
 
 ```js
-await $fetch('/api', {
+await ofetch('/api', {
   async onResponse({ request, response, options }) {
     // Log response
     console.log('[fetch response]', request, response.status, response.body)
@@ -195,7 +195,7 @@ await $fetch('/api', {
 `onResponseError` is same as `onResponse` but will be called when fetch happens but `response.ok` is not `true`.
 
 ```js
-await $fetch('/api', {
+await ofetch('/api', {
   async onResponseError({ request, response, options }) {
     // Log error
     console.log('[fetch response error]', request, response.status, response.body)
@@ -210,17 +210,17 @@ This utility is useful if you need to use common options across serveral fetch c
 **Note:** Defaults will be cloned at one level and inherrited. Be careful about nested options like `headers`.
 
 ```js
-const apiFetch = $fetch.create({ baseURL: '/api' })
+const apiFetch = ofetch.create({ baseURL: '/api' })
 
-apiFetch('/test') // Same as $fetch('/test', { baseURL: '/api' })
+apiFetch('/test') // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
 ## 💡 Adding headers
 
-By using `headers` option, `$fetch` adds extra headers in addition to the request default headers:
+By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:
 
 ```js
-await $fetch('/movies', {
+await ofetch('/movies', {
   headers: {
     Accept: 'application/json',
     'Cache-Control': 'no-cache'
@@ -230,10 +230,10 @@ await $fetch('/movies', {
 
 ## 🍣 Access to Raw Response
 
-If you need to access raw response (for headers, etc), can use `$fetch.raw`:
+If you need to access raw response (for headers, etc), can use `ofetch.raw`:
 
 ```js
-const response = await $fetch.raw('/sushi')
+const response = await ofetch.raw('/sushi')
 
 // response.data
 // response.headers
@@ -242,10 +242,10 @@ const response = await $fetch.raw('/sushi')
 
 ## Native fetch
 
-As a shortcut, you can use `$fetch.native` that provides native `fetch` API
+As a shortcut, you can use `ofetch.native` that provides native `fetch` API
 
 ```js
-const json = await $fetch.native('/sushi').then(r => r.json())
+const json = await ofetch.native('/sushi').then(r => r.json())
 ```
 
 ## 📦 Bundler Notes
@@ -257,7 +257,7 @@ const json = await $fetch.native('/sushi').then(r => r.json())
 
 ## ❓ FAQ
 
-**Why export is called `$fetch` instead of `fetch`?**
+**Why export is called `ofetch` instead of `fetch`?**
 
 Using the same name of `fetch` can be confusing since API is different but still it is a fetch so using closest possible alternative. You can however, import `{ fetch }` from `ofetch` which is auto polyfilled for Node.js and using native otherwise.
 
@@ -265,7 +265,7 @@ Using the same name of `fetch` can be confusing since API is different but still
 
 Default exports are always risky to be mixed with CommonJS exports.
 
-This also guarantees we can introduce more utils without breaking the package and also encourage using `$fetch` name.
+This also guarantees we can introduce more utils without breaking the package and also encourage using `ofetch` name.
 
 **Why not transpiled?**
 

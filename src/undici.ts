@@ -8,4 +8,5 @@ export const fetch = globalThis.fetch || undiciFetch || createNodeFetch();
 
 export { Headers } from "./node";
 
-export const $fetch = createFetch({ fetch, Headers });
+export const ofetch = createFetch({ fetch, Headers });
+export const $fetch = ofetch;

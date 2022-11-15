@@ -1,5 +1,10 @@
 {
   "extends": [
-    "@nuxtjs/eslint-config-typescript"
-  ]
+    "eslint-config-unjs"
+  ],
+  "rules": {
+    "no-undef": 0,
+    "unicorn/consistent-destructuring": 0,
+    "unicorn/no-await-expression-member": 0,
+  }
 }

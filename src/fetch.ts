@@ -1,8 +1,8 @@
-import destr from 'destr'
-import { withBase, withQuery } from 'ufo'
-import type { Fetch, RequestInfo, RequestInit, Response } from './types'
-import { createFetchError } from './error'
-import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from './utils'
+import destr from "destr";
+import { withBase, withQuery } from "ufo";
+import type { Fetch, RequestInfo, RequestInit, Response } from "./types";
+import { createFetchError } from "./error";
+import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from "./utils";
 
 export interface CreateFetchOptions {
   // eslint-disable-next-line no-use-before-define
@@ -13,7 +13,7 @@ export interface CreateFetchOptions {
 
 export type FetchRequest = RequestInfo
 export interface FetchResponse<T> extends Response { _data?: T }
-export interface SearchParams { [key: string]: any }
+export interface SearchParameters { [key: string]: any }
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest
@@ -23,25 +23,25 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   error?: Error
 }
 
-export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, 'body'> {
+export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, "body"> {
   baseURL?: string
-  body?: RequestInit['body'] | Record<string, any>
-  params?: SearchParams
-  query?: SearchParams
+  body?: RequestInit["body"] | Record<string, any>
+  params?: SearchParameters
+  query?: SearchParameters
   parseResponse?: (responseText: string) => any
   responseType?: R
   response?: boolean
   retry?: number | false
 
-  onRequest?(ctx: FetchContext): Promise<void> | void
-  onRequestError?(ctx: FetchContext & { error: Error }): Promise<void> | void
-  onResponse?(ctx: FetchContext & { response: FetchResponse<R> }): Promise<void> | void
-  onResponseError?(ctx: FetchContext & { response: FetchResponse<R> }): Promise<void> | void
+  onRequest?(context: FetchContext): Promise<void> | void
+  onRequestError?(context: FetchContext & { error: Error }): Promise<void> | void
+  onResponse?(context: FetchContext & { response: FetchResponse<R> }): Promise<void> | void
+  onResponseError?(context: FetchContext & { response: FetchResponse<R> }): Promise<void> | void
 }
 
 export interface $Fetch {
-  <T = any, R extends ResponseType = 'json'> (request: FetchRequest, opts?: FetchOptions<R>): Promise<MappedType<R, T>>
-  raw<T = any, R extends ResponseType = 'json'> (request: FetchRequest, opts?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
+  <T = any, R extends ResponseType = "json"> (request: FetchRequest, options?: FetchOptions<R>): Promise<MappedType<R, T>>
+  raw<T = any, R extends ResponseType = "json"> (request: FetchRequest, options?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
   create (defaults: FetchOptions): $Fetch
 }
 
@@ -55,123 +55,121 @@ const retryStatusCodes = new Set([
   502, // Bad Gateway
   503, // Service Unavailable
   504 //  Gateway Timeout
-])
+]);
 
 export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
-  const { fetch, Headers } = globalOptions
+  const { fetch, Headers } = globalOptions;
 
-  function onError (ctx: FetchContext): Promise<FetchResponse<any>> {
+  function onError (context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
-    const isAbort = (ctx.error && ctx.error.name === 'AbortError') || false
+    const isAbort = (context.error && context.error.name === "AbortError") || false;
     // Retry
-    if (ctx.options.retry !== false && !isAbort) {
-      const retries = typeof ctx.options.retry === 'number'
-        ? ctx.options.retry
-        : (isPayloadMethod(ctx.options.method) ? 0 : 1)
+    if (context.options.retry !== false && !isAbort) {
+      const retries = typeof context.options.retry === "number"
+        ? context.options.retry
+        : (isPayloadMethod(context.options.method) ? 0 : 1);
 
-      const responseCode = (ctx.response && ctx.response.status) || 500
+      const responseCode = (context.response && context.response.status) || 500;
       if (retries > 0 && retryStatusCodes.has(responseCode)) {
-        return $fetchRaw(ctx.request, {
-          ...ctx.options,
+        return $fetchRaw(context.request, {
+          ...context.options,
           retry: retries - 1
-        })
+        });
       }
     }
 
     // Throw normalized error
-    const err = createFetchError(ctx.request, ctx.error, ctx.response)
+    const error = createFetchError(context.request, context.error, context.response);
 
     // Only available on V8 based runtimes (https://v8.dev/docs/stack-trace-api)
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(err, $fetchRaw)
+      Error.captureStackTrace(error, $fetchRaw);
     }
-    throw err
+    throw error;
   }
 
-  const $fetchRaw: $Fetch['raw'] = async function $fetchRaw (_request, _opts = {}) {
-    const ctx: FetchContext = {
+  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw (_request, _options = {}) {
+    const context: FetchContext = {
       request: _request,
-      options: { ...globalOptions.defaults, ..._opts },
+      options: { ...globalOptions.defaults, ..._options },
       response: undefined,
       error: undefined
+    };
+
+    if (context.options.onRequest) {
+      await context.options.onRequest(context);
     }
 
-    if (ctx.options.onRequest) {
-      await ctx.options.onRequest(ctx)
-    }
-
-    if (typeof ctx.request === 'string') {
-      if (ctx.options.baseURL) {
-        ctx.request = withBase(ctx.request, ctx.options.baseURL)
+    if (typeof context.request === "string") {
+      if (context.options.baseURL) {
+        context.request = withBase(context.request, context.options.baseURL);
       }
-      if (ctx.options.query || ctx.options.params) {
-        ctx.request = withQuery(ctx.request, { ...ctx.options.params, ...ctx.options.query })
+      if (context.options.query || context.options.params) {
+        context.request = withQuery(context.request, { ...context.options.params, ...context.options.query });
       }
-      if (ctx.options.body && isPayloadMethod(ctx.options.method)) {
-        if (isJSONSerializable(ctx.options.body)) {
-          // Automatically JSON stringify request bodies, when not already a string.
-          ctx.options.body = typeof ctx.options.body === 'string'
-            ? ctx.options.body
-            : JSON.stringify(ctx.options.body)
+      if (context.options.body && isPayloadMethod(context.options.method) && isJSONSerializable(context.options.body)) {
+        // Automatically JSON stringify request bodies, when not already a string.
+        context.options.body = typeof context.options.body === "string"
+          ? context.options.body
+          : JSON.stringify(context.options.body);
 
-          // Set Content-Type and Accept headers to application/json by default
-          // for JSON serializable request bodies.
-          ctx.options.headers = new Headers(ctx.options.headers)
-          if (!ctx.options.headers.has('content-type')) {
-            ctx.options.headers.set('content-type', 'application/json')
-          }
-          if (!ctx.options.headers.has('accept')) {
-            ctx.options.headers.set('accept', 'application/json')
-          }
+        // Set Content-Type and Accept headers to application/json by default
+        // for JSON serializable request bodies.
+        context.options.headers = new Headers(context.options.headers);
+        if (!context.options.headers.has("content-type")) {
+          context.options.headers.set("content-type", "application/json");
+        }
+        if (!context.options.headers.has("accept")) {
+          context.options.headers.set("accept", "application/json");
         }
       }
     }
 
-    ctx.response = await fetch(ctx.request, ctx.options as RequestInit).catch(async (error) => {
-      ctx.error = error
-      if (ctx.options.onRequestError) {
-        await ctx.options.onRequestError(ctx as any)
+    context.response = await fetch(context.request, context.options as RequestInit).catch(async (error) => {
+      context.error = error;
+      if (context.options.onRequestError) {
+        await context.options.onRequestError(context as any);
       }
-      return onError(ctx)
-    })
+      return onError(context);
+    });
 
     const responseType =
-      (ctx.options.parseResponse ? 'json' : ctx.options.responseType) ||
-      detectResponseType(ctx.response.headers.get('content-type') || '')
+      (context.options.parseResponse ? "json" : context.options.responseType) ||
+      detectResponseType(context.response.headers.get("content-type") || "");
 
     // We override the `.json()` method to parse the body more securely with `destr`
-    if (responseType === 'json') {
-      const data = await ctx.response.text()
-      const parseFn = ctx.options.parseResponse || destr
-      ctx.response._data = parseFn(data)
-    } else if (responseType === 'stream') {
-      ctx.response._data = ctx.response.body
+    if (responseType === "json") {
+      const data = await context.response.text();
+      const parseFunction = context.options.parseResponse || destr;
+      context.response._data = parseFunction(data);
+    } else if (responseType === "stream") {
+      context.response._data = context.response.body;
     } else {
-      ctx.response._data = await ctx.response[responseType]()
+      context.response._data = await context.response[responseType]();
     }
 
-    if (ctx.options.onResponse) {
-      await ctx.options.onResponse(ctx as any)
+    if (context.options.onResponse) {
+      await context.options.onResponse(context as any);
     }
 
-    if (ctx.response.status >= 400 && ctx.response.status < 600) {
-      if (ctx.options.onResponseError) {
-        await ctx.options.onResponseError(ctx as any)
+    if (context.response.status >= 400 && context.response.status < 600) {
+      if (context.options.onResponseError) {
+        await context.options.onResponseError(context as any);
       }
 
-      return onError(ctx)
+      return onError(context);
     }
 
-    return ctx.response
-  }
+    return context.response;
+  };
 
-  const $fetch = function $fetch (request, opts) {
-    return $fetchRaw(request, opts).then(r => r._data)
-  } as $Fetch
+  const $fetch = function $fetch (request, options) {
+    return $fetchRaw(request, options).then(r => r._data);
+  } as $Fetch;
 
-  $fetch.raw = $fetchRaw
+  $fetch.raw = $fetchRaw;
 
   $fetch.create = (defaultOptions = {}) => createFetch({
     ...globalOptions,
@@ -179,7 +177,7 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       ...globalOptions.defaults,
       ...defaultOptions
     }
-  })
+  });
 
-  return $fetch
+  return $fetch;
 }

@@ -40,16 +40,6 @@ const { ofetch } = require('ofetch')
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
  and automatically use [unjs/node-fetch-native](https://github.com/unjs/node-fetch-native). If `globalThis.fetch` is available, will be used instead. To leverage Node.js 17.5.0 experimental native fetch API use [`--experimental-fetch` flag](https://nodejs.org/dist/latest-v17.x/docs/api/cli.html#--experimental-fetch).
 
-### `undici` support
-
-In order to use experimental fetch implementation from [nodejs/undici](https://github.com/nodejs/undici), You can import from `ofetch/undici`.
-
-```js
-import { ofetch } from 'ofetch/undici'
-```
-
-On Node.js versions older than `16.5`, node-fetch will be used as the fallback.
-
 ### `keepAlive` support
 
 By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an http/https agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.

@@ -23,11 +23,6 @@
       "types": "./dist/node.d.ts",
       "import": "./dist/node.mjs",
       "require": "./cjs/node.cjs"
-    },
-    "./undici": {
-      "types": "./dist/undici.d.ts",
-      "import": "./dist/undici.mjs",
-      "require": "./cjs/undici.cjs"
     }
   },
   "main": "./cjs/node.cjs",
@@ -36,7 +31,6 @@
   "files": [
     "dist",
     "node.d.ts",
-    "undici.d.ts",
     "cjs"
   ],
   "scripts": {
@@ -51,8 +45,7 @@
   "dependencies": {
     "destr": "^1.2.1",
     "node-fetch-native": "^1.0.1",
-    "ufo": "^1.0.0",
-    "undici": "^5.12.0"
+    "ufo": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",

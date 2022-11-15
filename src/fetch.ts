@@ -42,6 +42,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType> extends Omi
 export interface $Fetch {
   <T = any, R extends ResponseType = "json"> (request: FetchRequest, options?: FetchOptions<R>): Promise<MappedType<R, T>>
   raw<T = any, R extends ResponseType = "json"> (request: FetchRequest, options?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
+  native: Fetch
   create (defaults: FetchOptions): $Fetch
 }
 
@@ -170,6 +171,8 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
   } as $Fetch;
 
   $fetch.raw = $fetchRaw;
+
+  $fetch.native = fetch;
 
   $fetch.create = (defaultOptions = {}) => createFetch({
     ...globalOptions,

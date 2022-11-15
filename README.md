@@ -240,6 +240,14 @@ const response = await $fetch.raw('/sushi')
 // ...
 ```
 
+## Native fetch
+
+As a shortcut, you can use `$fetch.native` that provides native `fetch` API
+
+```js
+const json = await $fetch.native('/sushi').then(r => r.json())
+```
+
 ## 📦 Bundler Notes
 
 - All targets are exported with Module and CommonJS format and named exports

@@ -50,7 +50,7 @@
   "devDependencies": {
     "@types/node": "^18.11.9",
     "@vitest/coverage-c8": "^0.25.2",
-    "eslint": "^8.27.0",
+    "eslint": "^8.28.0",
     "eslint-config-unjs": "^0.0.2",
     "fetch-blob": "^3.2.0",
     "formdata-polyfill": "^4.0.10",

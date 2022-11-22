@@ -219,7 +219,7 @@ await ofetch('/movies', {
 ```
 
 ## 💡 Adding agent
-If you need use HTTP(S) Agent, can use `agent` option with `https-proxy-agent`
+If you need use HTTP(S) Agent, can add `agent` option with `https-proxy-agent`
 ```js
 import { HttpsProxyAgent } from "https-proxy-agent";
 

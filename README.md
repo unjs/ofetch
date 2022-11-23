@@ -134,7 +134,7 @@ await ofetch('/movie?lang=en', { query: { id: 123 } })
 
 It is possible to provide async interceptors to hook into lifecycle events of `ofetch` call.
 
-You might want to use `ofetch.create` to set set shared interceptors.
+You might want to use `ofetch.create` to set shared interceptors.
 
 ### `onRequest({ request, options })`
 

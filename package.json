@@ -56,7 +56,7 @@
     "formdata-polyfill": "^4.0.10",
     "h3": "^1.0.1",
     "jiti": "^1.16.0",
-    "listhen": "^1.0.0",
+    "listhen": "^1.0.1",
     "standard-version": "^9.5.0",
     "typescript": "^4.9.3",
     "unbuild": "^0.9.4",

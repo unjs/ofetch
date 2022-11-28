@@ -10,7 +10,7 @@ specifiers:
   formdata-polyfill: ^4.0.10
   h3: ^1.0.1
   jiti: ^1.16.0
-  listhen: ^1.0.0
+  listhen: ^1.0.1
   node-fetch-native: ^1.0.1
   standard-version: ^9.5.0
   typescript: ^4.9.3
@@ -32,7 +32,7 @@ devDependencies:
   formdata-polyfill: 4.0.10
   h3: 1.0.1
   jiti: 1.16.0
-  listhen: 1.0.0
+  listhen: 1.0.1
   standard-version: 9.5.0
   typescript: 4.9.3
   unbuild: 0.9.4
@@ -2978,8 +2978,8 @@ packages:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
     dev: true
 
-  /listhen/1.0.0:
-    resolution: {integrity: sha512-frdf7TVqT/JSHzRjEuo/vWIgbBYzEuY3oeTq8Yv1XkQVTKDPs2M4yotXICqYZYj2QxbkqKssSo8Wa6QCtBnFhg==}
+  /listhen/1.0.1:
+    resolution: {integrity: sha512-RBzBGHMCc5wP8J5Vf8WgF4CAJH8dWHi9LaKB7vfzZt54CiH/0dp01rudy2hFD9wCrTM+UfxFVnn5wTIiY+Qhiw==}
     dependencies:
       clipboardy: 3.0.0
       colorette: 2.0.19
@@ -3170,7 +3170,7 @@ packages:
       typescript:
         optional: true
     dependencies:
-      defu: 6.1.0
+      defu: 6.1.1
       esbuild: 0.14.54
       fs-extra: 10.0.1
       globby: 11.1.0

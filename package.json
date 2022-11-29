@@ -45,7 +45,7 @@
   "dependencies": {
     "destr": "^1.2.1",
     "node-fetch-native": "^1.0.1",
-    "ufo": "^1.0.0"
+    "ufo": "^1.0.1"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",

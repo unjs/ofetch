@@ -1,8 +1,10 @@
-import { type Listener, listen } from "listhen";
+import { listen } from "listhen";
+import type { Listener } from "listhen";
 import { getQuery } from "ufo";
 import { createApp, eventHandler, readBody, toNodeListener } from "h3";
 import { describe, beforeEach, afterEach, it, expect } from "vitest";
-import { type ClientBuilder, createClient } from "../src/builder";
+import { createClient } from "../src/builder";
+import type { ClientBuilder } from "../src/builder";
 
 // Test TypeScript support
 interface TypedGetResponse {

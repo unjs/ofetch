@@ -32,7 +32,7 @@ export function createClient<R extends ResponseType = "json"> (
       get (_target, key: string) {
         const method = key.toUpperCase();
 
-        if (!["GET", "POST", "PUT", "DELETE", "PATCH"].includes(method)) {
+        if (method !== "GET" && !isPayloadMethod(method)) {
           return p(resolveURL(url, key));
         }
 

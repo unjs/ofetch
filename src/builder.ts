@@ -50,8 +50,8 @@ export function createClient<R extends ResponseType = "json"> (
             ...(globalOptions as FetchOptions<R>),
             ...options,
             headers: {
-              ...headersToObject(globalOptions.headers || {}),
-              ...headersToObject(options.headers || {})
+              ...headersToObject(globalOptions.headers),
+              ...headersToObject(options.headers)
             },
             method
           });

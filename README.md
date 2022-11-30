@@ -213,10 +213,10 @@ apiFetch('/test') // Same as ofetch('/test', { baseURL: '/api' })
 
 ## 🪵 REST Client With `createClient`
 
-You can use `ohmyfetch` as a minimal, type-safe REST client for any given API. The API builder uses JS proxies under the hood.
+You can use `ofetch` as a minimal, type-safe REST client for any given API. The API builder uses JS proxies under the hood.
 
 ```js
-import { createClient } from 'ohmyfetch'
+import { createClient } from 'ofetch'
 
 const api = createClient({
   // Set optional defaults for `$fetch`

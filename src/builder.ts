@@ -3,7 +3,7 @@ import type { QueryObject } from "ufo";
 import { headersToObject, isPayloadMethod } from "./utils";
 import type { FetchOptions } from "./fetch";
 import type { ResponseType, MappedType } from "./types";
-import { $fetch } from "./undici";
+import { $fetch } from "./";
 
 export type ClientMethodHandler = <T = any, R extends ResponseType = "json">(
   data?: RequestInit["body"] | Record<string, any>,

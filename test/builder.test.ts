@@ -1,6 +1,6 @@
 import { type Listener, listen } from "listhen";
 import { getQuery } from "ufo";
-import { createApp, useBody } from "h3";
+import { createApp, eventHandler, readBody, toNodeListener } from "h3";
 import { describe, beforeEach, afterEach, it, expect } from "vitest";
 import { type ClientBuilder, createClient } from "../src/builder";
 
@@ -15,16 +15,16 @@ describe("rest client", () => {
 
   beforeEach(async () => {
     const app = createApp()
-      .use("/foo/1", () => ({ foo: "1" }))
-      .use("/foo", () => ({ foo: "bar" }))
-      .use("/bar", async request => ({
-        url: request.url,
-        body: await useBody(request),
-        headers: request.headers,
-        method: request.method
-      }))
-      .use("/params", request => getQuery(request.url || ""));
-    listener = await listen(app, { port: 3001 });
+      .use("/foo/1", eventHandler(() => ({ foo: "1" })))
+      .use("/foo", eventHandler(() => ({ foo: "bar" })))
+      .use("/bar", eventHandler(async event => ({
+        url: event.node.req.url,
+        body: await readBody(event),
+        headers: event.node.req.headers,
+        method: event.node.req.method
+      })))
+      .use("/params", eventHandler(request => getQuery(request.node.req.url || "")));
+    listener = await listen(toNodeListener(app), { port: 3001 });
     client = createClient({
       baseURL: listener.url,
       headers: {
@@ -95,8 +95,11 @@ describe("rest client", () => {
     expect(response).to.deep.equal({ foo: "1" });
   });
 
-  it("invalid api endpoint", async () => {
-    const error = await client.baz.get<TypedGetResponse>().catch(error_ => error_);
-    expect(error.message).to.contain("404 Not Found");
+  it("invalid api endpoint", () => {
+    expect(invalidHandle()).rejects.toThrow(/404 Not Found/);
   });
+
+  async function invalidHandle () {
+    await client.baz.get<TypedGetResponse>();
+  }
 });

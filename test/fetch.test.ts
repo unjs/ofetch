@@ -119,7 +119,7 @@ describe("ofetch", () => {
     ).body;
     expect(body2).to.deep.eq([{ num: 42 }, { num: 43 }]);
 
-    const headerFetches = [
+    const headerFetches: HeadersInit[] = [
       [["X-header", "1"]],
       { "x-header": "1" },
       new Headers({ "x-header": "1" }),

@@ -1,9 +1,9 @@
-import type { ResponseType } from './types'
+import type { ResponseType } from "./types";
 
-const payloadMethods = new Set(['PATCH', 'POST', 'PUT', 'DELETE'])
+const payloadMethods = new Set(["PATCH", "POST", "PUT", "DELETE"]);
 
-export function isPayloadMethod (method: string = 'GET') {
-  return payloadMethods.has(method.toUpperCase())
+export function isPayloadMethod (method: string = "GET") {
+  return payloadMethods.has(method.toUpperCase());
 }
 
 export function isJSONSerializable(value: any) {
@@ -98,13 +98,13 @@ export function mergeFetchOptions(
 
 export function headersToObject (headers: HeadersInit = {}) {
   // SSR compatibility for `Headers` prototype
-  if (typeof Headers !== 'undefined' && headers instanceof Headers) {
-    return Object.fromEntries([...headers.entries()])
+  if (typeof Headers !== "undefined" && headers instanceof Headers) {
+    return Object.fromEntries(headers.entries());
   }
 
   if (Array.isArray(headers)) {
-    return Object.fromEntries(headers)
+    return Object.fromEntries(headers);
   }
 
-  return headers as Record<string, string>
+  return headers as Record<string, string>;
 }

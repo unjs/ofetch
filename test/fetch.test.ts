@@ -7,9 +7,9 @@ import { describe, beforeEach, afterEach, it, expect } from 'vitest'
 import { Headers, $fetch } from '../src/node'
 import type { Listener } from 'listhen'
 
-describe('ofetch', () => {
-  let listener: Listener
-  const getURL = (url: string) => joinURL(listener.url, url)
+describe("ofetch", () => {
+  let listener: Listener;
+  const getURL = (url: string) => joinURL(listener.url, url);
 
   beforeAll(async () => {
     const app = createApp()

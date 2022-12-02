@@ -20,7 +20,8 @@ describe("ofetch", () => {
         event.res.setHeader("Content-Type", "application/octet-stream");
         return new Blob(["binary"]);
       }))
-      .use("/echo", eventHandler(async event => ({ body: await readRawBody(event) })));
+      .use("/echo", eventHandler(async event => ({ body: await readRawBody(event) })))
+      .use("/constructor", eventHandler(() => ({ constructor: "ok" })));
     listener = await listen(toNodeListener(app));
   });
 
@@ -30,6 +31,10 @@ describe("ofetch", () => {
 
   it("ok", async () => {
     expect(await $fetch(getURL("ok"))).to.equal("ok");
+  });
+
+  it("fetches constructor", async () => {
+    expect(await $fetch(getURL("constructor"))).to.equal({ constructor: "ok" });
   });
 
   it("custom parseResponse", async () => {

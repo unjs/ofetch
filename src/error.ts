@@ -18,6 +18,8 @@ export function createFetchError<T = any> (request: FetchRequest, error?: Error,
   }
   if (request && response) {
     message = `${message} (${response.status} ${response.statusText} (${request.toString()}))`;
+  } else if (request) {
+    message = `${message} (${request.toString()})`;
   }
 
   const fetchError: FetchError<T> = new FetchError(message);

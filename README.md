@@ -195,9 +195,9 @@ await ofetch('/api', {
 
 ## ✔️ Create fetch with default options
 
-This utility is useful if you need to use common options across serveral fetch calls.
+This utility is useful if you need to use common options across several fetch calls.
 
-**Note:** Defaults will be cloned at one level and inherrited. Be careful about nested options like `headers`.
+**Note:** Defaults will be cloned at one level and inherited. Be careful about nested options like `headers`.
 
 ```js
 const apiFetch = ofetch.create({ baseURL: '/api' })

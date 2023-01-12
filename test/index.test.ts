@@ -25,17 +25,17 @@ describe("ofetch", () => {
         // TODO: replace with `h3.sendNoContent()`
         event.node.res.statusCode = 100;
         event.node.res.removeHeader("content-length");
-        send(event);
+        event.node.res.end();
       }))
       .use("/204", eventHandler((event) => {
         // TODO: replace with `h3.sendNoContent()`
         event.node.res.statusCode = 204;
         event.node.res.removeHeader("content-length");
-        send(event);
+        event.node.res.end();
       }))
       .use("/304", eventHandler((event) => {
         event.node.res.statusCode = 304;
-        send(event);
+        event.node.res.end();
       }))
       .use("/no-content-length", eventHandler((event) => {
         send(event, JSON.stringify({ key: "value" }), "application/json");

@@ -144,7 +144,7 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
     const isZeroContentLength = !context.response.headers.get("content-length") || context.response.headers.get("content-length") === "0";
     const isResponseBodyEmpty = isInformationStatusCode || isNoContentStatusCode || isNotModifiedStatusCode || isZeroContentLength;
 
-    if (isResponseBodyEmpty) {
+    if (!isResponseBodyEmpty) {
       const responseType =
         (context.options.parseResponse ? "json" : context.options.responseType) ||
         detectResponseType(context.response.headers.get("content-type") || "");

@@ -218,6 +218,18 @@ await ofetch('/movies', {
 })
 ```
 
+## 💡 Adding HTTP(S) Agent
+
+If you need use HTTP(S) Agent, can add `agent` option with `https-proxy-agent`:
+
+```js
+import { HttpsProxyAgent } from "https-proxy-agent";
+
+await ofetch('/api', {
+  agent: new HttpsProxyAgent('http://example.com')
+})
+```
+
 ## 🍣 Access to Raw Response
 
 If you need to access raw response (for headers, etc), can use `ofetch.raw`:

@@ -136,19 +136,29 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       return onError(context);
     });
 
-    const responseType =
-      (context.options.parseResponse ? "json" : context.options.responseType) ||
-      detectResponseType(context.response.headers.get("content-type") || "");
+    // Some indicators of empty response body must be checked in advance so that parsing will not throw an error
+    // https://www.rfc-editor.org/rfc/rfc9110
+    const isInformationStatusCode = context.response.status >= 100 && context.response.status <= 199;
+    const isNoContentStatusCode = context.response.status === 204;
+    const isNotModifiedStatusCode = context.response.status === 304;
+    const isZeroContentLength = !context.response.headers.get("content-length") || context.response.headers.get("content-length") === "0";
+    const isResponseBodyEmpty = isInformationStatusCode || isNoContentStatusCode || isNotModifiedStatusCode || isZeroContentLength;
 
-    // We override the `.json()` method to parse the body more securely with `destr`
-    if (responseType === "json") {
-      const data = await context.response.text();
-      const parseFunction = context.options.parseResponse || destr;
-      context.response._data = parseFunction(data);
-    } else if (responseType === "stream") {
-      context.response._data = context.response.body;
-    } else {
-      context.response._data = await context.response[responseType]();
+    if (isResponseBodyEmpty) {
+      const responseType =
+        (context.options.parseResponse ? "json" : context.options.responseType) ||
+        detectResponseType(context.response.headers.get("content-type") || "");
+
+      // We override the `.json()` method to parse the body more securely with `destr`
+      if (responseType === "json") {
+        const data = await context.response.text();
+        const parseFunction = context.options.parseResponse || destr;
+        context.response._data = parseFunction(data);
+      } else if (responseType === "stream") {
+        context.response._data = context.response.body;
+      } else {
+        context.response._data = await context.response[responseType]();
+      }
     }
 
     if (context.options.onResponse) {

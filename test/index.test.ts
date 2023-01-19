@@ -1,6 +1,6 @@
 import { listen } from "listhen";
 import { getQuery, joinURL } from "ufo";
-import { createApp, eventHandler, readBody, readRawBody, toNodeListener } from "h3";
+import { createApp, eventHandler, readBody, readRawBody, toNodeListener, send, appendResponseHeader } from "h3";
 import { Blob } from "fetch-blob";
 import { FormData } from "formdata-polyfill/esm.min.js";
 import { describe, beforeEach, afterEach, it, expect } from "vitest";
@@ -20,7 +20,31 @@ describe("ofetch", () => {
         event.res.setHeader("Content-Type", "application/octet-stream");
         return new Blob(["binary"]);
       }))
-      .use("/echo", eventHandler(async event => ({ body: await readRawBody(event) })));
+      .use("/echo", eventHandler(async event => ({ body: await readRawBody(event) })))
+      .use("/1xx", eventHandler((event) => {
+        // TODO: replace with `h3.sendNoContent()`
+        event.node.res.statusCode = 100;
+        event.node.res.removeHeader("content-length");
+        event.node.res.end();
+      }))
+      .use("/204", eventHandler((event) => {
+        // TODO: replace with `h3.sendNoContent()`
+        event.node.res.statusCode = 204;
+        event.node.res.removeHeader("content-length");
+        event.node.res.end();
+      }))
+      .use("/304", eventHandler((event) => {
+        event.node.res.statusCode = 304;
+        event.node.res.end();
+      }))
+      .use("/no-content-length", eventHandler((event) => {
+        send(event, JSON.stringify({ key: "value" }), "application/json");
+      }))
+      .use("/zero-content-length", eventHandler((event) => {
+        appendResponseHeader(event, "Content-Length", "0");
+        send(event, JSON.stringify({ key: "value" }), "application/json");
+      }));
+
     listener = await listen(toNodeListener(app));
   });
 
@@ -29,6 +53,7 @@ describe("ofetch", () => {
   });
 
   it("ok", async () => {
+    console.log(await $fetch(getURL("ok")));
     expect(await $fetch(getURL("ok"))).to.equal("ok");
   });
 
@@ -48,6 +73,28 @@ describe("ofetch", () => {
 
   it("returns a blob for binary content-type", async () => {
     expect(await $fetch(getURL("binary"))).to.be.instanceOf(Blob);
+  });
+
+  it("avoid parsing response when the body is empty", async () => {
+    expect(await $fetch(getURL("1xx"))).not.toThrowError();
+    const response1xx = await $fetch(getURL("1xx"));
+    expect(response1xx._data).toBeUndefined();
+
+    expect(await $fetch(getURL("204"))).not.toThrowError();
+    const response204 = await $fetch(getURL("204"));
+    expect(response204._data).toBeUndefined();
+
+    expect(await $fetch(getURL("304"), { method: "POST" })).not.toThrowError();
+    const response304 = await $fetch(getURL("204"), { method: "POST" });
+    expect(response304._data).toBeUndefined();
+
+    expect(await $fetch(getURL("no-content-length"))).not.toThrowError();
+    const responseNoContentLength = await $fetch(getURL("no-content-length"));
+    expect(responseNoContentLength._data).toBeUndefined();
+
+    expect(await $fetch(getURL("zero-content-length"))).not.toThrowError();
+    const responseZeroContentLength = await $fetch(getURL("zero-content-length"));
+    expect(responseZeroContentLength._data).toBeUndefined();
   });
 
   it("baseURL", async () => {

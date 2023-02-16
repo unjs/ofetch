@@ -13,11 +13,13 @@ export class FetchError<T = any> extends Error {
 
 export function createFetchError<T = any> (request: FetchRequest, error?: Error, response?: FetchResponse<T>): FetchError<T> {
   let message = "";
-  if (request && response) {
-    message = `${response.status} ${response.statusText} (${request.toString()})`;
-  }
   if (error) {
-    message = `${error.message} (${message})`;
+    message = error.message;
+  }
+  if (request && response) {
+    message = `${message} (${response.status} ${response.statusText} (${request.toString()}))`;
+  } else if (request) {
+    message = `${message} (${request.toString()})`;
   }
 
   const fetchError: FetchError<T> = new FetchError(message);

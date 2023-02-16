@@ -39,7 +39,7 @@
     "lint:fix": "eslint --fix --ext .ts . && prettier -w src test playground",
     "prepack": "pnpm build",
     "play": "jiti playground/index.ts",
-    "release": "pnpm test && standard-version && git push --follow-tags && pnpm publish",
+    "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
     "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {

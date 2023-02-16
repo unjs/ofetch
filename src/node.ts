@@ -6,7 +6,7 @@ import { createFetch } from "./base";
 
 export * from "./base";
 
-export function createNodeFetch () {
+export function createNodeFetch() {
   const useKeepAlive = JSON.parse(process.env.FETCH_KEEP_ALIVE || "false");
   if (!useKeepAlive) {
     return nodeFetch;
@@ -17,12 +17,15 @@ export function createNodeFetch () {
   const httpAgent = new http.Agent(agentOptions);
   const httpsAgent = new https.Agent(agentOptions);
   const nodeFetchOptions = {
-    agent (parsedURL: any) {
+    agent(parsedURL: any) {
       return parsedURL.protocol === "http:" ? httpAgent : httpsAgent;
-    }
+    },
   };
 
-  return function nodeFetchWithKeepAlive (input: RequestInfo, init?: RequestInit) {
+  return function nodeFetchWithKeepAlive(
+    input: RequestInfo,
+    init?: RequestInit
+  ) {
     return (nodeFetch as any)(input, { ...nodeFetchOptions, ...init });
   };
 }

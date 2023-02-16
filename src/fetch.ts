@@ -2,48 +2,71 @@ import destr from "destr";
 import { withBase, withQuery } from "ufo";
 import type { Fetch, RequestInfo, RequestInit, Response } from "./types";
 import { createFetchError } from "./error";
-import { isPayloadMethod, isJSONSerializable, detectResponseType, ResponseType, MappedType } from "./utils";
+import {
+  isPayloadMethod,
+  isJSONSerializable,
+  detectResponseType,
+  ResponseType,
+  MappedType,
+} from "./utils";
 
 export interface CreateFetchOptions {
   // eslint-disable-next-line no-use-before-define
-  defaults?: FetchOptions
-  fetch: Fetch
-  Headers: typeof Headers
+  defaults?: FetchOptions;
+  fetch: Fetch;
+  Headers: typeof Headers;
 }
 
-export type FetchRequest = RequestInfo
-export interface FetchResponse<T> extends Response { _data?: T }
-export interface SearchParameters { [key: string]: any }
+export type FetchRequest = RequestInfo;
+export interface FetchResponse<T> extends Response {
+  _data?: T;
+}
+export interface SearchParameters {
+  [key: string]: any;
+}
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
-  request: FetchRequest
+  request: FetchRequest;
   // eslint-disable-next-line no-use-before-define
-  options: FetchOptions<R>,
-  response?: FetchResponse<T>
-  error?: Error
+  options: FetchOptions<R>;
+  response?: FetchResponse<T>;
+  error?: Error;
 }
 
-export interface FetchOptions<R extends ResponseType = ResponseType> extends Omit<RequestInit, "body"> {
-  baseURL?: string
-  body?: RequestInit["body"] | Record<string, any>
-  params?: SearchParameters
-  query?: SearchParameters
-  parseResponse?: (responseText: string) => any
-  responseType?: R
-  response?: boolean
-  retry?: number | false
+export interface FetchOptions<R extends ResponseType = ResponseType>
+  extends Omit<RequestInit, "body"> {
+  baseURL?: string;
+  body?: RequestInit["body"] | Record<string, any>;
+  params?: SearchParameters;
+  query?: SearchParameters;
+  parseResponse?: (responseText: string) => any;
+  responseType?: R;
+  response?: boolean;
+  retry?: number | false;
 
-  onRequest?(context: FetchContext): Promise<void> | void
-  onRequestError?(context: FetchContext & { error: Error }): Promise<void> | void
-  onResponse?(context: FetchContext & { response: FetchResponse<R> }): Promise<void> | void
-  onResponseError?(context: FetchContext & { response: FetchResponse<R> }): Promise<void> | void
+  onRequest?(context: FetchContext): Promise<void> | void;
+  onRequestError?(
+    context: FetchContext & { error: Error }
+  ): Promise<void> | void;
+  onResponse?(
+    context: FetchContext & { response: FetchResponse<R> }
+  ): Promise<void> | void;
+  onResponseError?(
+    context: FetchContext & { response: FetchResponse<R> }
+  ): Promise<void> | void;
 }
 
 export interface $Fetch {
-  <T = any, R extends ResponseType = "json"> (request: FetchRequest, options?: FetchOptions<R>): Promise<MappedType<R, T>>
-  raw<T = any, R extends ResponseType = "json"> (request: FetchRequest, options?: FetchOptions<R>): Promise<FetchResponse<MappedType<R, T>>>
-  native: Fetch
-  create (defaults: FetchOptions): $Fetch
+  <T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedType<R, T>>;
+  raw<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<FetchResponse<MappedType<R, T>>>;
+  native: Fetch;
+  create(defaults: FetchOptions): $Fetch;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -55,34 +78,42 @@ const retryStatusCodes = new Set([
   500, // Internal Server Error
   502, // Bad Gateway
   503, // Service Unavailable
-  504 //  Gateway Timeout
+  504, //  Gateway Timeout
 ]);
 
-export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
+export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
   const { fetch, Headers } = globalOptions;
 
-  function onError (context: FetchContext): Promise<FetchResponse<any>> {
+  function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
-    const isAbort = (context.error && context.error.name === "AbortError") || false;
+    const isAbort =
+      (context.error && context.error.name === "AbortError") || false;
     // Retry
     if (context.options.retry !== false && !isAbort) {
-      const retries = typeof context.options.retry === "number"
-        ? context.options.retry
-        : (isPayloadMethod(context.options.method) ? 0 : 1);
+      let retries;
+      if (typeof context.options.retry === "number") {
+        retries = context.options.retry;
+      } else {
+        retries = isPayloadMethod(context.options.method) ? 0 : 1;
+      }
 
       const responseCode = (context.response && context.response.status) || 500;
       if (retries > 0 && retryStatusCodes.has(responseCode)) {
         return $fetchRaw(context.request, {
           ...context.options,
-          retry: retries - 1
+          retry: retries - 1,
         });
       }
     }
 
     // Throw normalized error
-    const error = createFetchError(context.request, context.error, context.response);
+    const error = createFetchError(
+      context.request,
+      context.error,
+      context.response
+    );
 
     // Only available on V8 based runtimes (https://v8.dev/docs/stack-trace-api)
     if (Error.captureStackTrace) {
@@ -91,12 +122,15 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
     throw error;
   }
 
-  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw (_request, _options = {}) {
+  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw(
+    _request,
+    _options = {}
+  ) {
     const context: FetchContext = {
       request: _request,
       options: { ...globalOptions.defaults, ..._options },
       response: undefined,
-      error: undefined
+      error: undefined,
     };
 
     if (context.options.onRequest) {
@@ -108,13 +142,21 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
         context.request = withBase(context.request, context.options.baseURL);
       }
       if (context.options.query || context.options.params) {
-        context.request = withQuery(context.request, { ...context.options.params, ...context.options.query });
+        context.request = withQuery(context.request, {
+          ...context.options.params,
+          ...context.options.query,
+        });
       }
-      if (context.options.body && isPayloadMethod(context.options.method) && isJSONSerializable(context.options.body)) {
+      if (
+        context.options.body &&
+        isPayloadMethod(context.options.method) &&
+        isJSONSerializable(context.options.body)
+      ) {
         // Automatically JSON stringify request bodies, when not already a string.
-        context.options.body = typeof context.options.body === "string"
-          ? context.options.body
-          : JSON.stringify(context.options.body);
+        context.options.body =
+          typeof context.options.body === "string"
+            ? context.options.body
+            : JSON.stringify(context.options.body);
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
@@ -128,7 +170,10 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
       }
     }
 
-    context.response = await fetch(context.request, context.options as RequestInit).catch(async (error) => {
+    context.response = await fetch(
+      context.request,
+      context.options as RequestInit
+    ).catch(async (error) => {
       context.error = error;
       if (context.options.onRequestError) {
         await context.options.onRequestError(context as any);
@@ -166,21 +211,22 @@ export function createFetch (globalOptions: CreateFetchOptions): $Fetch {
     return context.response;
   };
 
-  const $fetch = function $fetch (request, options) {
-    return $fetchRaw(request, options).then(r => r._data);
+  const $fetch = function $fetch(request, options) {
+    return $fetchRaw(request, options).then((r) => r._data);
   } as $Fetch;
 
   $fetch.raw = $fetchRaw;
 
   $fetch.native = fetch;
 
-  $fetch.create = (defaultOptions = {}) => createFetch({
-    ...globalOptions,
-    defaults: {
-      ...globalOptions.defaults,
-      ...defaultOptions
-    }
-  });
+  $fetch.create = (defaultOptions = {}) =>
+    createFetch({
+      ...globalOptions,
+      defaults: {
+        ...globalOptions.defaults,
+        ...defaultOptions,
+      },
+    });
 
   return $fetch;
 }

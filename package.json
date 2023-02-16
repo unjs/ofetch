@@ -30,8 +30,7 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "node.d.ts",
-    "cjs"
+    "node.d.ts"
   ],
   "scripts": {
     "build": "unbuild",

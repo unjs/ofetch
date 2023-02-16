@@ -11,21 +11,21 @@
       "node": {
         "types": "./dist/node.d.ts",
         "import": "./dist/node.mjs",
-        "require": "./cjs/node.cjs"
+        "require": "./dist/node.cjs"
       },
       "default": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.mjs",
-        "require": "./cjs/index.cjs"
+        "require": "./dist/index.cjs"
       }
     },
     "./node": {
       "types": "./dist/node.d.ts",
       "import": "./dist/node.mjs",
-      "require": "./cjs/node.cjs"
+      "require": "./dist/node.cjs"
     }
   },
-  "main": "./cjs/node.cjs",
+  "main": "./dist/node.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [

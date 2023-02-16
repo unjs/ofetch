@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.0.1
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.0.0...v1.0.1)
+
+
+### 🩹 Fixes
+
+  - Improve error message for request errors ([#199](https://github.com/unjs/ofetch/pull/199))
+
+### 📖 Documentation
+
+  - Fix small typos ([#200](https://github.com/unjs/ofetch/pull/200))
+  - Fix typo ([#175](https://github.com/unjs/ofetch/pull/175))
+  - Add agent option usage ([#173](https://github.com/unjs/ofetch/pull/173))
+  - Add note about http agent ([#202](https://github.com/unjs/ofetch/pull/202))
+
+### 📦 Build
+
+  - Use standalone commonjs dist ([#211](https://github.com/unjs/ofetch/pull/211))
+
+### 🏡 Chore
+
+  - Update lockfile ([67a7fa4](https://github.com/unjs/ofetch/commit/67a7fa4))
+  - Remove build badge ([9a878b6](https://github.com/unjs/ofetch/commit/9a878b6))
+  - Update ufo ([3776210](https://github.com/unjs/ofetch/commit/3776210))
+  - Update release script ([50a58ab](https://github.com/unjs/ofetch/commit/50a58ab))
+
+### 🎨 Styles
+
+  - Format with prettier ([aabfb9a](https://github.com/unjs/ofetch/commit/aabfb9a))
+
+### ❤️  Contributors
+
+- Pooya Parsa <pooya@pi0.io>
+- Daniel West <daniel@silverback.is>
+- Sébastien Chopin <seb@nuxtjs.com>
+- Nozomu Ikuta 
+- Yuyin 
+- Kricsleo 
+- 0xflotus <0xflotus@gmail.com>
+
 ## [1.0.0](https://github.com/unjs/ofetch/compare/v0.4.21...v1.0.0) (2022-11-15)
 
 

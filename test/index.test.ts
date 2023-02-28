@@ -96,6 +96,12 @@ describe("ofetch", () => {
     );
   });
 
+  it("ufoSanitization", async () => {
+    expect(await $fetch("/x", { baseURL: getURL("url"), sanitization: ['withTrailingSlash'] })).to.equal(
+      "/x/"
+    );
+  });
+
   it("stringifies posts body automatically", async () => {
     const { body } = await $fetch(getURL("post"), {
       method: "POST",

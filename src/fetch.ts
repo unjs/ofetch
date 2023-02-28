@@ -1,5 +1,6 @@
 import destr from "destr";
 import { withBase, withQuery } from "ufo";
+import * as ufo from "ufo";
 import type { Fetch, RequestInfo, RequestInit, Response } from "./types";
 import { createFetchError } from "./error";
 import {
@@ -24,6 +25,13 @@ export interface FetchResponse<T> extends Response {
 export interface SearchParameters {
   [key: string]: any;
 }
+export type UfoSanitization<
+  U extends typeof ufo = typeof ufo,
+  K extends keyof U = keyof U,
+  F extends K = Extract<K, 'withTrailingSlash' | 'withoutTrailingSlash' | 'cleanDoubleSlashes' | 'withHttp' | 'withHttps'>
+> = {
+  [key in F]: typeof ufo[key];
+}
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest;
@@ -43,6 +51,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   responseType?: R;
   response?: boolean;
   retry?: number | false;
+  sanitization?: (keyof UfoSanitization)[];
 
   onRequest?(context: FetchContext): Promise<void> | void;
   onRequestError?(
@@ -146,6 +155,9 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
           ...context.options.params,
           ...context.options.query,
         });
+      }
+      if (Array.isArray(context.options.sanitization)) {
+        context.request = context.options.sanitization.reduce((val, f) => ufo[f](val), context.request)
       }
       if (
         context.options.body &&

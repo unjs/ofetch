@@ -2,6 +2,7 @@ import { listen } from "listhen";
 import { getQuery, joinURL } from "ufo";
 import {
   createApp,
+  createError,
   eventHandler,
   readBody,
   readRawBody,
@@ -47,6 +48,12 @@ describe("ofetch", () => {
       .use(
         "/echo",
         eventHandler(async (event) => ({ body: await readRawBody(event) }))
+      )
+      .use(
+        "/403",
+        eventHandler(() =>
+          createError({ status: 403, statusMessage: "Forbidden" })
+        )
       );
     listener = await listen(toNodeListener(app));
   });
@@ -167,6 +174,12 @@ describe("ofetch", () => {
     });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request).to.equal(getURL("404"));
+  });
+
+  it("403 with ignoreResponseError", async () => {
+    const res = await $fetch(getURL("403"), { ignoreResponseError: true });
+    expect(res?.statusCode).to.eq(403);
+    expect(res?.statusMessage).to.eq("Forbidden");
   });
 
   it("baseURL with retry", async () => {

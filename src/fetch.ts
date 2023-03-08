@@ -37,6 +37,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   extends Omit<RequestInit, "body"> {
   baseURL?: string;
   body?: RequestInit["body"] | Record<string, any>;
+  ignoreResponseError?: boolean;
   params?: SearchParameters;
   query?: SearchParameters;
   parseResponse?: (responseText: string) => any;
@@ -205,7 +206,9 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
         await context.options.onResponseError(context as any);
       }
 
-      return onError(context);
+      if (!context.options.ignoreResponseError) {
+        return onError(context);
+      }
     }
 
     return context.response;

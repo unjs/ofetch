@@ -59,7 +59,7 @@
     "jiti": "^1.18.2",
     "listhen": "^1.0.4",
     "prettier": "^2.8.7",
-    "typescript": "^4.9.5",
+    "typescript": "^5.0.4",
     "unbuild": "^1.2.1",
     "vitest": "^0.30.1"
   },

@@ -233,7 +233,7 @@ If you need to access raw response (for headers, etc), can use `ofetch.raw`:
 ```js
 const response = await ofetch.raw('/sushi')
 
-// response.data
+// response._data
 // response.headers
 // ...
 ```

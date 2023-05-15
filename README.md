@@ -93,7 +93,7 @@ await ofetch(...).catch((error) => error.data)
 
 ## ✔️ Auto Retry
 
-`ofetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT` and `PATCH` methods that is `0`)
+`ofetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT`, `PATCH` and `DELETE` methods that is `0`)
 
 ```ts
 await ofetch('http://google.com/404', {

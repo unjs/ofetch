@@ -1,3 +1,5 @@
+import { FetchOptions } from "./fetch";
+
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
 );
@@ -72,15 +74,19 @@ export function detectResponseType(_contentType = ""): ResponseType {
   return "blob";
 }
 
-// Deep merging of objects,
-export function deepMerge(obj1: Record<string, any>, obj2: Record<string, any>): Record<string, any> {
-  const merged = { ...obj1, ...obj2 };
+// Merging of fetch option objects.
+export function mergeFetchOptions(obj1: FetchOptions | undefined, obj2: FetchOptions | undefined): Record<string, any> {
+  const merged = Object.assign({}, obj1, obj2);
 
-  for (const key of Object.keys(merged)) {
-    // Recursively merge any objects
-    if (typeof merged[key] === "object" && merged[key] !== null) {
-      merged[key] = deepMerge(obj1[key], obj2[key]);
-    }
+  // Merge special cases deeper.
+  if (obj1?.headers && obj2?.headers) {
+    merged.headers = Object.assign({}, obj1.headers, obj2.headers);
+  }
+  if (obj1?.params && obj2?.params) {
+    merged.params = Object.assign({}, obj1?.params, obj2?.params);
+  }
+  if (obj1?.query && obj2?.query) {
+    merged.query = Object.assign({}, obj1?.query, obj2?.query);
   }
 
   return merged;

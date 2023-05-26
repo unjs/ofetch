@@ -8,6 +8,7 @@ import {
   detectResponseType,
   ResponseType,
   MappedType,
+  deepMerge,
 } from "./utils";
 
 export interface CreateFetchOptions {
@@ -128,7 +129,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
   ) {
     const context: FetchContext = {
       request: _request,
-      options: { ...globalOptions.defaults, ..._options },
+      options: deepMerge(globalOptions.defaults || {}, _options),
       response: undefined,
       error: undefined,
     };

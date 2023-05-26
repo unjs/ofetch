@@ -189,4 +189,23 @@ describe("ofetch", () => {
     }
     expect(abortHandle()).rejects.toThrow(/aborted/);
   });
+
+  it("deep merges defaultOptions", async () => {
+    const createdFetch = $fetch.create({
+      headers: {
+        'Test-Header-Default': '1',
+      }
+    });
+    const { headers } = await createdFetch(getURL("post"), {
+      method: "POST",
+      body: '',
+      headers: {
+        "Content-Type": "text/plain",
+        "Test-Header-Request": "1",
+      }
+    });
+
+    expect(headers).to.include({"test-header-default": "1"});
+    expect(headers).to.include({"test-header-request": "1"});
+  });
 });

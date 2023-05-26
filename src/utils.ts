@@ -71,3 +71,17 @@ export function detectResponseType(_contentType = ""): ResponseType {
 
   return "blob";
 }
+
+// Deep merging of objects,
+export function deepMerge(obj1: Record<string, any>, obj2: Record<string, any>): Record<string, any> {
+  const merged = { ...obj1, ...obj2 };
+
+  for (const key of Object.keys(merged)) {
+    // Recursively merge any objects
+    if (typeof merged[key] === "object" && merged[key] !== null) {
+      merged[key] = deepMerge(obj1[key], obj2[key]);
+    }
+  }
+
+  return merged;
+}

@@ -170,16 +170,18 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       }
     }
 
-    context.response = await fetch(
-      context.request,
-      context.options as RequestInit
-    ).catch(async (error) => {
-      context.error = error;
+    try {
+      context.response = await fetch(
+        context.request,
+        context.options as RequestInit
+      );
+    } catch (error) {
+      context.error = error as Error;
       if (context.options.onRequestError) {
         await context.options.onRequestError(context as any);
       }
-      return onError(context);
-    });
+      return await onError(context);
+    }
 
     const responseType =
       (context.options.parseResponse ? "json" : context.options.responseType) ||

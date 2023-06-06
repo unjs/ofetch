@@ -1,4 +1,4 @@
-import { FetchOptions } from "./fetch";
+import type { FetchOptions } from "./fetch";
 
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
@@ -76,31 +76,28 @@ export function detectResponseType(_contentType = ""): ResponseType {
 
 // Merging of fetch option objects.
 export function mergeFetchOptions(
-  obj1: FetchOptions | undefined,
-  obj2: FetchOptions | undefined,
+  input: FetchOptions | undefined,
+  defaults: FetchOptions | undefined,
   Headers = globalThis.Headers
 ): Record<string, any> {
-  const merged = Object.assign({}, obj1, obj2);
+  const merged = {
+    ...input,
+    ...defaults,
+  };
 
-  // Merge special cases deeper.
-  if (obj1?.params && obj2?.params) {
-    merged.params = Object.assign({}, obj1.params, obj2.params);
-  }
-  if (obj1?.query && obj2?.query) {
-    merged.query = Object.assign({}, obj1.query, obj2.query);
-  }
+  // Merge params and query
+  merged.query = {
+    ...defaults?.params,
+    ...defaults?.query,
+    ...input?.params,
+    ...input?.query,
+  };
+  delete merged.params;
 
-  if (obj1?.headers && obj2?.headers) {
-    const h1 = new Headers(obj1.headers);
-    const h2 = new Headers(obj2.headers);
-    const headers = new Headers();
-    for (const [key, value] of h1.entries()) {
-      headers.set(key, value);
-    }
-    for (const [key, value] of h2.entries()) {
-      headers.set(key, value);
-    }
-    merged.headers = headers;
+  // Merge headers
+  merged.headers = new Headers(defaults?.headers || {});
+  for (const [key, value] of new Headers(input?.headers || {})) {
+    merged.headers.set(key, value);
   }
 
   return merged;

@@ -210,7 +210,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       }
 
       if (!context.options.ignoreResponseError) {
-      return await onError(context);
+        return await onError(context);
       }
     }
 

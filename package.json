@@ -53,7 +53,7 @@
     "changelogen": "^0.5.3",
     "eslint": "^8.42.0",
     "eslint-config-unjs": "^0.2.1",
-    "fetch-blob": "^3.2.0",
+    "fetch-blob": "^4.0.0",
     "formdata-polyfill": "^4.0.10",
     "h3": "^1.6.6",
     "jiti": "^1.18.2",

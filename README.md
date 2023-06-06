@@ -2,10 +2,12 @@
 
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
-[![Codecov][codecov-src]][codecov-href]
 [![bundle][bundle-src]][bundle-href]
+[![Codecov][codecov-src]][codecov-href]
+[![License][license-src]][license-href]
+[![JSDocs][jsdocs-src]][jsdocs-href]
 
-> A better fetch API. Works on node, browser and workers.
+A better fetch API. Works on node, browser and workers.
 
 ## 🚀 Quick Start
 
@@ -28,11 +30,6 @@ import { ofetch } from 'ofetch'
 // CommonJS
 const { ofetch } = require('ofetch')
 ```
-
-<details>
-  <summary>Spoiler</summary>
-  <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
-</details>
 
 ## ✔️ Works with Node.js
 
@@ -96,7 +93,7 @@ await ofetch(...).catch((error) => error.data)
 
 ## ✔️ Auto Retry
 
-`ofetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT` and `PATCH` methods that is `0`)
+`ofetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT`, `PATCH` and `DELETE` methods that is `0`)
 
 ```ts
 await ofetch('http://google.com/404', {
@@ -236,7 +233,7 @@ If you need to access raw response (for headers, etc), can use `ofetch.raw`:
 ```js
 const response = await ofetch.raw('/sushi')
 
-// response.data
+// response._data
 // response.headers
 // ...
 ```
@@ -279,17 +276,15 @@ If you need to support legacy users, you can optionally transpile the library in
 MIT. Made with 💖
 
 <!-- Badges -->
-[npm-version-src]: https://img.shields.io/npm/v/ofetch?style=flat-square
+[npm-version-src]: https://img.shields.io/npm/v/ofetch?style=flat&colorA=18181B&colorB=F0DB4F
 [npm-version-href]: https://npmjs.com/package/ofetch
-
-[npm-downloads-src]: https://img.shields.io/npm/dm/ofetch?style=flat-square
+[npm-downloads-src]: https://img.shields.io/npm/dm/ofetch?style=flat&colorA=18181B&colorB=F0DB4F
 [npm-downloads-href]: https://npmjs.com/package/ofetch
-
-[github-actions-src]: https://img.shields.io/github/workflow/status/unjs/ofetch/ci/main?style=flat-square
-[github-actions-href]: https://github.com/unjs/ofetch/actions?query=workflow%3Aci
-
-[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ofetch/main?style=flat-square
+[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ofetch/main?style=flat&colorA=18181B&colorB=F0DB4F
 [codecov-href]: https://codecov.io/gh/unjs/ofetch
-
-[bundle-src]: https://img.shields.io/bundlephobia/minzip/ofetch?style=flat-square
+[bundle-src]: https://img.shields.io/bundlephobia/minzip/ofetch?style=flat&colorA=18181B&colorB=F0DB4F
 [bundle-href]: https://bundlephobia.com/result?p=ofetch
+[license-src]: https://img.shields.io/github/license/unjs/ofetch.svg?style=flat&colorA=18181B&colorB=F0DB4F
+[license-href]: https://github.com/unjs/ofetch/blob/main/LICENSE
+[jsdocs-src]: https://img.shields.io/badge/jsDocs.io-reference-18181B?style=flat&colorA=18181B&colorB=F0DB4F
+[jsdocs-href]: https://www.jsdocs.io/package/ofetch

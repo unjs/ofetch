@@ -204,14 +204,15 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       await context.options.onResponse(context as any);
     }
 
-    if (context.response.status >= 400 && context.response.status < 600) {
+    if (
+      !context.options.ignoreResponseError &&
+      context.response.status >= 400 &&
+      context.response.status < 600
+    ) {
       if (context.options.onResponseError) {
         await context.options.onResponseError(context as any);
       }
-
-      if (!context.options.ignoreResponseError) {
-        return await onError(context);
-      }
+      return await onError(context);
     }
 
     return context.response;

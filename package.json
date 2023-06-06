@@ -48,8 +48,8 @@
     "ufo": "^1.1.2"
   },
   "devDependencies": {
-    "@types/node": "^18.16.16",
-    "@vitest/coverage-c8": "^0.32.0",
+    "@types/node": "^20.2.5",
+    "@vitest/coverage-v8": "^0.32.0",
     "changelogen": "^0.5.3",
     "eslint": "^8.42.0",
     "eslint-config-unjs": "^0.2.1",

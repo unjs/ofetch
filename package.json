@@ -7,6 +7,7 @@
   "sideEffects": false,
   "type": "module",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "browser": "./dist/index.mjs",
       "bun": "./dist/index.mjs",

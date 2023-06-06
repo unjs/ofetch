@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.1.0
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.0.1...v1.1.0)
+
+
+### 🚀 Enhancements
+
+  - Support `ignoreResponseError` option ([#221](https://github.com/unjs/ofetch/pull/221))
+  - **pkg:** Add export conditions for runtime keys ([#246](https://github.com/unjs/ofetch/pull/246))
+
+### 🩹 Fixes
+
+  - Pass empty object to headers initializer to prevent crash on chrome 49 ([#235](https://github.com/unjs/ofetch/pull/235))
+  - Export `ResponseMap` type to allow composition of `ofetch` ([#232](https://github.com/unjs/ofetch/pull/232))
+  - Fix issues with native node fetch ([#245](https://github.com/unjs/ofetch/pull/245))
+  - **pkg:** Add `./package.json` subpath ([253707a](https://github.com/unjs/ofetch/commit/253707a))
+  - Deep merge fetch options ([#243](https://github.com/unjs/ofetch/pull/243))
+
+### 📖 Documentation
+
+  - **readme:** Use `_data` rather than `data` for raw requests ([#239](https://github.com/unjs/ofetch/pull/239))
+  - Mention `DELETE` is no-retry be default ([#241](https://github.com/unjs/ofetch/pull/241))
+
+### 🏡 Chore
+
+  - **readme:** Small improvements ([65921a1](https://github.com/unjs/ofetch/commit/65921a1))
+
+### 🤖 CI
+
+  - Enable tests against node `16`, `18` and `20` ([351fc80](https://github.com/unjs/ofetch/commit/351fc80))
+
+### ❤️  Contributors
+
+- Dennis Meuwissen 
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Alex Korytskyi ([@alex-key](http://github.com/alex-key))
+- Arunanshu Biswas 
+- Jonathan Bakebwa <codebender828@gmail.com>
+- Ilya Semenov ([@IlyaSemenov](http://github.com/IlyaSemenov))
+- _lmmmmmm <lmmmmmm12138@gmail.com>
+- Jonas Thelemann ([@dargmuesli](http://github.com/dargmuesli))
+- Sébastien Chopin <seb@nuxtjs.com>
+
 ## v1.0.1
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.0.0...v1.0.1)

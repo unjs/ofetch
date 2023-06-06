@@ -130,7 +130,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
   ) {
     const context: FetchContext = {
       request: _request,
-      options: mergeFetchOptions(globalOptions.defaults, _options),
+      options: mergeFetchOptions(globalOptions.defaults, _options, Headers),
       response: undefined,
       error: undefined,
     };

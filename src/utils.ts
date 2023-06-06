@@ -77,7 +77,8 @@ export function detectResponseType(_contentType = ""): ResponseType {
 // Merging of fetch option objects.
 export function mergeFetchOptions(
   obj1: FetchOptions | undefined,
-  obj2: FetchOptions | undefined
+  obj2: FetchOptions | undefined,
+  Headers = globalThis.Headers
 ): Record<string, any> {
   const merged = Object.assign({}, obj1, obj2);
 

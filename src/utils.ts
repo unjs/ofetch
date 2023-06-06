@@ -81,8 +81,8 @@ export function mergeFetchOptions(
   Headers = globalThis.Headers
 ): Record<string, any> {
   const merged = {
-    ...input,
     ...defaults,
+    ...input,
   };
 
   // Merge params and query

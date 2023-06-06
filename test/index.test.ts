@@ -35,7 +35,10 @@ describe("ofetch", () => {
         "/echo",
         eventHandler(async (event) => ({
           path: event.path,
-          body: event.node.req.method === 'POST' ? await readRawBody(event) : undefined,
+          body:
+            event.node.req.method === "POST"
+              ? await readRawBody(event)
+              : undefined,
           headers: event.node.req.headers,
         }))
       )
@@ -240,6 +243,6 @@ describe("ofetch", () => {
       "x-header-c": "3",
     });
 
-    expect(path).to.eq('?b=2&c=3&a=1')
+    expect(path).to.eq("?b=2&c=3&a=1");
   });
 });

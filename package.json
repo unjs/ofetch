@@ -8,6 +8,17 @@
   "type": "module",
   "exports": {
     ".": {
+      "browser": "./dist/index.mjs",
+      "bun": "./dist/index.mjs",
+      "deno": "./dist/index.mjs",
+      "edge-light": "./dist/index.mjs",
+      "edge-routine": "./dist/index.mjs",
+      "lagon": "./dist/index.mjs",
+      "netlify": "./dist/index.mjs",
+      "react-native": "./dist/index.mjs",
+      "wintercg": "./dist/index.mjs",
+      "worker": "./dist/index.mjs",
+      "workerd": "./dist/index.mjs",
       "node": {
         "types": "./dist/node.d.ts",
         "import": "./dist/node.mjs",
@@ -44,7 +55,7 @@
   },
   "dependencies": {
     "destr": "^1.2.2",
-    "node-fetch-native": "^1.1.1",
+    "node-fetch-native": "^1.2.0",
     "ufo": "^1.1.2"
   },
   "devDependencies": {

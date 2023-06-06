@@ -8,13 +8,18 @@
   "type": "module",
   "exports": {
     ".": {
+      "edge-light": "./dist/index.mjs",
+      "worker": "./dist/index.mjs",
+      "workerd": "./dist/index.mjs",
+      "browser": "./dist/index.mjs",
+      "deno": "./dist/index.mjs",
+      "bun": "./dist/index.mjs",
+      "wintercg": "./dist/index.mjs",
       "node": {
         "types": "./dist/node.d.ts",
         "import": "./dist/node.mjs",
         "require": "./dist/node.cjs"
       },
-      "worker": "./dist/index.mjs",
-      "workerd": "./dist/index.mjs",
       "default": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.mjs",

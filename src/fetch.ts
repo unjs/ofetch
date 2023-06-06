@@ -161,7 +161,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
-        context.options.headers = new Headers(context.options.headers);
+        context.options.headers = new Headers(context.options.headers || {});
         if (!context.options.headers.has("content-type")) {
           context.options.headers.set("content-type", "application/json");
         }

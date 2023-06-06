@@ -9,7 +9,7 @@ dependencies:
     specifier: ^1.2.2
     version: 1.2.2
   node-fetch-native:
-    specifier: ^1.2.0
+    specifier: ^1.1.1
     version: 1.2.0
   ufo:
     specifier: ^1.1.2

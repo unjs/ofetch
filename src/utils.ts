@@ -36,7 +36,7 @@ const textTypes = new Set([
 
 const JSON_RE = /^application\/(?:[\w!#$%&*.^`~-]*\+)?json(;.+)?$/i;
 
-interface ResponseMap {
+export interface ResponseMap {
   blob: Blob;
   text: string;
   arrayBuffer: ArrayBuffer;

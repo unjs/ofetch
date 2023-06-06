@@ -2,6 +2,7 @@ import { listen } from "listhen";
 import { getQuery, joinURL } from "ufo";
 import {
   createApp,
+  createError,
   eventHandler,
   readBody,
   readRawBody,
@@ -9,14 +10,14 @@ import {
 } from "h3";
 import { Blob } from "fetch-blob";
 import { FormData } from "formdata-polyfill/esm.min.js";
-import { describe, beforeEach, afterEach, it, expect } from "vitest";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import { Headers, $fetch } from "../src/node";
 
 describe("ofetch", () => {
   let listener;
   const getURL = (url) => joinURL(listener.url, url);
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const app = createApp()
       .use(
         "/ok",
@@ -24,34 +25,40 @@ describe("ofetch", () => {
       )
       .use(
         "/params",
-        eventHandler((event) => getQuery(event.req.url || ""))
+        eventHandler((event) => getQuery(event.node.req.url || ""))
       )
       .use(
         "/url",
-        eventHandler((event) => event.req.url)
+        eventHandler((event) => event.node.req.url)
       )
       .use(
         "/post",
         eventHandler(async (event) => ({
           body: await readBody(event),
-          headers: event.req.headers,
+          headers: event.node.req.headers,
         }))
       )
       .use(
         "/binary",
         eventHandler((event) => {
-          event.res.setHeader("Content-Type", "application/octet-stream");
+          event.node.res.setHeader("Content-Type", "application/octet-stream");
           return new Blob(["binary"]);
         })
       )
       .use(
         "/echo",
         eventHandler(async (event) => ({ body: await readRawBody(event) }))
+      )
+      .use(
+        "/403",
+        eventHandler(() =>
+          createError({ status: 403, statusMessage: "Forbidden" })
+        )
       );
     listener = await listen(toNodeListener(app));
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await listener.close();
   });
 
@@ -167,6 +174,12 @@ describe("ofetch", () => {
     });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request).to.equal(getURL("404"));
+  });
+
+  it("403 with ignoreResponseError", async () => {
+    const res = await $fetch(getURL("403"), { ignoreResponseError: true });
+    expect(res?.statusCode).to.eq(403);
+    expect(res?.statusMessage).to.eq("Forbidden");
   });
 
   it("baseURL with retry", async () => {

@@ -85,10 +85,16 @@ await ofetch('http://google.com/404')
 //     at async main (/project/playground.ts:4:3)
 ```
 
-In order to bypass errors as response you can use `error.data`:
+To catch error response:
 
 ```ts
-await ofetch(...).catch((error) => error.data)
+await ofetch('/url').catch(err => err.data)
+```
+
+To bypass status error catching you can set `ignoreResponseError` option:
+
+```ts
+await ofetch('/url', { ignoreResponseError: true })
 ```
 
 ## ✔️ Auto Retry

@@ -38,6 +38,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   extends Omit<RequestInit, "body"> {
   baseURL?: string;
   body?: RequestInit["body"] | Record<string, any>;
+  ignoreResponseError?: boolean;
   params?: SearchParameters;
   query?: SearchParameters;
   parseResponse?: (responseText: string) => any;
@@ -161,6 +162,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
+        // Pass empty object as older browsers don't support undefined.
         context.options.headers = new Headers(context.options.headers || {});
         if (!context.options.headers.has("content-type")) {
           context.options.headers.set("content-type", "application/json");
@@ -171,16 +173,18 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       }
     }
 
-    context.response = await fetch(
-      context.request,
-      context.options as RequestInit
-    ).catch(async (error) => {
-      context.error = error;
+    try {
+      context.response = await fetch(
+        context.request,
+        context.options as RequestInit
+      );
+    } catch (error) {
+      context.error = error as Error;
       if (context.options.onRequestError) {
         await context.options.onRequestError(context as any);
       }
-      return onError(context);
-    });
+      return await onError(context);
+    }
 
     const responseType =
       (context.options.parseResponse ? "json" : context.options.responseType) ||
@@ -201,19 +205,23 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       await context.options.onResponse(context as any);
     }
 
-    if (context.response.status >= 400 && context.response.status < 600) {
+    if (
+      !context.options.ignoreResponseError &&
+      context.response.status >= 400 &&
+      context.response.status < 600
+    ) {
       if (context.options.onResponseError) {
         await context.options.onResponseError(context as any);
       }
-
-      return onError(context);
+      return await onError(context);
     }
 
     return context.response;
   };
 
-  const $fetch = function $fetch(request, options) {
-    return $fetchRaw(request, options).then((r) => r._data);
+  const $fetch = async function $fetch(request, options) {
+    const r = await $fetchRaw(request, options);
+    return r._data;
   } as $Fetch;
 
   $fetch.raw = $fetchRaw;

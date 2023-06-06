@@ -32,6 +32,14 @@ describe("ofetch", () => {
         eventHandler((event) => event.node.req.url)
       )
       .use(
+        "/echo",
+        eventHandler(async (event) => ({
+          path: event.path,
+          body: event.node.req.method === 'POST' ? await readRawBody(event) : undefined,
+          headers: event.node.req.headers,
+        }))
+      )
+      .use(
         "/post",
         eventHandler(async (event) => ({
           body: await readBody(event),
@@ -44,10 +52,6 @@ describe("ofetch", () => {
           event.node.res.setHeader("Content-Type", "application/octet-stream");
           return new Blob(["binary"]);
         })
-      )
-      .use(
-        "/echo",
-        eventHandler(async (event) => ({ body: await readRawBody(event) }))
       )
       .use(
         "/403",
@@ -204,15 +208,25 @@ describe("ofetch", () => {
   });
 
   it("deep merges defaultOptions", async () => {
-    const createdFetch = $fetch.create({
+    const _customFetch = $fetch.create({
+      query: {
+        a: 0,
+      },
+      params: {
+        b: 2,
+      },
       headers: {
         "x-header-a": "0",
         "x-header-b": "2",
       },
     });
-    const { headers } = await createdFetch(getURL("post"), {
-      method: "POST",
-      body: "",
+    const { headers, path } = await _customFetch(getURL("echo"), {
+      query: {
+        a: 1,
+      },
+      params: {
+        c: 3,
+      },
       headers: {
         "Content-Type": "text/plain",
         "x-header-a": "1",
@@ -225,5 +239,7 @@ describe("ofetch", () => {
       "x-header-b": "2",
       "x-header-c": "3",
     });
+
+    expect(path).to.eq('?b=2&c=3&a=1')
   });
 });

@@ -86,18 +86,25 @@ export function mergeFetchOptions(
   };
 
   // Merge params and query
-  merged.query = {
-    ...defaults?.params,
-    ...defaults?.query,
-    ...input?.params,
-    ...input?.query,
-  };
-  delete merged.params;
+  if (defaults?.params && input?.params) {
+    merged.params = {
+      ...defaults?.params,
+      ...input?.params,
+    };
+  }
+  if (defaults?.query && input?.query) {
+    merged.query = {
+      ...defaults?.query,
+      ...input?.query,
+    };
+  }
 
   // Merge headers
-  merged.headers = new Headers(defaults?.headers || {});
-  for (const [key, value] of new Headers(input?.headers || {})) {
-    merged.headers.set(key, value);
+  if (defaults?.headers && input?.headers) {
+    merged.headers = new Headers(defaults?.headers || {});
+    for (const [key, value] of new Headers(input?.headers || {})) {
+      merged.headers.set(key, value);
+    }
   }
 
   return merged;

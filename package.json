@@ -13,6 +13,8 @@
         "import": "./dist/node.mjs",
         "require": "./dist/node.cjs"
       },
+      "worker": "./dist/index.mjs",
+      "workerd": "./dist/index.mjs",
       "default": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.mjs",

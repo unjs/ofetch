@@ -207,14 +207,15 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
         await context.options.onResponseError(context as any);
       }
 
-      return onError(context);
+      return await onError(context);
     }
 
     return context.response;
   };
 
-  const $fetch = function $fetch(request, options) {
-    return $fetchRaw(request, options).then((r) => r._data);
+  const $fetch = async function $fetch(request, options) {
+    const r = await $fetchRaw(request, options);
+    return r._data;
   } as $Fetch;
 
   $fetch.raw = $fetchRaw;

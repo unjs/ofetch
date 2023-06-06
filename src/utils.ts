@@ -75,18 +75,31 @@ export function detectResponseType(_contentType = ""): ResponseType {
 }
 
 // Merging of fetch option objects.
-export function mergeFetchOptions(obj1: FetchOptions | undefined, obj2: FetchOptions | undefined): Record<string, any> {
+export function mergeFetchOptions(
+  obj1: FetchOptions | undefined,
+  obj2: FetchOptions | undefined
+): Record<string, any> {
   const merged = Object.assign({}, obj1, obj2);
 
   // Merge special cases deeper.
-  if (obj1?.headers && obj2?.headers) {
-    merged.headers = Object.assign({}, obj1.headers, obj2.headers);
-  }
   if (obj1?.params && obj2?.params) {
-    merged.params = Object.assign({}, obj1?.params, obj2?.params);
+    merged.params = Object.assign({}, obj1.params, obj2.params);
   }
   if (obj1?.query && obj2?.query) {
-    merged.query = Object.assign({}, obj1?.query, obj2?.query);
+    merged.query = Object.assign({}, obj1.query, obj2.query);
+  }
+
+  if (obj1?.headers && obj2?.headers) {
+    const h1 = new Headers(obj1.headers);
+    const h2 = new Headers(obj2.headers);
+    const headers = new Headers();
+    for (const [key, value] of h1.entries()) {
+      headers.set(key, value);
+    }
+    for (const [key, value] of h2.entries()) {
+      headers.set(key, value);
+    }
+    merged.headers = headers;
   }
 
   return merged;

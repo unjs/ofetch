@@ -79,8 +79,8 @@ export function mergeFetchOptions(
   input: FetchOptions | undefined,
   defaults: FetchOptions | undefined,
   Headers = globalThis.Headers
-): Record<string, any> {
-  const merged = {
+): FetchOptions {
+  const merged: FetchOptions = {
     ...defaults,
     ...input,
   };

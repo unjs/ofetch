@@ -55,7 +55,7 @@
     "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
-    "destr": "^1.2.2",
+    "destr": "^2.0.0",
     "node-fetch-native": "^1.2.0",
     "ufo": "^1.1.2"
   },

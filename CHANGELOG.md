@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.1.1
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.1.0...v1.1.1)
+
+
+### 🏡 Chore
+
+  - Update dev dependencies ([8fc7d96](https://github.com/unjs/ofetch/commit/8fc7d96))
+
+### ❤️  Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v1.1.0
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.0.1...v1.1.0)

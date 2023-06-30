@@ -44,7 +44,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   parseResponse?: (responseText: string) => any;
   responseType?: R;
   response?: boolean;
-  retry?: number | false;
+  retry?: number | (() => boolean | Promise<boolean>) | false;
 
   onRequest?(context: FetchContext): Promise<void> | void;
   onRequestError?(
@@ -86,7 +86,7 @@ const retryStatusCodes = new Set([
 export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
   const { fetch, Headers } = globalOptions;
 
-  function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
@@ -97,6 +97,8 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       let retries;
       if (typeof context.options.retry === "number") {
         retries = context.options.retry;
+      } else if (typeof context.options.retry === "function") {
+        retries = (await context.options.retry()) ? 1 : 0;
       } else {
         retries = isPayloadMethod(context.options.method) ? 0 : 1;
       }
@@ -105,7 +107,10 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       if (retries > 0 && retryStatusCodes.has(responseCode)) {
         return $fetchRaw(context.request, {
           ...context.options,
-          retry: retries - 1,
+          retry:
+            typeof context.options.retry === "function"
+              ? context.options.retry
+              : retries - 1,
         });
       }
     }

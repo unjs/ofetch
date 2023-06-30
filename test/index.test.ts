@@ -210,6 +210,40 @@ describe("ofetch", () => {
     expect(abortHandle()).rejects.toThrow(/aborted/);
   });
 
+  it("baseURL with function retry", async () => {
+    let retries = 4;
+    const error = await $fetch("", {
+      baseURL: getURL("404"),
+      retry: () => {
+        retries--;
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(retries !== 0), 0);
+        });
+      },
+    }).catch((error_) => error_);
+    expect(error.request).to.equal(getURL("404"));
+  });
+
+  it("abort with function retry", () => {
+    const controller = new AbortController();
+    let retries = 4;
+    async function abortHandle() {
+      controller.abort();
+      const response = await $fetch("", {
+        baseURL: getURL("ok"),
+        retry: () => {
+          retries--;
+          return new Promise((resolve) => {
+            setTimeout(() => resolve(retries !== 0), 0);
+          });
+        },
+        signal: controller.signal,
+      });
+      console.log("response", response);
+    }
+    expect(abortHandle()).rejects.toThrow(/aborted/);
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

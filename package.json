@@ -20,21 +20,24 @@
       "wintercg": "./dist/index.mjs",
       "worker": "./dist/index.mjs",
       "workerd": "./dist/index.mjs",
-      "node": {
-        "types": "./dist/node.d.ts",
-        "import": "./dist/node.mjs",
-        "require": "./dist/node.cjs"
-      },
-      "default": {
+      "import": {
         "types": "./dist/index.d.ts",
-        "import": "./dist/index.mjs",
-        "require": "./dist/index.cjs"
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./node.d.cts",
+        "default": "./dist/node.cjs"
       }
     },
     "./node": {
-      "types": "./dist/node.d.ts",
-      "import": "./dist/node.mjs",
-      "require": "./dist/node.cjs"
+      "import": {
+        "types": "./dist/node.d.ts",
+        "default": "./dist/node.mjs"
+      },
+      "require": {
+        "types": "./node.d.cts",
+        "default": "./dist/node.cjs"
+      }
     }
   },
   "main": "./dist/node.cjs",
@@ -42,7 +45,8 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "node.d.ts"
+    "node.d.ts",
+    "node.d.cts"
   ],
   "scripts": {
     "build": "unbuild",

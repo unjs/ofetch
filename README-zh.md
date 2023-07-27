@@ -37,44 +37,44 @@ const { ofetch } = require('ofetch')
 
 ### `keepAlive` 支持
 
-通过设置 `FETCH_KEEP_ALIVE` 环境变量为 `true`, 一个 http/https 代理将会被注册 that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
+通过设置 `FETCH_KEEP_ALIVE` 环境变量为 `true`, 一个 http/https 代理将会被注册，这样即使请求都完成，也可以保持链接持续存在, 所以对于后续的请求就非常有用，因为不需要再次重复建立连接了。
 
-**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
+**注意:** 这个选项可能会潜在的导致内存泄露。详细可查看 [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
 
-## ✔️ Parsing Response
+## ✔️ 解析响应
 
-`ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to text if it fails to parse.
+`ofetch` 使用 [destr](https://github.com/unjs/destr) 巧妙的解析 JSON 和处理原始值, 当解析错误时，会返回传入的值。
 
 ```js
 const { users } = await ofetch('/api/users')
 ```
 
-For binary content types, `ofetch` will instead return a `Blob` object.
+如果响应内容是 `binary` 类型, `ofetch` 会返回一个 `Blob` 对象。
 
-You can optionally provide a different parser than destr, or specify `blob`, `arrayBuffer` or `text` to force parsing the body with the respective `FetchResponse` method.
+你也可以提供自己的解析器代替 `destr`, 或者明确传入 `blob`, `arrayBuffer` 或 `text` 参数，强制使用相应的 `FetchResponse` 方法解析响应体。
 
 ```js
-// Use JSON.parse
+// 使用 JSON.parse
 await ofetch('/movie?lang=en', { parseResponse: JSON.parse })
 
-// Return text as is
+// 返回 text
 await ofetch('/movie?lang=en', { parseResponse: txt => txt })
 
-// Get the blob version of the response
+// 获取 blob 版本的响应
 await ofetch('/api/generate-image', { responseType: 'blob' })
 ```
 
 ## ✔️ JSON Body
 
-`ofetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
+`ofetch` 会自动把请求体(如果是对象类型就会通过)转换成字符串 and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
 
 ```js
 const { users } = await ofetch('/api/users', { method: 'POST', body: { some: 'json' } })
 ```
 
-## ✔️ Handling Errors
+## ✔️ 处理错误
 
-`ofetch` Automatically throw errors when `response.ok` is `false` with a friendly error message and compact stack (hiding internals).
+`ofetch` 自动抛出错误当 `response.ok` 是 `false` 友好的错误信息且精简的栈信息 (隐藏了内部错误)。
 
 Parsed error body is available with `error.data`. You may also use `FetchError` type.
 
@@ -84,7 +84,7 @@ await ofetch('http://google.com/404')
 //     at async main (/project/playground.ts:4:3)
 ```
 
-To catch error response:
+获取错误响应:
 
 ```ts
 await ofetch('/url').catch(err => err.data)

@@ -96,7 +96,7 @@ To bypass status error catching you can set `ignoreResponseError` option:
 await ofetch('/url', { ignoreResponseError: true })
 ```
 
-## ✔️ Auto Retry
+## ✔️ 自动重试
 
 `ofetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT`, `PATCH` and `DELETE` methods that is `0`)
 

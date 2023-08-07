@@ -74,9 +74,10 @@ const { users } = await ofetch('/api/users', { method: 'POST', body: { some: 'js
 
 ## ✔️ 处理错误
 
-`ofetch` 自动抛出错误当 `response.ok` 是 `false` 友好的错误信息且精简的栈信息 (隐藏了内部错误)。
+当 `response.ok` 是 `false` 时，`ofetch` 自动抛出友好且精简的错误和栈信息 (隐藏了内部错误)。
 
-Parsed error body is available with `error.data`. You may also use `FetchError` type.
+解析后的错误内容，可以通过 `error.data` 访问。也可以使用 `FetchError` 类型。
+
 
 ```ts
 await ofetch('http://google.com/404')
@@ -84,21 +85,21 @@ await ofetch('http://google.com/404')
 //     at async main (/project/playground.ts:4:3)
 ```
 
-获取错误响应:
+捕获错误响应:
 
 ```ts
 await ofetch('/url').catch(err => err.data)
 ```
 
-To bypass status error catching you can set `ignoreResponseError` option:
+也可以设置 `ignoreResponseError` 参数，忽略捕获错误状态：
 
 ```ts
 await ofetch('/url', { ignoreResponseError: true })
 ```
 
-## ✔️ Auto Retry
+## ✔️ 自动重试
 
-`ofetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT`, `PATCH` and `DELETE` methods that is `0`)
+如果发生错误，`ofetch` 会自动重新发送请求。 默认值是 `1` (排除 `POST`, `PUT`, `PATCH` and `DELETE` 方法，它们的默认值是 `0`)
 
 ```ts
 await ofetch('http://google.com/404', {
@@ -106,24 +107,24 @@ await ofetch('http://google.com/404', {
 })
 ```
 
-## ✔️ Type Friendly
+## ✔️ 类型友好
 
-Response can be type assisted:
+响应体可以提供类型辅助:
 
 ```ts
 const article = await ofetch<Article>(`/api/article/${id}`)
 // Auto complete working with article.id
 ```
 
-## ✔️ Adding `baseURL`
+## ✔️ 添加 `baseURL`
 
-By using `baseURL` option, `ofetch` prepends it with respecting to trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
+通过 `baseURL` 选项, `ofetch` 会使用 [ufo](https://github.com/unjs/ufo) 处理 baseURL，并在添加时遵循尾部/前导斜杠和查询搜索参数:
 
 ```js
 await ofetch('/config', { baseURL })
 ```
 
-## ✔️ Adding Query Search Params
+## ✔️ 添加查询搜索参数
 
 By using `query` option (or `params` as alias), `ofetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
 

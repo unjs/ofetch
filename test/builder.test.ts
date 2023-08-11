@@ -1,14 +1,14 @@
 import { listen } from "listhen";
-import type { Listener } from "listhen";
 import { getQuery } from "ufo";
 import { createApp, eventHandler, readBody, toNodeListener } from "h3";
 import { describe, beforeEach, afterEach, it, expect } from "vitest";
+import type { Listener } from "listhen";
 import { createClient } from "../src/builder";
 import type { ClientBuilder } from "../src/builder";
 
 // Test TypeScript support
 interface TypedGetResponse {
-  foo: string
+  foo: string;
 }
 
 describe("rest client", () => {
@@ -17,21 +17,33 @@ describe("rest client", () => {
 
   beforeEach(async () => {
     const app = createApp()
-      .use("/foo/1", eventHandler(() => ({ foo: "1" })))
-      .use("/foo", eventHandler(() => ({ foo: "bar" })))
-      .use("/bar", eventHandler(async event => ({
-        url: event.node.req.url,
-        body: await readBody(event),
-        headers: event.node.req.headers,
-        method: event.node.req.method
-      })))
-      .use("/params", eventHandler(request => getQuery(request.node.req.url || "")));
+      .use(
+        "/foo/1",
+        eventHandler(() => ({ foo: "1" }))
+      )
+      .use(
+        "/foo",
+        eventHandler(() => ({ foo: "bar" }))
+      )
+      .use(
+        "/bar",
+        eventHandler(async (event) => ({
+          url: event.node.req.url,
+          body: await readBody(event),
+          headers: event.node.req.headers,
+          method: event.node.req.method,
+        }))
+      )
+      .use(
+        "/params",
+        eventHandler((request) => getQuery(request.node.req.url || ""))
+      );
     listener = await listen(toNodeListener(app), { port: 3001 });
     client = createClient({
       baseURL: listener.url,
       headers: {
-        "X-Foo": "bar"
-      }
+        "X-Foo": "bar",
+      },
     });
   });
 
@@ -78,7 +90,10 @@ describe("rest client", () => {
   });
 
   it("override default options", async () => {
-    const { headers } = await client.bar.post({}, { headers: { "X-Foo": "baz" } });
+    const { headers } = await client.bar.post(
+      {},
+      { headers: { "X-Foo": "baz" } }
+    );
     expect(headers).to.include({ "x-foo": "baz" });
   });
 
@@ -98,10 +113,12 @@ describe("rest client", () => {
   });
 
   it("invalid api endpoint", () => {
-    expect(invalidHandle()).rejects.toThrow(/404 Not Found/);
+    expect(invalidHandle()).rejects.toThrow(
+      /404 Cannot find any route matching \/baz/
+    );
   });
 
-  async function invalidHandle () {
+  async function invalidHandle() {
     await client.baz.get<TypedGetResponse>();
   }
 });

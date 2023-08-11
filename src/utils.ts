@@ -1,8 +1,9 @@
+import { FetchOptions } from "./fetch";
 import type { ResponseType } from "./types";
 
 const payloadMethods = new Set(["PATCH", "POST", "PUT", "DELETE"]);
 
-export function isPayloadMethod (method: string = "GET") {
+export function isPayloadMethod(method = "GET") {
   return payloadMethods.has(method.toUpperCase());
 }
 
@@ -96,7 +97,7 @@ export function mergeFetchOptions(
   return merged;
 }
 
-export function headersToObject (headers: HeadersInit = {}) {
+export function headersToObject(headers: HeadersInit = {}) {
   // SSR compatibility for `Headers` prototype
   if (typeof Headers !== "undefined" && headers instanceof Headers) {
     return Object.fromEntries(headers.entries());

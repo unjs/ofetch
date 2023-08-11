@@ -8,35 +8,38 @@ import { $fetch } from "./";
 export type ClientMethodHandler = <T = any, R extends ResponseType = "json">(
   data?: RequestInit["body"] | Record<string, any>,
   options?: Omit<FetchOptions<R>, "baseURL" | "method">
-) => Promise<MappedType<R, T>>
+) => Promise<MappedType<R, T>>;
 
 export type ClientBuilder = {
   [key: string]: ClientBuilder;
-  (...segmentsOrIds: (string | number)[]): ClientBuilder
+  (...segmentsOrIds: (string | number)[]): ClientBuilder;
 } & {
-  get: ClientMethodHandler
-  post: ClientMethodHandler
-  put: ClientMethodHandler
-  delete: ClientMethodHandler
-  patch: ClientMethodHandler
-}
+  get: ClientMethodHandler;
+  post: ClientMethodHandler;
+  put: ClientMethodHandler;
+  delete: ClientMethodHandler;
+  patch: ClientMethodHandler;
+};
 
-export function createClient<R extends ResponseType = "json"> (
+export function createClient<R extends ResponseType = "json">(
   globalOptions: Omit<FetchOptions<R>, "method"> = {}
 ): ClientBuilder {
   // Callable internal target required to use `apply` on it
   const internalTarget = (() => {}) as ClientBuilder;
 
-  function p (url: string): ClientBuilder {
+  function p(url: string): ClientBuilder {
     return new Proxy(internalTarget, {
-      get (_target, key: string) {
+      get(_target, key: string) {
         const method = key.toUpperCase();
 
         if (method !== "GET" && !isPayloadMethod(method)) {
           return p(resolveURL(url, key));
         }
 
-        const handler: ClientMethodHandler = <T = any, R extends ResponseType = "json">(
+        const handler: ClientMethodHandler = <
+          T = any,
+          R extends ResponseType = "json"
+        >(
           data?: RequestInit["body"] | Record<string, any>,
           options: FetchOptions<R> = {}
         ) => {
@@ -51,17 +54,17 @@ export function createClient<R extends ResponseType = "json"> (
             ...options,
             headers: {
               ...headersToObject(globalOptions.headers),
-              ...headersToObject(options.headers)
+              ...headersToObject(options.headers),
             },
-            method
+            method,
           });
         };
 
         return handler;
       },
-      apply (_target, _thisArgument, arguments_: (string | number)[] = []) {
-        return p(resolveURL(url, ...arguments_.map(index => `${index}`)));
-      }
+      apply(_target, _thisArgument, arguments_: (string | number)[] = []) {
+        return p(resolveURL(url, ...arguments_.map((index) => `${index}`)));
+      },
     });
   }
 

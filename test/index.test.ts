@@ -168,16 +168,16 @@ describe("ofetch", () => {
       method: "POST",
       body: data,
     });
-    expect(body).to.eq("foo=bar");
+    expect(body).toMatchObject({ foo: 'bar' });
   });
 
   it("404", async () => {
     const error = await $fetch(getURL("404")).catch((error_) => error_);
-    expect(error.toString()).to.contain("Cannot find any route matching /404.");
+    expect(error.toString()).to.contain("Cannot find any path matching /404.");
     expect(error.data).to.deep.eq({
       stack: [],
       statusCode: 404,
-      statusMessage: "Cannot find any route matching /404.",
+      statusMessage: "Cannot find any path matching /404.",
     });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request).to.equal(getURL("404"));

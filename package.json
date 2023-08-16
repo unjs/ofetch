@@ -20,21 +20,24 @@
       "wintercg": "./dist/index.mjs",
       "worker": "./dist/index.mjs",
       "workerd": "./dist/index.mjs",
-      "node": {
-        "types": "./dist/node.d.ts",
-        "import": "./dist/node.mjs",
-        "require": "./dist/node.cjs"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       },
-      "default": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.mjs",
-        "require": "./dist/index.cjs"
+      "require": {
+        "types": "./dist/node.d.cts",
+        "default": "./dist/node.cjs"
       }
     },
     "./node": {
-      "types": "./dist/node.d.ts",
-      "import": "./dist/node.mjs",
-      "require": "./dist/node.cjs"
+      "import": {
+        "types": "./dist/node.d.mts",
+        "default": "./dist/node.mjs"
+      },
+      "require": {
+        "types": "./dist/node.d.cts",
+        "default": "./dist/node.cjs"
+      }
     }
   },
   "main": "./dist/node.cjs",
@@ -72,7 +75,7 @@
     "listhen": "^1.3.0",
     "prettier": "^3.0.2",
     "typescript": "^5.1.6",
-    "unbuild": "^1.2.1",
+    "unbuild": "^2.0.0-rc.0",
     "vitest": "^0.34.1"
   },
   "packageManager": "pnpm@8.6.12"

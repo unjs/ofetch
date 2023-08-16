@@ -61,7 +61,12 @@ describe("ofetch", () => {
         eventHandler(() =>
           createError({ status: 403, statusMessage: "Forbidden" })
         )
+      )
+      .use(
+        "/408",
+        eventHandler(() => createError({ status: 408 }))
       );
+
     listener = await listen(toNodeListener(app));
   });
 
@@ -135,7 +140,7 @@ describe("ofetch", () => {
       const { headers } = await $fetch(getURL("post"), {
         method: "POST",
         body: { num: 42 },
-        headers: sentHeaders,
+        headers: sentHeaders as HeadersInit,
       });
       expect(headers).to.include({ "x-header": "1" });
       expect(headers).to.include({ accept: "application/json" });
@@ -168,16 +173,16 @@ describe("ofetch", () => {
       method: "POST",
       body: data,
     });
-    expect(body).to.eq("foo=bar");
+    expect(body).toMatchObject({ foo: "bar" });
   });
 
   it("404", async () => {
     const error = await $fetch(getURL("404")).catch((error_) => error_);
-    expect(error.toString()).to.contain("Cannot find any route matching /404.");
+    expect(error.toString()).to.contain("Cannot find any path matching /404.");
     expect(error.data).to.deep.eq({
       stack: [],
       statusCode: 404,
-      statusMessage: "Cannot find any route matching /404.",
+      statusMessage: "Cannot find any path matching /404.",
     });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request).to.equal(getURL("404"));
@@ -194,6 +199,20 @@ describe("ofetch", () => {
       (error_) => error_
     );
     expect(error.request).to.equal(getURL("404"));
+  });
+
+  it("retry with delay", async () => {
+    const slow = $fetch<string>(getURL("408"), {
+      retry: 2,
+      retryDelay: 100,
+    }).catch(() => "slow");
+    const fast = $fetch<string>(getURL("408"), {
+      retry: 2,
+      retryDelay: 1,
+    }).catch(() => "fast");
+
+    const race = await Promise.race([slow, fast]);
+    expect(race).to.equal("fast");
   });
 
   it("abort with retry", () => {

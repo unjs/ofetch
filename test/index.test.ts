@@ -168,7 +168,7 @@ describe("ofetch", () => {
       method: "POST",
       body: data,
     });
-    expect(body).toMatchObject({ foo: 'bar' });
+    expect(body).toMatchObject({ foo: "bar" });
   });
 
   it("404", async () => {

@@ -99,7 +99,20 @@ await ofetch('/url', { ignoreResponseError: true })
 
 ## ✔️ Auto Retry
 
-`ofetch` Automatically retries the request if an error happens. Default is `1` (except for `POST`, `PUT`, `PATCH` and `DELETE` methods that is `0`)
+`ofetch` Automatically retries the request if an error happens and if response status code is included in `retryStatusCodes` list.
+
+Default is `1` retry, except for `POST`, `PUT`, `PATCH` and `DELETE` methods ofetch does not retry.
+
+**Retry status codes:**
+
+- `408` - Request Timeout
+- `409` - Conflict
+- `425` - Too Early
+- `429` - Too Many Requests
+- `500` - Internal Server Error
+- `502` - Bad Gateway
+- `503` - Service Unavailable
+- `504` - Gateway Timeout
 
 ```ts
 await ofetch('http://google.com/404', {

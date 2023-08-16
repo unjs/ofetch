@@ -142,6 +142,9 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       error: undefined,
     };
 
+    // Uppercase method name
+    context.options.method = context.options.method?.toUpperCase();
+
     if (context.options.onRequest) {
       await context.options.onRequest(context);
     }
@@ -161,8 +164,6 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
         isPayloadMethod(context.options.method) &&
         isJSONSerializable(context.options.body)
       ) {
-        // Uppercase method name
-        context.options.method = context.options.method?.toUpperCase();
         // Automatically JSON stringify request bodies, when not already a string.
         context.options.body =
           typeof context.options.body === "string"

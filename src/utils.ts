@@ -46,7 +46,7 @@ export interface ResponseMap {
 export type ResponseType = keyof ResponseMap | "json";
 export type MappedType<
   R extends ResponseType,
-  JsonType = any
+  JsonType = any,
 > = R extends keyof ResponseMap ? ResponseMap[R] : JsonType;
 
 // This provides reasonable defaults for the correct parser based on Content-Type header.

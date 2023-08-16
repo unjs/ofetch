@@ -142,6 +142,9 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       error: undefined,
     };
 
+    // Uppercase method name
+    context.options.method = context.options.method?.toUpperCase();
+
     if (context.options.onRequest) {
       await context.options.onRequest(context);
     }

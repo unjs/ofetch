@@ -11,7 +11,7 @@ import {
 import { Blob } from "fetch-blob";
 import { FormData } from "formdata-polyfill/esm.min.js";
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Headers, $fetch, FetchContext } from "../src/node";
+import { Headers, $fetch } from "../src/node";
 
 describe("ofetch", () => {
   let listener;

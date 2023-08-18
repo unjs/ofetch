@@ -125,6 +125,25 @@ await ofetch('http://google.com/404', {
 })
 ```
 
+## ✔️ Timeout
+
+You can specify `timeout` in milliseconds. Default for `timeout` is `undefined`, `0` also excluded as disabled timeout.
+
+```ts
+await ofetch('http://google.com/404', {
+  timeout: 3000, // ms
+})
+```
+
+You can specify `timeoutExponent` function to control increase of timeout over retries:
+
+```ts
+await ofetch('http://google.com/404', {
+  timeout: 3000, // ms
+  timeoutExponent: (ms) => ms // this is default function
+})
+```
+
 ## ✔️ Type Friendly
 
 Response can be type assisted:

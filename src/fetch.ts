@@ -117,6 +117,9 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
         return $fetchRaw(context.request, {
           ...context.options,
           retry: retries - 1,
+          timeout: context.options.timeout
+            ? context.options.timeout * 2
+            : undefined,
         });
       }
     }

@@ -252,6 +252,32 @@ describe("ofetch", () => {
     expect(race).to.equal("timeout");
   });
 
+  it("timeout exponentially increasing over retries", async () => {
+    const timeoutWithRetries = $fetch(getURL("timeout"), {
+      timeout: 1000,
+      retry: 1,
+      onRequestError(context) {
+        context.error = new Error(`${context.options.timeout}`);
+      },
+    }).catch((error) => Number.parseInt(error.message));
+
+    const timeoutNoRetries = $fetch(getURL("timeout"), {
+      timeout: 1000,
+      retry: 0,
+      onRequestError(context) {
+        context.error = new Error(`${context.options.timeout}`);
+      },
+    }).catch((error) => Number.parseInt(error.message));
+
+    const signalRace = await Promise.all([
+      timeoutNoRetries,
+      timeoutWithRetries,
+    ]);
+
+    expect(signalRace[0]).to.equal(1000);
+    expect(signalRace[1]).to.equal(2000);
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

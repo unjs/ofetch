@@ -45,6 +45,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   responseType?: R;
   response?: boolean;
   retry?: number | false;
+  timeout?: number;
 
   /** Delay between retries in milliseconds. */
   retryDelay?: number;
@@ -94,7 +95,10 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
     const isAbort =
-      (context.error && context.error.name === "AbortError") || false;
+      (context.error &&
+        context.error.name === "AbortError" &&
+        !context.options.timeout) ||
+      false;
     // Retry
     if (context.options.retry !== false && !isAbort) {
       let retries;
@@ -181,6 +185,14 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
           context.options.headers.set("accept", "application/json");
         }
       }
+    }
+
+    if (context.options.timeout) {
+      const controller = new AbortController();
+
+      setTimeout(() => controller.abort(), context.options.timeout);
+
+      context.options.signal = controller.signal;
     }
 
     try {

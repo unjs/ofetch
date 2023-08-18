@@ -123,7 +123,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
             timeout = context.options.timeoutExponent(timeout);
           } else {
             // Set default function if not specified
-            context.options.timeoutExponent = (ms: number) => ms * 2;
+            context.options.timeoutExponent = (ms: number) => ms;
             timeout = context.options.timeoutExponent(timeout);
           }
         }

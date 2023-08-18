@@ -46,6 +46,8 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   response?: boolean;
   retry?: number | false;
   timeout?: number;
+  /** Function to increase timeout over retries  */
+  timeoutExponent?: (ms: number) => number;
 
   /** Delay between retries in milliseconds. */
   retryDelay?: number;
@@ -114,13 +116,22 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
+        // Timeout
+        let timeout = context.options.timeout || 0;
+        if (timeout > 0) {
+          if (typeof context.options.timeoutExponent === "function") {
+            timeout = context.options.timeoutExponent(timeout);
+          } else {
+            // Set default function if not specified
+            context.options.timeoutExponent = (ms: number) => ms * 2;
+            timeout = context.options.timeoutExponent(timeout);
+          }
+        }
+
         return $fetchRaw(context.request, {
           ...context.options,
           retry: retries - 1,
-          timeout:
-            context.options.timeout && context.options.timeout > 0
-              ? context.options.timeout * 2
-              : undefined,
+          timeout,
         });
       }
     }

@@ -255,6 +255,7 @@ describe("ofetch", () => {
   it("timeout exponentially increasing over retries", async () => {
     const timeoutWithRetries = $fetch(getURL("timeout"), {
       timeout: 1000,
+      timeoutExponent: (v) => 2 * v,
       retry: 1,
       onRequestError(context) {
         context.error = new Error(`${context.options.timeout}`);

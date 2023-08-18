@@ -279,6 +279,21 @@ describe("ofetch", () => {
     expect(signalRace[1]).to.equal(2000);
   });
 
+  it("abort with timeout", () => {
+    const controller = new AbortController();
+    async function abortHandle() {
+      controller.abort();
+      const response = await $fetch(getURL("timeout"), {
+        timeout: 1000,
+        timeoutExponent: (v) => 2 * v,
+        retry: 1,
+        signal: controller.signal,
+      });
+      console.log(response);
+    }
+    expect(abortHandle()).rejects.toThrow(/aborted/);
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

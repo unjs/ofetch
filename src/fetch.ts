@@ -117,21 +117,15 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
         // Timeout
-        let timeout = context.options.timeout || 0;
-        if (timeout > 0) {
-          if (typeof context.options.timeoutExponent === "function") {
-            timeout = context.options.timeoutExponent(timeout);
-          } else {
-            // Set default function if not specified
-            context.options.timeoutExponent = (ms: number) => ms;
-            timeout = context.options.timeoutExponent(timeout);
-          }
+        const timeout = context.options.timeout || 0;
+        if (typeof context.options.timeoutExponent !== "function") {
+          context.options.timeoutExponent = (ms: number) => ms;
         }
 
         return $fetchRaw(context.request, {
           ...context.options,
           retry: retries - 1,
-          timeout,
+          timeout: context.options.timeoutExponent(timeout),
         });
       }
     }

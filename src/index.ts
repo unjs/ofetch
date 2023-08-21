@@ -25,5 +25,7 @@ export const fetch =
 
 export const Headers = _globalThis.Headers;
 
+export const Request = _globalThis.Request;
+
 export const ofetch = createFetch({ fetch, Headers });
 export const $fetch = ofetch;

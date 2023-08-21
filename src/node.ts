@@ -1,6 +1,9 @@
 import http from "node:http";
 import https, { AgentOptions } from "node:https";
-import nodeFetch, { Headers as _Headers } from "node-fetch-native";
+import nodeFetch, {
+  Headers as _Headers,
+  Request as _Request,
+} from "node-fetch-native";
 
 import { createFetch } from "./base";
 
@@ -33,6 +36,8 @@ export function createNodeFetch() {
 export const fetch = globalThis.fetch || createNodeFetch();
 
 export const Headers = globalThis.Headers || _Headers;
+
+export const Request = globalThis.Request || _Request;
 
 export const ofetch = createFetch({ fetch, Headers });
 export const $fetch = ofetch;

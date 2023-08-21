@@ -11,7 +11,7 @@ import {
 import { Blob } from "fetch-blob";
 import { FormData } from "formdata-polyfill/esm.min.js";
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Headers, $fetch } from "../src/node";
+import { Headers, Request, $fetch } from "../src/node";
 
 describe("ofetch", () => {
   let listener;
@@ -257,7 +257,6 @@ describe("ofetch", () => {
       statusCode: 404,
       statusMessage: "Cannot find any path matching /404.",
     });
-    console.log(error.request);
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request.url).to.equal(getURL("404"));
   });

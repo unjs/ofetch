@@ -2,7 +2,7 @@ import type { FetchOptions, FetchRequest, FetchResponse } from "./fetch";
 
 export class FetchError<T = any> extends Error {
   name = "FetchError";
-  request?: FetchOptions;
+  request?: FetchRequest | FetchOptions;
   response?: FetchResponse<T>;
   data?: T;
   status?: number;
@@ -12,7 +12,7 @@ export class FetchError<T = any> extends Error {
 }
 
 export function createFetchError<T = any>(
-  request: FetchOptions,
+  request: FetchRequest | FetchOptions,
   error?: Error,
   response?: FetchResponse<T>
 ): FetchError<T> {

@@ -229,6 +229,39 @@ describe("ofetch", () => {
     expect(abortHandle()).rejects.toThrow(/aborted/);
   });
 
+  it("passing url string should return FetchOptions obj in error", async () => {
+    const error = await $fetch(
+      new Request(getURL("404"), {
+        method: "GET",
+      })
+    ).catch((error_) => error_);
+    expect(error.toString()).to.contain("Cannot find any path matching /404.");
+    expect(error.data).to.deep.eq({
+      stack: [],
+      statusCode: 404,
+      statusMessage: "Cannot find any path matching /404.",
+    });
+    expect(error.response?._data).to.deep.eq(error.data);
+    expect(error.request.url).to.equal(getURL("404"));
+  });
+
+  it("passing request obj should return request obj in error", async () => {
+    const error = await $fetch(
+      new Request(getURL("404"), {
+        method: "GET",
+      })
+    ).catch((error_) => error_);
+    expect(error.toString()).to.contain("Cannot find any path matching /404.");
+    expect(error.data).to.deep.eq({
+      stack: [],
+      statusCode: 404,
+      statusMessage: "Cannot find any path matching /404.",
+    });
+    console.log(error.request);
+    expect(error.response?._data).to.deep.eq(error.data);
+    expect(error.request.url).to.equal(getURL("404"));
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

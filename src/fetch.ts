@@ -119,7 +119,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
 
     // Throw normalized error
     const error = createFetchError(
-      context.request,
+      context.options,
       context.error,
       context.response
     );
@@ -152,6 +152,8 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
     if (typeof context.request === "string") {
       if (context.options.baseURL) {
         context.request = withBase(context.request, context.options.baseURL);
+      } else {
+        context.options.baseURL = context.request;
       }
       if (context.options.query || context.options.params) {
         context.request = withQuery(context.request, {

@@ -185,7 +185,7 @@ describe("ofetch", () => {
       statusMessage: "Cannot find any path matching /404.",
     });
     expect(error.response?._data).to.deep.eq(error.data);
-    expect(error.request).to.equal(getURL("404"));
+    expect(error.request.baseURL).to.equal(getURL("404"));
   });
 
   it("403 with ignoreResponseError", async () => {
@@ -198,7 +198,7 @@ describe("ofetch", () => {
     const error = await $fetch("", { baseURL: getURL("404"), retry: 3 }).catch(
       (error_) => error_
     );
-    expect(error.request).to.equal(getURL("404"));
+    expect(error.request.baseURL).to.equal(getURL("404"));
   });
 
   it("retry with delay", async () => {

@@ -1,8 +1,8 @@
-import type { FetchRequest, FetchResponse } from "./fetch";
+import type { FetchOptions, FetchRequest, FetchResponse } from "./fetch";
 
 export class FetchError<T = any> extends Error {
   name = "FetchError";
-  request?: FetchRequest;
+  request?: FetchOptions;
   response?: FetchResponse<T>;
   data?: T;
   status?: number;
@@ -12,7 +12,7 @@ export class FetchError<T = any> extends Error {
 }
 
 export function createFetchError<T = any>(
-  request: FetchRequest,
+  request: FetchOptions,
   error?: Error,
   response?: FetchResponse<T>
 ): FetchError<T> {
@@ -23,7 +23,7 @@ export function createFetchError<T = any>(
   if (request && response) {
     message = `${message} (${response.status} ${
       response.statusText
-    } (${request.toString()}))`;
+    } (${JSON.stringify(request)}))`;
   } else if (request) {
     message = `${message} (${request.toString()})`;
   }

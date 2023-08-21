@@ -239,7 +239,22 @@ describe("ofetch", () => {
       statusCode: 404,
       statusMessage: "Cannot find any path matching /404.",
     });
-    console.log(error.options);
+    expect(error.response?._data).to.deep.eq(error.data);
+    expect(error.options.baseURL).to.equal(getURL("404"));
+    expect(error.options.method).to.equal("GET");
+  });
+
+  it("should have options in error.message", async () => {
+    const error = await $fetch(getURL("404"), {
+      method: "GET",
+    }).catch((error_) => error_);
+    console.log(error.toString());
+    expect(error.toString()).to.contain("GET");
+    expect(error.data).to.deep.eq({
+      stack: [],
+      statusCode: 404,
+      statusMessage: "Cannot find any path matching /404.",
+    });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.options.baseURL).to.equal(getURL("404"));
     expect(error.options.method).to.equal("GET");

@@ -185,7 +185,7 @@ describe("ofetch", () => {
       statusMessage: "Cannot find any path matching /404.",
     });
     expect(error.response?._data).to.deep.eq(error.data);
-    expect(error.request.baseURL).to.equal(getURL("404"));
+    expect(error.request).to.equal(getURL("404"));
   });
 
   it("403 with ignoreResponseError", async () => {
@@ -198,7 +198,7 @@ describe("ofetch", () => {
     const error = await $fetch("", { baseURL: getURL("404"), retry: 3 }).catch(
       (error_) => error_
     );
-    expect(error.request.baseURL).to.equal(getURL("404"));
+    expect(error.request).to.equal(getURL("404"));
   });
 
   it("retry with delay", async () => {
@@ -227,6 +227,22 @@ describe("ofetch", () => {
       console.log("response", response);
     }
     expect(abortHandle()).rejects.toThrow(/aborted/);
+  });
+
+  it("should have url and method in error.options", async () => {
+    const error = await $fetch(getURL("404"), {
+      method: "get",
+    }).catch((error_) => error_);
+    expect(error.toString()).to.contain("Cannot find any path matching /404.");
+    expect(error.data).to.deep.eq({
+      stack: [],
+      statusCode: 404,
+      statusMessage: "Cannot find any path matching /404.",
+    });
+    console.log(error.options);
+    expect(error.response?._data).to.deep.eq(error.data);
+    expect(error.options.baseURL).to.equal(getURL("404"));
+    expect(error.options.method).to.equal("GET");
   });
 
   it("passing url string should return FetchOptions obj in error", async () => {

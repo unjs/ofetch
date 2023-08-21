@@ -2,7 +2,8 @@ import type { FetchOptions, FetchRequest, FetchResponse } from "./fetch";
 
 export class FetchError<T = any> extends Error {
   name = "FetchError";
-  request?: FetchRequest | FetchOptions;
+  request?: FetchRequest;
+  options?: FetchOptions;
   response?: FetchResponse<T>;
   data?: T;
   status?: number;
@@ -12,7 +13,8 @@ export class FetchError<T = any> extends Error {
 }
 
 export function createFetchError<T = any>(
-  request: FetchRequest | FetchOptions,
+  request: FetchRequest,
+  options: FetchOptions,
   error?: Error,
   response?: FetchResponse<T>
 ): FetchError<T> {
@@ -26,6 +28,8 @@ export function createFetchError<T = any>(
     } (${JSON.stringify(request)}))`;
   } else if (request) {
     message = `${message} (${request.toString()})`;
+  } else if (options) {
+    message = `${message} (${JSON.stringify(options)})`;
   }
 
   const fetchError: FetchError<T> = new FetchError(message);
@@ -33,6 +37,11 @@ export function createFetchError<T = any>(
   Object.defineProperty(fetchError, "request", {
     get() {
       return request;
+    },
+  });
+  Object.defineProperty(fetchError, "options", {
+    get() {
+      return options;
     },
   });
   Object.defineProperty(fetchError, "response", {

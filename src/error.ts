@@ -28,7 +28,9 @@ export function createFetchError<T = any>(
     } (${JSON.stringify(request)}))`;
   } else if (request) {
     message = `${message} (${request.toString()})`;
-  } else if (options) {
+  }
+
+  if (options) {
     message = `${message} (${JSON.stringify(options)})`;
   }
 

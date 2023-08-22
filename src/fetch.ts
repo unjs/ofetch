@@ -14,8 +14,8 @@ import {
 export interface CreateFetchOptions {
   // eslint-disable-next-line no-use-before-define
   defaults?: FetchOptions;
-  fetch: Fetch;
-  Headers: typeof Headers;
+  fetch?: Fetch;
+  Headers?: typeof Headers;
 }
 
 export type FetchRequest = RequestInfo;
@@ -87,8 +87,9 @@ const retryStatusCodes = new Set([
   504, //  Gateway Timeout
 ]);
 
-export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
-  const { fetch, Headers } = globalOptions;
+export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+  const { fetch = globalThis.fetch, Headers = globalThis.Headers } =
+    globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort

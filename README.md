@@ -115,11 +115,11 @@ await ofetch("/url", { ignoreResponseError: true });
 - `503` - Service Unavailable
 - `504` - Gateway Timeout
 
-You can specifcy amount of retires and delay between them using `retry` and `retryDelay` options.
+You can specifcy amount of retry and delay between them using `retry` and `retryDelay` options.
 
-Default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH` and `DELETE` methods ofetch does not retry.
+Default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH` and `DELETE` methods where `ofetch` does not retry.
 
-Default for `retryDelay` is zero ms.
+Default for `retryDelay` is `0` ms.
 
 ```ts
 await ofetch("http://google.com/404", {

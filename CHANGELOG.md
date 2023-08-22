@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.2.0
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.1.1...v1.2.0)
+
+### 🚀 Enhancements
+
+- Support `retryDelay` ([#262](https://github.com/unjs/ofetch/pull/262))
+- Support `timeout` and `AbortController` ([#268](https://github.com/unjs/ofetch/pull/268))
+
+### 🩹 Fixes
+
+- Always uppercase `method` option ([#259](https://github.com/unjs/ofetch/pull/259))
+- **pkg:** Fix ts type resolution for `/node` subpath ([#256](https://github.com/unjs/ofetch/pull/256))
+- Make all `createFetch` options optional ([#266](https://github.com/unjs/ofetch/pull/266))
+
+### 📖 Documentation
+
+- Clarify retry behavior ([#264](https://github.com/unjs/ofetch/pull/264))
+- Fix typo ([de66aad](https://github.com/unjs/ofetch/commit/de66aad))
+
+### 🏡 Chore
+
+- Update dev dependencies ([8fc7d96](https://github.com/unjs/ofetch/commit/8fc7d96))
+- **release:** V1.1.1 ([41c3b56](https://github.com/unjs/ofetch/commit/41c3b56))
+- Update dependencies ([db2434c](https://github.com/unjs/ofetch/commit/db2434c))
+- Add autofix ci ([a953a33](https://github.com/unjs/ofetch/commit/a953a33))
+- Apply automated fixes ([bbdfb9c](https://github.com/unjs/ofetch/commit/bbdfb9c))
+
+### ✅ Tests
+
+- Update tests ([db2ad50](https://github.com/unjs/ofetch/commit/db2ad50))
+
+### 🎨 Styles
+
+- Lint code ([b3c6a96](https://github.com/unjs/ofetch/commit/b3c6a96))
+- Lint repo with prettier ([2be558c](https://github.com/unjs/ofetch/commit/2be558c))
+
+### ❤️ Contributors
+
+- Daniil Bezuglov 
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Sébastien Chopin ([@Atinux](http://github.com/Atinux))
+- Tmk ([@tmkx](http://github.com/tmkx))
+- Murisceman <murisceman@gmail.com>
+- Heb ([@Hebilicious](http://github.com/Hebilicious))
+
 ## v1.1.1
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.1.0...v1.1.1)

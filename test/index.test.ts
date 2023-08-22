@@ -241,57 +241,12 @@ describe("ofetch", () => {
 
   it("aborting on timeout", async () => {
     const noTimeout = $fetch(getURL("timeout")).catch(() => "no timeout");
-
     const timeout = $fetch(getURL("timeout"), {
-      timeout: 1000,
+      timeout: 100,
       retry: 0,
     }).catch(() => "timeout");
-
     const race = await Promise.race([noTimeout, timeout]);
-
     expect(race).to.equal("timeout");
-  });
-
-  it("timeout exponentially increasing over retries", async () => {
-    const timeoutWithRetries = $fetch(getURL("timeout"), {
-      timeout: 1000,
-      timeoutExponent: (v) => 2 * v,
-      retry: 1,
-      onRequestError(context) {
-        context.error = new Error(`${context.options.timeout}`);
-      },
-    }).catch((error) => Number.parseInt(error.message));
-
-    const timeoutNoRetries = $fetch(getURL("timeout"), {
-      timeout: 1000,
-      retry: 0,
-      onRequestError(context) {
-        context.error = new Error(`${context.options.timeout}`);
-      },
-    }).catch((error) => Number.parseInt(error.message));
-
-    const signalRace = await Promise.all([
-      timeoutNoRetries,
-      timeoutWithRetries,
-    ]);
-
-    expect(signalRace[0]).to.equal(1000);
-    expect(signalRace[1]).to.equal(2000);
-  });
-
-  it("abort with timeout", () => {
-    const controller = new AbortController();
-    async function abortHandle() {
-      controller.abort();
-      const response = await $fetch(getURL("timeout"), {
-        timeout: 1000,
-        timeoutExponent: (v) => 2 * v,
-        retry: 1,
-        signal: controller.signal,
-      });
-      console.log(response);
-    }
-    expect(abortHandle()).rejects.toThrow(/aborted/);
   });
 
   it("deep merges defaultOptions", async () => {

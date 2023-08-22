@@ -45,10 +45,8 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   responseType?: R;
   response?: boolean;
   retry?: number | false;
+  /** timeout in milliseconds */
   timeout?: number;
-  /** Function to increase timeout over retries  */
-  timeoutExponent?: (ms: number) => number;
-
   /** Delay between retries in milliseconds. */
   retryDelay?: number;
 
@@ -117,15 +115,10 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
         // Timeout
-        const timeout = context.options.timeout || 0;
-        if (typeof context.options.timeoutExponent !== "function") {
-          context.options.timeoutExponent = (ms: number) => ms;
-        }
-
         return $fetchRaw(context.request, {
           ...context.options,
           retry: retries - 1,
-          timeout: context.options.timeoutExponent(timeout),
+          timeout: context.options.timeout,
         });
       }
     }
@@ -196,11 +189,9 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       }
     }
 
-    if (context.options.timeout && context.options.timeout > 0) {
+    if (!context.options.signal && context.options.timeout) {
       const controller = new AbortController();
-
       setTimeout(() => controller.abort(), context.options.timeout);
-
       context.options.signal = controller.signal;
     }
 

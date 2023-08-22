@@ -3,6 +3,7 @@ import https, { AgentOptions } from "node:https";
 import nodeFetch, {
   Headers as _Headers,
   Request as _Request,
+  AbortController as _AbortController,
 } from "node-fetch-native";
 
 import { createFetch } from "./base";
@@ -36,8 +37,8 @@ export function createNodeFetch() {
 export const fetch = globalThis.fetch || createNodeFetch();
 
 export const Headers = globalThis.Headers || _Headers;
-
+export const AbortController = globalThis.AbortController || _AbortController;
 export const Request = globalThis.Request || _Request;
 
-export const ofetch = createFetch({ fetch, Headers });
+export const ofetch = createFetch({ fetch, Headers, AbortController });
 export const $fetch = ofetch;

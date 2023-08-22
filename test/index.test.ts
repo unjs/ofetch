@@ -65,6 +65,16 @@ describe("ofetch", () => {
       .use(
         "/408",
         eventHandler(() => createError({ status: 408 }))
+      )
+      .use(
+        "/timeout",
+        eventHandler(async () => {
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(createError({ status: 408 }));
+            }, 1000 * 5);
+          });
+        })
       );
 
     listener = await listen(toNodeListener(app));
@@ -274,6 +284,14 @@ describe("ofetch", () => {
     });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request.url).to.equal(getURL("404"));
+  it("aborting on timeout", async () => {
+    const noTimeout = $fetch(getURL("timeout")).catch(() => "no timeout");
+    const timeout = $fetch(getURL("timeout"), {
+      timeout: 100,
+      retry: 0,
+    }).catch(() => "timeout");
+    const race = await Promise.race([noTimeout, timeout]);
+    expect(race).to.equal("timeout");
   });
 
   it("deep merges defaultOptions", async () => {

@@ -25,16 +25,16 @@ Import:
 
 ```js
 // ESM / Typescript
-import { ofetch } from 'ofetch'
+import { ofetch } from "ofetch";
 
 // CommonJS
-const { ofetch } = require('ofetch')
+const { ofetch } = require("ofetch");
 ```
 
 ## ✔️ Works with Node.js
 
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
- and automatically use [unjs/node-fetch-native](https://github.com/unjs/node-fetch-native). If `globalThis.fetch` is available, will be used instead. To leverage Node.js 17.5.0 experimental native fetch API use [`--experimental-fetch` flag](https://nodejs.org/dist/latest-v17.x/docs/api/cli.html#--experimental-fetch).
+and automatically use [unjs/node-fetch-native](https://github.com/unjs/node-fetch-native). If `globalThis.fetch` is available, will be used instead. To leverage Node.js 17.5.0 experimental native fetch API use [`--experimental-fetch` flag](https://nodejs.org/dist/latest-v17.x/docs/api/cli.html#--experimental-fetch).
 
 ### `keepAlive` support
 
@@ -47,7 +47,7 @@ By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an http/https 
 `ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to text if it fails to parse.
 
 ```js
-const { users } = await ofetch('/api/users')
+const { users } = await ofetch("/api/users");
 ```
 
 For binary content types, `ofetch` will instead return a `Blob` object.
@@ -56,13 +56,13 @@ You can optionally provide a different parser than destr, or specify `blob`, `ar
 
 ```js
 // Use JSON.parse
-await ofetch('/movie?lang=en', { parseResponse: JSON.parse })
+await ofetch("/movie?lang=en", { parseResponse: JSON.parse });
 
 // Return text as is
-await ofetch('/movie?lang=en', { parseResponse: txt => txt })
+await ofetch("/movie?lang=en", { parseResponse: (txt) => txt });
 
 // Get the blob version of the response
-await ofetch('/api/generate-image', { responseType: 'blob' })
+await ofetch("/api/generate-image", { responseType: "blob" });
 ```
 
 ## ✔️ JSON Body
@@ -70,7 +70,10 @@ await ofetch('/api/generate-image', { responseType: 'blob' })
 `ofetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
 
 ```js
-const { users } = await ofetch('/api/users', { method: 'POST', body: { some: 'json' } })
+const { users } = await ofetch("/api/users", {
+  method: "POST",
+  body: { some: "json" },
+});
 ```
 
 ## ✔️ Handling Errors
@@ -80,7 +83,7 @@ const { users } = await ofetch('/api/users', { method: 'POST', body: { some: 'js
 Parsed error body is available with `error.data`. You may also use `FetchError` type.
 
 ```ts
-await ofetch('http://google.com/404')
+await ofetch("http://google.com/404");
 // FetchError: 404 Not Found (http://google.com/404)
 //     at async main (/project/playground.ts:4:3)
 ```
@@ -88,13 +91,13 @@ await ofetch('http://google.com/404')
 To catch error response:
 
 ```ts
-await ofetch('/url').catch(err => err.data)
+await ofetch("/url").catch((err) => err.data);
 ```
 
 To bypass status error catching you can set `ignoreResponseError` option:
 
 ```ts
-await ofetch('/url', { ignoreResponseError: true })
+await ofetch("/url", { ignoreResponseError: true });
 ```
 
 ## ✔️ Auto Retry
@@ -119,10 +122,20 @@ Default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH` and `DELETE`
 Default for `retryDelay` is `0` ms.
 
 ```ts
-await ofetch('http://google.com/404', {
+await ofetch("http://google.com/404", {
   retry: 3,
-  retryDelay: 500 // ms
-})
+  retryDelay: 500, // ms
+});
+```
+
+## ✔️ Timeout
+
+You can specify `timeout` in milliseconds to automatically abort request after a timeout (default is disabled).
+
+```ts
+await ofetch("http://google.com/404", {
+  timeout: 3000, // Timeout after 3 seconds
+});
 ```
 
 ## ✔️ Type Friendly
@@ -130,7 +143,7 @@ await ofetch('http://google.com/404', {
 Response can be type assisted:
 
 ```ts
-const article = await ofetch<Article>(`/api/article/${id}`)
+const article = await ofetch<Article>(`/api/article/${id}`);
 // Auto complete working with article.id
 ```
 
@@ -139,7 +152,7 @@ const article = await ofetch<Article>(`/api/article/${id}`)
 By using `baseURL` option, `ofetch` prepends it with respecting to trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
 
 ```js
-await ofetch('/config', { baseURL })
+await ofetch("/config", { baseURL });
 ```
 
 ## ✔️ Adding Query Search Params
@@ -147,7 +160,7 @@ await ofetch('/config', { baseURL })
 By using `query` option (or `params` as alias), `ofetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
 
 ```js
-await ofetch('/movie?lang=en', { query: { id: 123 } })
+await ofetch("/movie?lang=en", { query: { id: 123 } });
 ```
 
 ## ✔️ Interceptors
@@ -161,16 +174,16 @@ You might want to use `ofetch.create` to set shared interceptors.
 `onRequest` is called as soon as `ofetch` is being called, allowing to modify options or just do simple logging.
 
 ```js
-await ofetch('/api', {
+await ofetch("/api", {
   async onRequest({ request, options }) {
     // Log request
-    console.log('[fetch request]', request, options)
+    console.log("[fetch request]", request, options);
 
     // Add `?t=1640125211170` to query search params
-    options.query = options.query || {}
-    options.query.t = new Date()
-  }
-})
+    options.query = options.query || {};
+    options.query.t = new Date();
+  },
+});
 ```
 
 ### `onRequestError({ request, options, error })`
@@ -178,26 +191,25 @@ await ofetch('/api', {
 `onRequestError` will be called when fetch request fails.
 
 ```js
-await ofetch('/api', {
+await ofetch("/api", {
   async onRequestError({ request, options, error }) {
     // Log error
-    console.log('[fetch request error]', request, error)
-  }
-})
+    console.log("[fetch request error]", request, error);
+  },
+});
 ```
-
 
 ### `onResponse({ request, options, response })`
 
 `onResponse` will be called after `fetch` call and parsing body.
 
 ```js
-await ofetch('/api', {
+await ofetch("/api", {
   async onResponse({ request, response, options }) {
     // Log response
-    console.log('[fetch response]', request, response.status, response.body)
-  }
-})
+    console.log("[fetch response]", request, response.status, response.body);
+  },
+});
 ```
 
 ### `onResponseError({ request, options, response })`
@@ -205,12 +217,17 @@ await ofetch('/api', {
 `onResponseError` is same as `onResponse` but will be called when fetch happens but `response.ok` is not `true`.
 
 ```js
-await ofetch('/api', {
+await ofetch("/api", {
   async onResponseError({ request, response, options }) {
     // Log error
-    console.log('[fetch response error]', request, response.status, response.body)
-  }
-})
+    console.log(
+      "[fetch response error]",
+      request,
+      response.status,
+      response.body
+    );
+  },
+});
 ```
 
 ## ✔️ Create fetch with default options
@@ -220,9 +237,9 @@ This utility is useful if you need to use common options across several fetch ca
 **Note:** Defaults will be cloned at one level and inherited. Be careful about nested options like `headers`.
 
 ```js
-const apiFetch = ofetch.create({ baseURL: '/api' })
+const apiFetch = ofetch.create({ baseURL: "/api" });
 
-apiFetch('/test') // Same as ofetch('/test', { baseURL: '/api' })
+apiFetch("/test"); // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
 ## 💡 Adding headers
@@ -230,12 +247,12 @@ apiFetch('/test') // Same as ofetch('/test', { baseURL: '/api' })
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:
 
 ```js
-await ofetch('/movies', {
+await ofetch("/movies", {
   headers: {
-    Accept: 'application/json',
-    'Cache-Control': 'no-cache'
-  }
-})
+    Accept: "application/json",
+    "Cache-Control": "no-cache",
+  },
+});
 ```
 
 ## 💡 Adding HTTP(S) Agent
@@ -245,9 +262,9 @@ If you need use HTTP(S) Agent, can add `agent` option with `https-proxy-agent` (
 ```js
 import { HttpsProxyAgent } from "https-proxy-agent";
 
-await ofetch('/api', {
-  agent: new HttpsProxyAgent('http://example.com')
-})
+await ofetch("/api", {
+  agent: new HttpsProxyAgent("http://example.com"),
+});
 ```
 
 ## 🍣 Access to Raw Response
@@ -255,7 +272,7 @@ await ofetch('/api', {
 If you need to access raw response (for headers, etc), can use `ofetch.raw`:
 
 ```js
-const response = await ofetch.raw('/sushi')
+const response = await ofetch.raw("/sushi");
 
 // response._data
 // response.headers
@@ -267,7 +284,7 @@ const response = await ofetch.raw('/sushi')
 As a shortcut, you can use `ofetch.native` that provides native `fetch` API
 
 ```js
-const json = await ofetch.native('/sushi').then(r => r.json())
+const json = await ofetch.native("/sushi").then((r) => r.json());
 ```
 
 ## 📦 Bundler Notes
@@ -300,6 +317,7 @@ If you need to support legacy users, you can optionally transpile the library in
 MIT. Made with 💖
 
 <!-- Badges -->
+
 [npm-version-src]: https://img.shields.io/npm/v/ofetch?style=flat&colorA=18181B&colorB=F0DB4F
 [npm-version-href]: https://npmjs.com/package/ofetch
 [npm-downloads-src]: https://img.shields.io/npm/dm/ofetch?style=flat&colorA=18181B&colorB=F0DB4F

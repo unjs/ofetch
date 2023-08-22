@@ -7,11 +7,7 @@
     "outDir": "dist",
     "strict": true,
     "declaration": true,
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

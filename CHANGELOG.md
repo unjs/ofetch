@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.2.1
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.2.0...v1.2.1)
+
+### 📦 Build
+
+- Add missing `node` export condition ([4081170](https://github.com/unjs/ofetch/commit/4081170))
+
+### 🏡 Chore
+
+- Update dependencies ([d18584d](https://github.com/unjs/ofetch/commit/d18584d))
+
+### ✅ Tests
+
+- Speedup with background close ([567fb35](https://github.com/unjs/ofetch/commit/567fb35))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v1.2.0
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.1.1...v1.2.0)

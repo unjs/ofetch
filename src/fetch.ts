@@ -16,6 +16,7 @@ export interface CreateFetchOptions {
   defaults?: FetchOptions;
   fetch?: Fetch;
   Headers?: typeof Headers;
+  AbortController?: typeof AbortController;
 }
 
 export type FetchRequest = RequestInfo;
@@ -45,7 +46,8 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   responseType?: R;
   response?: boolean;
   retry?: number | false;
-
+  /** timeout in milliseconds */
+  timeout?: number;
   /** Delay between retries in milliseconds. */
   retryDelay?: number;
 
@@ -87,15 +89,21 @@ const retryStatusCodes = new Set([
 ]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
-  const { fetch = globalThis.fetch, Headers = globalThis.Headers } =
-    globalOptions;
+  const {
+    fetch = globalThis.fetch,
+    Headers = globalThis.Headers,
+    AbortController = globalThis.AbortController,
+  } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
     const isAbort =
-      (context.error && context.error.name === "AbortError") || false;
+      (context.error &&
+        context.error.name === "AbortError" &&
+        !context.options.timeout) ||
+      false;
     // Retry
     if (context.options.retry !== false && !isAbort) {
       let retries;
@@ -111,9 +119,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
+        // Timeout
         return $fetchRaw(context.request, {
           ...context.options,
           retry: retries - 1,
+          timeout: context.options.timeout,
         });
       }
     }
@@ -182,6 +192,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           context.options.headers.set("accept", "application/json");
         }
       }
+    }
+
+    // TODO: Can we merge signals?
+    if (!context.options.signal && context.options.timeout) {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), context.options.timeout);
+      context.options.signal = controller.signal;
     }
 
     try {

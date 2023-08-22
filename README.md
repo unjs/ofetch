@@ -128,6 +128,16 @@ await ofetch("http://google.com/404", {
 });
 ```
 
+## ✔️ Timeout
+
+You can specify `timeout` in milliseconds to automatically abort request after a timeout (default is disabled).
+
+```ts
+await ofetch("http://google.com/404", {
+  timeout: 3000, // Timeout after 3 seconds
+});
+```
+
 ## ✔️ Type Friendly
 
 Response can be type assisted:

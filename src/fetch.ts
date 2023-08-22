@@ -194,6 +194,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
+    // TODO: Can we merge signals?
     if (!context.options.signal && context.options.timeout) {
       const controller = new AbortController();
       setTimeout(() => controller.abort(), context.options.timeout);

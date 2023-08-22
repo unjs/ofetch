@@ -80,8 +80,8 @@ describe("ofetch", () => {
     listener = await listen(toNodeListener(app));
   });
 
-  afterAll(async () => {
-    await listener.close();
+  afterAll(() => {
+    listener.close().catch(console.error);
   });
 
   it("ok", async () => {

@@ -20,6 +20,16 @@
       "wintercg": "./dist/index.mjs",
       "worker": "./dist/index.mjs",
       "workerd": "./dist/index.mjs",
+      "node": {
+        "import": {
+          "types": "./dist/node.d.mts",
+          "default": "./dist/node.mjs"
+        },
+        "require": {
+          "types": "./dist/node.d.cts",
+          "default": "./dist/node.cjs"
+        }
+      },
       "import": {
         "types": "./dist/index.d.mts",
         "default": "./dist/index.mjs"
@@ -27,7 +37,9 @@
       "require": {
         "types": "./dist/node.d.cts",
         "default": "./dist/node.cjs"
-      }
+      },
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     },
     "./node": {
       "import": {
@@ -59,7 +71,7 @@
   },
   "dependencies": {
     "destr": "^2.0.1",
-    "node-fetch-native": "^1.3.1",
+    "node-fetch-native": "^1.3.2",
     "ufo": "^1.2.0"
   },
   "devDependencies": {

@@ -258,17 +258,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           const data = await context.response.text();
           const parseFunction = context.options.parseResponse || destr;
           context.response._data = parseFunction(data);
-
           break;
         }
         case "stream": {
           context.response._data = context.response.body;
-
-          break;
-        }
-        case "raw": {
-          context.response._data = context.response.body;
-
           break;
         }
         default: {

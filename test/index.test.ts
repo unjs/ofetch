@@ -9,7 +9,7 @@ import {
   toNodeListener,
 } from "h3";
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Headers, FormData, Blob, Request } from "node-fetch-native";
+import { Headers, FormData, Blob } from "node-fetch-native";
 import { $fetch } from "../src/node";
 
 describe("ofetch", () => {
@@ -253,16 +253,13 @@ describe("ofetch", () => {
   });
 
   it("passing request obj should return request obj in error", async () => {
-    const error = await $fetch(getURL("/404"), { method: "post" }).catch(
+    const error = await $fetch(getURL("/403"), { method: "post" }).catch(
       (error) => error
     );
-    expect(error.toString()).to.toMatch("Cannot find any path matching /404.");
-    expect(error.data).to.deep.eq({
-      stack: [],
-      statusCode: 404,
-      statusMessage: "Cannot find any path matching /404.",
-    });
-    expect(error.request).to.equal(getURL("404"));
+    expect(error.toString()).toBe(
+      'FetchError: [POST] "http://localhost:3000/403": 403 "Forbidden"'
+    );
+    expect(error.request).to.equal(getURL("403"));
     expect(error.options.method).to.equal("POST");
     expect(error.response?._data).to.deep.eq(error.data);
   });

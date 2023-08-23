@@ -18,21 +18,19 @@ export function createFetchError<T = any>(
   error?: Error,
   response?: FetchResponse<T>
 ): FetchError<T> {
-  let message = "";
-  if (error) {
-    message = error.message;
-  }
-  if (request && response) {
-    message = `${message} (${response.status} ${
-      response.statusText
-    } (${JSON.stringify(request)}))`;
-  } else if (request) {
-    message = `${message} (${request.toString()})`;
-  }
+  const errorMessage = error?.message || error?.toString() || "";
 
-  if (options) {
-    message = `${message} (${JSON.stringify(options)})`;
-  }
+  const method = (request as Request)?.method || options?.method || "GET";
+  const url = (request as Request)?.url || String(request) || "/";
+  const requestStr = `[${method}] ${JSON.stringify(url)}`;
+
+  const statusStr = response
+    ? `${response.status} ${JSON.stringify(response.statusText)}`
+    : "<no response>";
+
+  const message = `${requestStr}: ${statusStr}${
+    errorMessage ? ` ${errorMessage}` : ""
+  }`;
 
   const fetchError: FetchError<T> = new FetchError(message);
 

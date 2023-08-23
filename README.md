@@ -83,8 +83,8 @@ const { users } = await ofetch("/api/users", {
 Parsed error body is available with `error.data`. You may also use `FetchError` type.
 
 ```ts
-await ofetch("http://google.com/404");
-// FetchError: 404 Not Found (http://google.com/404)
+await ofetch("https://google.com/404");
+// FetchError: [GET] "https://google/404": 404 "Not Found"
 //     at async main (/project/playground.ts:4:3)
 ```
 

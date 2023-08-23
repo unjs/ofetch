@@ -44,7 +44,6 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   query?: SearchParameters;
   parseResponse?: (responseText: string) => any;
   responseType?: R;
-  response?: boolean;
   retry?: number | false;
   /** timeout in milliseconds */
   timeout?: number;

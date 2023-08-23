@@ -67,11 +67,13 @@ await ofetch("/api/generate-image", { responseType: "blob" });
 
 ## ✔️ JSON Body
 
-Either of string or object can be passed to `body` option.
+If (a pure) object or a class with `.toJSON()` is passed to the `body` option, `ofetch` automatically stringifies it.
 
-If an object is passed, `ofetch` automatically stringifies it and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
+`ofetch` uses `JSON.stringify()` to stringify the object passed, so the object may need to have `toJSON` method to be stringified (e.g. an instance of your custom class). Without `.toJSON()` method, such object has to be converted to a stringifiable value in some way in advance.
 
-`ofetch` uses `JSON.stringify()` to stringify the object passed, so the object may need to have `toJSON` method to be stringified (e.g. an instance of your custom class). Without `toJSON` method, such object has to be converted to a stringifiable value in some way in advance.
+For both string and json values, ofetch adds default `Content-Type: "Application/JSON"` and `Accept` headers for `PUT`, `PATCH` and `POST` request methods.
+
+ofetch also supports binary responses with `Buffer`, `ReadableStream`, `Stream` and `UInt8Array` types and will automatically set `duplex: "half"` option for streaming support!
 
 ```js
 const { users } = await ofetch("/api/users", {

@@ -35,46 +35,27 @@ export function createFetchError<T = any>(ctx: FetchContext<T>): FetchError<T> {
 
   const fetchError: FetchError<T> = new FetchError(message);
 
-  Object.defineProperty(fetchError, "request", {
-    get() {
-      return ctx.request;
-    },
-  });
-  Object.defineProperty(fetchError, "options", {
-    get() {
-      return ctx.options;
-    },
-  });
-  Object.defineProperty(fetchError, "response", {
-    get() {
-      return ctx.response;
-    },
-  });
-  Object.defineProperty(fetchError, "data", {
-    get() {
-      return ctx.response && ctx.response._data;
-    },
-  });
-  Object.defineProperty(fetchError, "status", {
-    get() {
-      return ctx.response && ctx.response.status;
-    },
-  });
-  Object.defineProperty(fetchError, "statusText", {
-    get() {
-      return ctx.response && ctx.response.statusText;
-    },
-  });
-  Object.defineProperty(fetchError, "statusCode", {
-    get() {
-      return ctx.response && ctx.response.status;
-    },
-  });
-  Object.defineProperty(fetchError, "statusMessage", {
-    get() {
-      return ctx.response && ctx.response.statusText;
-    },
-  });
+  for (const key of ["request", "options", "response"] as const) {
+    Object.defineProperty(fetchError, key, {
+      get() {
+        return ctx[key];
+      },
+    });
+  }
+
+  for (const [key, refKey] of [
+    ["data", "_data"],
+    ["status", "status"],
+    ["statusCode", "status"],
+    ["statusText", "statusText"],
+    ["statusMessage", "statusText"],
+  ] as const) {
+    Object.defineProperty(fetchError, key, {
+      get() {
+        return ctx.response && ctx.response[refKey];
+      },
+    });
+  }
 
   return fetchError;
 }

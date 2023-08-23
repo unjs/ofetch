@@ -2,7 +2,6 @@ import http from "node:http";
 import https, { AgentOptions } from "node:https";
 import nodeFetch, {
   Headers as _Headers,
-  Request as _Request,
   AbortController as _AbortController,
 } from "node-fetch-native";
 

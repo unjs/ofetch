@@ -170,6 +170,16 @@ describe("ofetch", () => {
     expect(body).to.deep.eq(message);
   });
 
+  it("Handle buffer body", async () => {
+    const message = "Hallo von Pascal";
+    const { body } = await $fetch(getURL("echo"), {
+      method: "POST",
+      body: Buffer.from("Hallo von Pascal"),
+      headers: { "Content-Type": "text/plain" },
+    });
+    expect(body).to.deep.eq(message);
+  });
+
   it("Bypass FormData body", async () => {
     const data = new FormData();
     data.append("foo", "bar");

@@ -44,12 +44,15 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   query?: SearchParameters;
   parseResponse?: (responseText: string) => any;
   responseType?: R;
-  response?: boolean;
-  retry?: number | false;
+
   /** timeout in milliseconds */
   timeout?: number;
+
+  retry?: number | false;
   /** Delay between retries in milliseconds. */
   retryDelay?: number;
+  /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
+  retryStatusCodes?: number[];
 
   onRequest?(context: FetchContext): Promise<void> | void;
   onRequestError?(
@@ -114,7 +117,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
 
       const responseCode = (context.response && context.response.status) || 500;
-      if (retries > 0 && retryStatusCodes.has(responseCode)) {
+      if (
+        retries > 0 &&
+        (Array.isArray(context.options.retryStatusCodes)
+          ? context.options.retryStatusCodes.includes(responseCode)
+          : retryStatusCodes.has(responseCode))
+      ) {
         const retryDelay = context.options.retryDelay || 0;
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
@@ -217,19 +225,23 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       return await onError(context);
     }
 
-    const responseType =
-      (context.options.parseResponse ? "json" : context.options.responseType) ||
-      detectResponseType(context.response.headers.get("content-type") || "");
+    if (context.response.body) {
+      const responseType =
+        (context.options.parseResponse
+          ? "json"
+          : context.options.responseType) ||
+        detectResponseType(context.response.headers.get("content-type") || "");
 
-    // We override the `.json()` method to parse the body more securely with `destr`
-    if (responseType === "json") {
-      const data = await context.response.text();
-      const parseFunction = context.options.parseResponse || destr;
-      context.response._data = parseFunction(data);
-    } else if (responseType === "stream") {
-      context.response._data = context.response.body;
-    } else {
-      context.response._data = await context.response[responseType]();
+      // We override the `.json()` method to parse the body more securely with `destr`
+      if (responseType === "json") {
+        const data = await context.response.text();
+        const parseFunction = context.options.parseResponse || destr;
+        context.response._data = parseFunction(data);
+      } else if (responseType === "stream") {
+        context.response._data = context.response.body;
+      } else {
+        context.response._data = await context.response[responseType]();
+      }
     }
 
     if (context.options.onResponse) {
@@ -257,7 +269,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
   $fetch.raw = $fetchRaw;
 
-  $fetch.native = fetch;
+  $fetch.native = (...args) => fetch(...args);
 
   $fetch.create = (defaultOptions = {}) =>
     createFetch({

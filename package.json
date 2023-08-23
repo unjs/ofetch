@@ -1,6 +1,6 @@
 {
   "name": "ofetch",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "description": "A better fetch API. Works on node, browser and workers.",
   "repository": "unjs/ofetch",
   "license": "MIT",
@@ -20,6 +20,16 @@
       "wintercg": "./dist/index.mjs",
       "worker": "./dist/index.mjs",
       "workerd": "./dist/index.mjs",
+      "node": {
+        "import": {
+          "types": "./dist/node.d.mts",
+          "default": "./dist/node.mjs"
+        },
+        "require": {
+          "types": "./dist/node.d.cts",
+          "default": "./dist/node.cjs"
+        }
+      },
       "import": {
         "types": "./dist/index.d.mts",
         "default": "./dist/index.mjs"
@@ -27,7 +37,9 @@
       "require": {
         "types": "./dist/node.d.cts",
         "default": "./dist/node.cjs"
-      }
+      },
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     },
     "./node": {
       "import": {
@@ -59,7 +71,7 @@
   },
   "dependencies": {
     "destr": "^2.0.1",
-    "node-fetch-native": "^1.3.0",
+    "node-fetch-native": "^1.3.2",
     "ufo": "^1.2.0"
   },
   "devDependencies": {
@@ -75,7 +87,7 @@
     "listhen": "^1.3.0",
     "prettier": "^3.0.2",
     "typescript": "^5.1.6",
-    "unbuild": "2.0.0-rc.0",
+    "unbuild": "2.0.0",
     "vitest": "^0.34.2"
   },
   "packageManager": "pnpm@8.6.12"

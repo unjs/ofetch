@@ -67,6 +67,10 @@ describe("ofetch", () => {
         eventHandler(() => createError({ status: 408 }))
       )
       .use(
+        "/204",
+        eventHandler(() => null) // eslint-disable-line unicorn/no-null
+      )
+      .use(
         "/timeout",
         eventHandler(async () => {
           await new Promise((resolve) => {
@@ -80,8 +84,8 @@ describe("ofetch", () => {
     listener = await listen(toNodeListener(app));
   });
 
-  afterAll(async () => {
-    await listener.close();
+  afterAll(() => {
+    listener.close().catch(console.error);
   });
 
   it("ok", async () => {
@@ -202,6 +206,16 @@ describe("ofetch", () => {
     const res = await $fetch(getURL("403"), { ignoreResponseError: true });
     expect(res?.statusCode).to.eq(403);
     expect(res?.statusMessage).to.eq("Forbidden");
+  });
+
+  it("204 no content", async () => {
+    const res = await $fetch(getURL("204"));
+    expect(res).toBeUndefined();
+  });
+
+  it("HEAD no content", async () => {
+    const res = await $fetch(getURL("/ok"), { method: "HEAD" });
+    expect(res).toBeUndefined();
   });
 
   it("baseURL with retry", async () => {

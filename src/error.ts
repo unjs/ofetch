@@ -5,8 +5,7 @@ import type {
   FetchResponse,
 } from "./fetch";
 
-export class FetchError<T = any> extends Error {
-  name = "FetchError";
+export interface IFetchError<T = any> extends Error {
   request?: FetchRequest;
   options?: FetchOptions;
   response?: FetchResponse<T>;
@@ -17,7 +16,23 @@ export class FetchError<T = any> extends Error {
   statusMessage?: string;
 }
 
-export function createFetchError<T = any>(ctx: FetchContext<T>): FetchError<T> {
+export class FetchError<T = any> extends Error implements IFetchError<T> {
+  constructor(message: string, opts?: { cause: unknown }) {
+    // @ts-ignore https://v8.dev/features/error-cause
+    super(message, opts);
+
+    this.name = "FetchError";
+
+    // Polyfill cause for other runtimes
+    if (opts?.cause && !this.cause) {
+      this.cause = opts.cause;
+    }
+  }
+}
+
+export function createFetchError<T = any>(
+  ctx: FetchContext<T>
+): IFetchError<T> {
   const errorMessage = ctx.error?.message || ctx.error?.toString() || "";
 
   const method =
@@ -26,14 +41,17 @@ export function createFetchError<T = any>(ctx: FetchContext<T>): FetchError<T> {
   const requestStr = `[${method}] ${JSON.stringify(url)}`;
 
   const statusStr = ctx.response
-    ? `${ctx.response.status} ${JSON.stringify(ctx.response.statusText)}`
+    ? `${ctx.response.status} ${ctx.response.statusText}`
     : "<no response>";
 
   const message = `${requestStr}: ${statusStr}${
     errorMessage ? ` ${errorMessage}` : ""
   }`;
 
-  const fetchError: FetchError<T> = new FetchError(message);
+  const fetchError: FetchError<T> = new FetchError(
+    message,
+    ctx.error ? { cause: ctx.error } : undefined
+  );
 
   for (const key of ["request", "options", "response"] as const) {
     Object.defineProperty(fetchError, key, {

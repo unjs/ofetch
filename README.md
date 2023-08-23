@@ -92,7 +92,7 @@ Parsed error body is available with `error.data`. You may also use `FetchError` 
 
 ```ts
 await ofetch("https://google.com/404");
-// FetchError: [GET] "https://google/404": 404 "Not Found"
+// FetchError: [GET] "https://google/404": 404 Not Found
 //     at async main (/project/playground.ts:4:3)
 ```
 

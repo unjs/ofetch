@@ -306,7 +306,7 @@ describe("ofetch", () => {
       (error) => error
     );
     expect(error.toString()).toBe(
-      'FetchError: [POST] "http://localhost:3000/403": 403 "Forbidden"'
+      'FetchError: [POST] "http://localhost:3000/403": 403 Forbidden'
     );
     expect(error.request).to.equal(getURL("403"));
     expect(error.options.method).to.equal("POST");

@@ -1,4 +1,9 @@
-import type { FetchOptions, FetchRequest, FetchResponse } from "./fetch";
+import type {
+  FetchContext,
+  FetchOptions,
+  FetchRequest,
+  FetchResponse,
+} from "./fetch";
 
 export class FetchError<T = any> extends Error {
   name = "FetchError";
@@ -12,20 +17,16 @@ export class FetchError<T = any> extends Error {
   statusMessage?: string;
 }
 
-export function createFetchError<T = any>(
-  request: FetchRequest,
-  options: FetchOptions,
-  error?: Error,
-  response?: FetchResponse<T>
-): FetchError<T> {
-  const errorMessage = error?.message || error?.toString() || "";
+export function createFetchError<T = any>(ctx: FetchContext<T>): FetchError<T> {
+  const errorMessage = ctx.error?.message || ctx.error?.toString() || "";
 
-  const method = (request as Request)?.method || options?.method || "GET";
-  const url = (request as Request)?.url || String(request) || "/";
+  const method =
+    (ctx.request as Request)?.method || ctx.options?.method || "GET";
+  const url = (ctx.request as Request)?.url || String(ctx.request) || "/";
   const requestStr = `[${method}] ${JSON.stringify(url)}`;
 
-  const statusStr = response
-    ? `${response.status} ${JSON.stringify(response.statusText)}`
+  const statusStr = ctx.response
+    ? `${ctx.response.status} ${JSON.stringify(ctx.response.statusText)}`
     : "<no response>";
 
   const message = `${requestStr}: ${statusStr}${
@@ -36,42 +37,42 @@ export function createFetchError<T = any>(
 
   Object.defineProperty(fetchError, "request", {
     get() {
-      return request;
+      return ctx.request;
     },
   });
   Object.defineProperty(fetchError, "options", {
     get() {
-      return options;
+      return ctx.options;
     },
   });
   Object.defineProperty(fetchError, "response", {
     get() {
-      return response;
+      return ctx.response;
     },
   });
   Object.defineProperty(fetchError, "data", {
     get() {
-      return response && response._data;
+      return ctx.response && ctx.response._data;
     },
   });
   Object.defineProperty(fetchError, "status", {
     get() {
-      return response && response.status;
+      return ctx.response && ctx.response.status;
     },
   });
   Object.defineProperty(fetchError, "statusText", {
     get() {
-      return response && response.statusText;
+      return ctx.response && ctx.response.statusText;
     },
   });
   Object.defineProperty(fetchError, "statusCode", {
     get() {
-      return response && response.status;
+      return ctx.response && ctx.response.status;
     },
   });
   Object.defineProperty(fetchError, "statusMessage", {
     get() {
-      return response && response.statusText;
+      return ctx.response && ctx.response.statusText;
     },
   });
 

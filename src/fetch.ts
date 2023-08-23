@@ -148,12 +148,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     // Throw normalized error
-    const error = createFetchError(
-      context.request,
-      context.options,
-      context.error,
-      context.response
-    );
+    const error = createFetchError(context);
 
     // Only available on V8 based runtimes (https://v8.dev/docs/stack-trace-api)
     if (Error.captureStackTrace) {

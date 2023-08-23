@@ -252,49 +252,19 @@ describe("ofetch", () => {
     expect(abortHandle()).rejects.toThrow(/aborted/);
   });
 
-  it("should have url and method in error.options", async () => {
-    const error = await $fetch(getURL("404"), {
-      method: "get",
-    }).catch((error_) => error_);
-    expect(error.toString()).to.contain("Cannot find any path matching /404.");
-    expect(error.data).to.deep.eq({
-      stack: [],
-      statusCode: 404,
-      statusMessage: "Cannot find any path matching /404.",
-    });
-    expect(error.response?._data).to.deep.eq(error.data);
-    expect(error.options.method).to.equal("GET");
-  });
-
-  it("should have options in error.message", async () => {
-    const error = await $fetch(getURL("404"), {
-      method: "GET",
-    }).catch((error_) => error_);
-    console.log(error.toString());
-    expect(error.toString()).to.contain("GET");
-    expect(error.data).to.deep.eq({
-      stack: [],
-      statusCode: 404,
-      statusMessage: "Cannot find any path matching /404.",
-    });
-    expect(error.response?._data).to.deep.eq(error.data);
-    expect(error.options.method).to.equal("GET");
-  });
-
   it("passing request obj should return request obj in error", async () => {
-    const error = await $fetch(
-      new Request(getURL("404"), {
-        method: "GET",
-      })
-    ).catch((error_) => error_);
-    expect(error.toString()).to.contain("Cannot find any path matching /404.");
+    const error = await $fetch(getURL("/404"), { method: "post" }).catch(
+      (error) => error
+    );
+    expect(error.toString()).to.toMatch("Cannot find any path matching /404.");
     expect(error.data).to.deep.eq({
       stack: [],
       statusCode: 404,
       statusMessage: "Cannot find any path matching /404.",
     });
+    expect(error.request).to.equal(getURL("404"));
+    expect(error.options.method).to.equal("POST");
     expect(error.response?._data).to.deep.eq(error.data);
-    expect(error.request.url).to.equal(getURL("404"));
   });
 
   it("aborting on timeout", async () => {

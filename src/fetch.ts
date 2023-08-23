@@ -213,19 +213,23 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       return await onError(context);
     }
 
-    const responseType =
-      (context.options.parseResponse ? "json" : context.options.responseType) ||
-      detectResponseType(context.response.headers.get("content-type") || "");
+    if (context.response.body) {
+      const responseType =
+        (context.options.parseResponse
+          ? "json"
+          : context.options.responseType) ||
+        detectResponseType(context.response.headers.get("content-type") || "");
 
-    // We override the `.json()` method to parse the body more securely with `destr`
-    if (responseType === "json") {
-      const data = await context.response.text();
-      const parseFunction = context.options.parseResponse || destr;
-      context.response._data = parseFunction(data);
-    } else if (responseType === "stream") {
-      context.response._data = context.response.body;
-    } else {
-      context.response._data = await context.response[responseType]();
+      // We override the `.json()` method to parse the body more securely with `destr`
+      if (responseType === "json") {
+        const data = await context.response.text();
+        const parseFunction = context.options.parseResponse || destr;
+        context.response._data = parseFunction(data);
+      } else if (responseType === "stream") {
+        context.response._data = context.response.body;
+      } else {
+        context.response._data = await context.response[responseType]();
+      }
     }
 
     if (context.options.onResponse) {

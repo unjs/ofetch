@@ -67,13 +67,15 @@ await ofetch("/api/generate-image", { responseType: "blob" });
 
 ## ✔️ JSON Body
 
-If (a pure) object or a class with `.toJSON()` is passed to the `body` option, `ofetch` automatically stringifies it.
+If an object or a class with a `.toJSON()` method is passed to the `body` option, `ofetch` automatically stringifies it.
 
-`ofetch` uses `JSON.stringify()` to stringify the object passed, so the object may need to have `toJSON` method to be stringified (e.g. an instance of your custom class). Without `.toJSON()` method, such object has to be converted to a stringifiable value in some way in advance.
+`ofetch` utilizes `JSON.stringify()` to convert the passed object. Classes without a `.toJSON()` method have to be converted into a string value in advance before being passed to the `body` option.
 
-For both string and json values, ofetch adds default `Content-Type: "Application/JSON"` and `Accept` headers for `PUT`, `PATCH` and `POST` request methods.
+For `PUT`, `PATCH`, and `POST` request methods, when a string or object body is set, `ofetch` adds the default `content-type: "application/json"` and `accept: "application/json"` headers (which you can always override).
 
-ofetch also supports binary responses with `Buffer`, `ReadableStream`, `Stream` and `UInt8Array` types and will automatically set `duplex: "half"` option for streaming support!
+Additionally, `ofetch` supports binary responses with `Buffer`, `ReadableStream`, `Stream`, and [compatible body types](https://developer.mozilla.org/en-US/docs/Web/API/fetch#body). ofetch will automatically set the `duplex: "half"` option for streaming support!
+
+**Example:**
 
 ```js
 const { users } = await ofetch("/api/users", {

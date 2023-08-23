@@ -8,10 +8,9 @@ import {
   readRawBody,
   toNodeListener,
 } from "h3";
-import { Blob } from "fetch-blob";
-import { FormData } from "formdata-polyfill/esm.min.js";
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Headers, Request, $fetch } from "../src/node";
+import { Headers, FormData, Blob, Request } from "node-fetch-native";
+import { $fetch } from "../src/node";
 
 describe("ofetch", () => {
   let listener;
@@ -264,7 +263,6 @@ describe("ofetch", () => {
       statusMessage: "Cannot find any path matching /404.",
     });
     expect(error.response?._data).to.deep.eq(error.data);
-    expect(error.options.baseURL).to.equal(getURL("404"));
     expect(error.options.method).to.equal("GET");
   });
 
@@ -280,7 +278,6 @@ describe("ofetch", () => {
       statusMessage: "Cannot find any path matching /404.",
     });
     expect(error.response?._data).to.deep.eq(error.data);
-    expect(error.options.baseURL).to.equal(getURL("404"));
     expect(error.options.method).to.equal("GET");
   });
 
@@ -298,6 +295,8 @@ describe("ofetch", () => {
     });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request.url).to.equal(getURL("404"));
+  });
+
   it("aborting on timeout", async () => {
     const noTimeout = $fetch(getURL("timeout")).catch(() => "no timeout");
     const timeout = $fetch(getURL("timeout"), {

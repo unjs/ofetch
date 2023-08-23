@@ -254,7 +254,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
   $fetch.raw = $fetchRaw;
 
-  $fetch.native = fetch;
+  $fetch.native = (...args) => fetch(...args);
 
   $fetch.create = (defaultOptions = {}) =>
     createFetch({

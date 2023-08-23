@@ -190,37 +190,38 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           ...context.options.query,
         });
       }
-      if (context.options.body && isPayloadMethod(context.options.method)) {
-        if (isJSONSerializable(context.options.body)) {
-          // JSON Body
-          // Automatically JSON stringify request bodies, when not already a string.
-          context.options.body =
-            typeof context.options.body === "string"
-              ? context.options.body
-              : JSON.stringify(context.options.body);
+    }
 
-          // Set Content-Type and Accept headers to application/json by default
-          // for JSON serializable request bodies.
-          // Pass empty object as older browsers don't support undefined.
-          context.options.headers = new Headers(context.options.headers || {});
-          if (!context.options.headers.has("content-type")) {
-            context.options.headers.set("content-type", "application/json");
-          }
-          if (!context.options.headers.has("accept")) {
-            context.options.headers.set("accept", "application/json");
-          }
-        } else if (
-          // ReadableStream Body
-          ("pipeTo" in (context.options.body as ReadableStream) &&
-            typeof (context.options.body as ReadableStream).pipeTo ===
-              "function") ||
-          // Node.js Stream Body
-          typeof (context.options.body as Readable).pipe === "function"
-        ) {
-          // eslint-disable-next-line unicorn/no-lonely-if
-          if (!("duplex" in context.options)) {
-            context.options.duplex = "half";
-          }
+    if (context.options.body && isPayloadMethod(context.options.method)) {
+      if (isJSONSerializable(context.options.body)) {
+        // JSON Body
+        // Automatically JSON stringify request bodies, when not already a string.
+        context.options.body =
+          typeof context.options.body === "string"
+            ? context.options.body
+            : JSON.stringify(context.options.body);
+
+        // Set Content-Type and Accept headers to application/json by default
+        // for JSON serializable request bodies.
+        // Pass empty object as older browsers don't support undefined.
+        context.options.headers = new Headers(context.options.headers || {});
+        if (!context.options.headers.has("content-type")) {
+          context.options.headers.set("content-type", "application/json");
+        }
+        if (!context.options.headers.has("accept")) {
+          context.options.headers.set("accept", "application/json");
+        }
+      } else if (
+        // ReadableStream Body
+        ("pipeTo" in (context.options.body as ReadableStream) &&
+          typeof (context.options.body as ReadableStream).pipeTo ===
+            "function") ||
+        // Node.js Stream Body
+        typeof (context.options.body as Readable).pipe === "function"
+      ) {
+        // eslint-disable-next-line unicorn/no-lonely-if
+        if (!("duplex" in context.options)) {
+          context.options.duplex = "half";
         }
       }
     }
@@ -257,14 +258,27 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         detectResponseType(context.response.headers.get("content-type") || "");
 
       // We override the `.json()` method to parse the body more securely with `destr`
-      if (responseType === "json") {
-        const data = await context.response.text();
-        const parseFunction = context.options.parseResponse || destr;
-        context.response._data = parseFunction(data);
-      } else if (responseType === "stream") {
-        context.response._data = context.response.body;
-      } else {
-        context.response._data = await context.response[responseType]();
+      switch (responseType) {
+        case "json": {
+          const data = await context.response.text();
+          const parseFunction = context.options.parseResponse || destr;
+          context.response._data = parseFunction(data);
+
+          break;
+        }
+        case "stream": {
+          context.response._data = context.response.body;
+
+          break;
+        }
+        case "raw": {
+          context.response._data = context.response.body;
+
+          break;
+        }
+        default: {
+          context.response._data = await context.response[responseType]();
+        }
       }
     }
 

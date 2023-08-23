@@ -44,11 +44,15 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   query?: SearchParameters;
   parseResponse?: (responseText: string) => any;
   responseType?: R;
-  retry?: number | false;
+
   /** timeout in milliseconds */
   timeout?: number;
+
+  retry?: number | false;
   /** Delay between retries in milliseconds. */
   retryDelay?: number;
+  /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
+  retryStatusCodes?: number[];
 
   onRequest?(context: FetchContext): Promise<void> | void;
   onRequestError?(
@@ -113,7 +117,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
 
       const responseCode = (context.response && context.response.status) || 500;
-      if (retries > 0 && retryStatusCodes.has(responseCode)) {
+      if (
+        retries > 0 &&
+        (Array.isArray(context.options.retryStatusCodes)
+          ? context.options.retryStatusCodes.includes(responseCode)
+          : retryStatusCodes.has(responseCode))
+      ) {
         const retryDelay = context.options.retryDelay || 0;
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));

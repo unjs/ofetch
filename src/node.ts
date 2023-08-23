@@ -38,7 +38,6 @@ export const fetch = globalThis.fetch || createNodeFetch();
 
 export const Headers = globalThis.Headers || _Headers;
 export const AbortController = globalThis.AbortController || _AbortController;
-export const Request = globalThis.Request || _Request;
 
 export const ofetch = createFetch({ fetch, Headers, AbortController });
 export const $fetch = ofetch;

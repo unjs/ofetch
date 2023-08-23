@@ -91,6 +91,9 @@ const retryStatusCodes = new Set([
   504, //  Gateway Timeout
 ]);
 
+// https://developer.mozilla.org/en-US/docs/Web/API/Response/body
+const nullBodyResponses = new Set([101, 204, 205, 304]);
+
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const {
     fetch = globalThis.fetch,
@@ -222,7 +225,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       return await onError(context);
     }
 
-    if (context.response.body) {
+    const hasBody =
+      context.response.body &&
+      !nullBodyResponses.has(context.response.status) &&
+      context.options.method !== "HEAD";
+    if (hasBody) {
       const responseType =
         (context.options.parseResponse
           ? "json"

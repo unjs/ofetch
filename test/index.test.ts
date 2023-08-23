@@ -8,10 +8,9 @@ import {
   readRawBody,
   toNodeListener,
 } from "h3";
-import { Blob } from "fetch-blob";
-import { FormData } from "formdata-polyfill/esm.min.js";
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Headers, $fetch } from "../src/node";
+import { Headers, FormData, Blob } from "node-fetch-native";
+import { $fetch } from "../src/node";
 
 describe("ofetch", () => {
   let listener;
@@ -251,6 +250,18 @@ describe("ofetch", () => {
       console.log("response", response);
     }
     expect(abortHandle()).rejects.toThrow(/aborted/);
+  });
+
+  it("passing request obj should return request obj in error", async () => {
+    const error = await $fetch(getURL("/403"), { method: "post" }).catch(
+      (error) => error
+    );
+    expect(error.toString()).toBe(
+      'FetchError: [POST] "http://localhost:3000/403": 403 "Forbidden"'
+    );
+    expect(error.request).to.equal(getURL("403"));
+    expect(error.options.method).to.equal("POST");
+    expect(error.response?._data).to.deep.eq(error.data);
   });
 
   it("aborting on timeout", async () => {

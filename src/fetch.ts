@@ -142,6 +142,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     // Throw normalized error
     const error = createFetchError(
       context.request,
+      context.options,
       context.error,
       context.response
     );

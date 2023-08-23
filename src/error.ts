@@ -1,8 +1,9 @@
-import type { FetchRequest, FetchResponse } from "./fetch";
+import type { FetchOptions, FetchRequest, FetchResponse } from "./fetch";
 
 export class FetchError<T = any> extends Error {
   name = "FetchError";
   request?: FetchRequest;
+  options?: FetchOptions;
   response?: FetchResponse<T>;
   data?: T;
   status?: number;
@@ -13,26 +14,34 @@ export class FetchError<T = any> extends Error {
 
 export function createFetchError<T = any>(
   request: FetchRequest,
+  options: FetchOptions,
   error?: Error,
   response?: FetchResponse<T>
 ): FetchError<T> {
-  let message = "";
-  if (error) {
-    message = error.message;
-  }
-  if (request && response) {
-    message = `${message} (${response.status} ${
-      response.statusText
-    } (${request.toString()}))`;
-  } else if (request) {
-    message = `${message} (${request.toString()})`;
-  }
+  const errorMessage = error?.message || error?.toString() || "";
+
+  const method = (request as Request)?.method || options?.method || "GET";
+  const url = (request as Request)?.url || String(request) || "/";
+  const requestStr = `[${method}] ${JSON.stringify(url)}`;
+
+  const statusStr = response
+    ? `${response.status} ${JSON.stringify(response.statusText)}`
+    : "<no response>";
+
+  const message = `${requestStr}: ${statusStr}${
+    errorMessage ? ` ${errorMessage}` : ""
+  }`;
 
   const fetchError: FetchError<T> = new FetchError(message);
 
   Object.defineProperty(fetchError, "request", {
     get() {
       return request;
+    },
+  });
+  Object.defineProperty(fetchError, "options", {
+    get() {
+      return options;
     },
   });
   Object.defineProperty(fetchError, "response", {

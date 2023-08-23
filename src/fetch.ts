@@ -1,3 +1,4 @@
+import type { Readable } from "node:stream";
 import destr from "destr";
 import { withBase, withQuery } from "ufo";
 import type { Fetch, RequestInfo, RequestInit, Response } from "./types";
@@ -44,6 +45,13 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   query?: SearchParameters;
   parseResponse?: (responseText: string) => any;
   responseType?: R;
+
+  /**
+   * @experimental Set to "half" to enable duplex streaming.
+   * Will be automatically set to "half" when using a ReadableStream as body.
+   * https://fetch.spec.whatwg.org/#enumdef-requestduplex
+   */
+  duplex?: "half" | undefined;
 
   /** timeout in milliseconds */
   timeout?: number;
@@ -182,26 +190,37 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           ...context.options.query,
         });
       }
-      if (
-        context.options.body &&
-        isPayloadMethod(context.options.method) &&
-        isJSONSerializable(context.options.body)
-      ) {
-        // Automatically JSON stringify request bodies, when not already a string.
-        context.options.body =
-          typeof context.options.body === "string"
-            ? context.options.body
-            : JSON.stringify(context.options.body);
+      if (context.options.body && isPayloadMethod(context.options.method)) {
+        if (isJSONSerializable(context.options.body)) {
+          // JSON Body
+          // Automatically JSON stringify request bodies, when not already a string.
+          context.options.body =
+            typeof context.options.body === "string"
+              ? context.options.body
+              : JSON.stringify(context.options.body);
 
-        // Set Content-Type and Accept headers to application/json by default
-        // for JSON serializable request bodies.
-        // Pass empty object as older browsers don't support undefined.
-        context.options.headers = new Headers(context.options.headers || {});
-        if (!context.options.headers.has("content-type")) {
-          context.options.headers.set("content-type", "application/json");
-        }
-        if (!context.options.headers.has("accept")) {
-          context.options.headers.set("accept", "application/json");
+          // Set Content-Type and Accept headers to application/json by default
+          // for JSON serializable request bodies.
+          // Pass empty object as older browsers don't support undefined.
+          context.options.headers = new Headers(context.options.headers || {});
+          if (!context.options.headers.has("content-type")) {
+            context.options.headers.set("content-type", "application/json");
+          }
+          if (!context.options.headers.has("accept")) {
+            context.options.headers.set("accept", "application/json");
+          }
+        } else if (
+          // ReadableStream Body
+          ("pipeTo" in (context.options.body as ReadableStream) &&
+            typeof (context.options.body as ReadableStream).pipeTo ===
+              "function") ||
+          // Node.js Stream Body
+          typeof (context.options.body as Readable).pipe === "function"
+        ) {
+          // eslint-disable-next-line unicorn/no-lonely-if
+          if (!("duplex" in context.options)) {
+            context.options.duplex = "half";
+          }
         }
       }
     }

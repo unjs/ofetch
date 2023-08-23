@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import { listen } from "listhen";
 import { getQuery, joinURL } from "ufo";
 import {
@@ -10,6 +11,7 @@ import {
 } from "h3";
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import { Headers, FormData, Blob } from "node-fetch-native";
+import { nodeMajorVersion } from "std-env";
 import { $fetch } from "../src/node";
 
 describe("ofetch", () => {
@@ -170,12 +172,49 @@ describe("ofetch", () => {
     expect(body).to.deep.eq(message);
   });
 
-  it("Handle buffer body", async () => {
+  it("Handle Buffer body", async () => {
     const message = "Hallo von Pascal";
     const { body } = await $fetch(getURL("echo"), {
       method: "POST",
       body: Buffer.from("Hallo von Pascal"),
       headers: { "Content-Type": "text/plain" },
+    });
+    expect(body).to.deep.eq(message);
+  });
+
+  it.skipIf(Number(nodeMajorVersion) < 18)(
+    "Handle ReadableStream body",
+    async () => {
+      const message = "Hallo von Pascal";
+      const { body } = await $fetch(getURL("echo"), {
+        method: "POST",
+        headers: {
+          "content-length": "16",
+        },
+        body: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(message));
+            controller.close();
+          },
+        }),
+      });
+      expect(body).to.deep.eq(message);
+    }
+  );
+
+  it.skipIf(Number(nodeMajorVersion) < 18)("Handle Readable body", async () => {
+    const message = "Hallo von Pascal";
+    const { body } = await $fetch(getURL("echo"), {
+      method: "POST",
+      headers: {
+        "content-length": "16",
+      },
+      body: new Readable({
+        read() {
+          this.push(message);
+          this.push(null); // eslint-disable-line unicorn/no-null
+        },
+      }),
     });
     expect(body).to.deep.eq(message);
   });

@@ -49,6 +49,9 @@ devDependencies:
   prettier:
     specifier: ^3.0.2
     version: 3.0.2
+  std-env:
+    specifier: ^3.4.3
+    version: 3.4.3
   typescript:
     specifier: ^5.1.6
     version: 5.1.6
@@ -1191,7 +1194,7 @@ packages:
       istanbul-reports: 3.1.6
       magic-string: 0.30.3
       picocolors: 1.0.0
-      std-env: 3.4.2
+      std-env: 3.4.3
       test-exclude: 6.0.0
       v8-to-istanbul: 9.1.0
       vitest: 0.34.2
@@ -1552,7 +1555,7 @@ packages:
       pkg-types: 1.0.3
       scule: 1.0.0
       semver: 7.5.4
-      std-env: 3.4.2
+      std-env: 3.4.3
       yaml: 2.3.1
     transitivePeerDependencies:
       - supports-color
@@ -3904,8 +3907,8 @@ packages:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
     dev: true
 
-  /std-env@3.4.2:
-    resolution: {integrity: sha512-Cw6eJDX9AxEEL0g5pYj8Zx9KXtDf60rxwS2ze0HBanS0aKhj1sBlzcsmg+R0qYy8byFa854/yR2X5ZmBSClVmg==}
+  /std-env@3.4.3:
+    resolution: {integrity: sha512-f9aPhy8fYBuMN+sNfakZV18U39PbalgjXG3lLB9WkaYTxijru61wb57V9wxxNthXM5Sd88ETBWi29qLAsHO52Q==}
     dev: true
 
   /string.prototype.trim@1.2.7:
@@ -4390,7 +4393,7 @@ packages:
       magic-string: 0.30.3
       pathe: 1.1.1
       picocolors: 1.0.0
-      std-env: 3.4.2
+      std-env: 3.4.3
       strip-literal: 1.3.0
       tinybench: 2.5.0
       tinypool: 0.7.0

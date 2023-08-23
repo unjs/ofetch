@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.3.0
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.2.1...v1.3.0)
+
+### 🚀 Enhancements
+
+- Support customizable `retryStatusCodes` ([#109](https://github.com/unjs/ofetch/pull/109))
+- Add `options` field and improve formatting of errors ([#270](https://github.com/unjs/ofetch/pull/270))
+- Automatically enable duplex to stream request body ([#275](https://github.com/unjs/ofetch/pull/275))
+
+### 🩹 Fixes
+
+- Avoid binding `.native` to `$fetch` ([#272](https://github.com/unjs/ofetch/pull/272))
+- Skip reading body with `204` responses and `HEAD` requests ([#171](https://github.com/unjs/ofetch/pull/171), [#84](https://github.com/unjs/ofetch/pull/84))
+- Improve response body check for node 16 compatibility ([64d3aed](https://github.com/unjs/ofetch/commit/64d3aed))
+- Avoid serializing buffer body ([#273](https://github.com/unjs/ofetch/pull/273))
+- Move body handling out of request block ([15a28fb](https://github.com/unjs/ofetch/commit/15a28fb))
+
+### 💅 Refactors
+
+- Remove unused `response?: boolean` option ([#223](https://github.com/unjs/ofetch/pull/223))
+- Pass all fetch context to the error ([b70e6b0](https://github.com/unjs/ofetch/commit/b70e6b0))
+- **error:** Factory pattern for getters ([6139785](https://github.com/unjs/ofetch/commit/6139785))
+
+### 📖 Documentation
+
+- Improve explanation about `body` option ([#276](https://github.com/unjs/ofetch/pull/276))
+
+### 🏡 Chore
+
+- **release:** V1.2.1 ([bb98cb5](https://github.com/unjs/ofetch/commit/bb98cb5))
+- Remove accidental `raw` response type addition ([8589cae](https://github.com/unjs/ofetch/commit/8589cae))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Nozomu Ikuta 
+- Daniil Bezuglov
+
 ## v1.2.1
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.2.0...v1.2.1)

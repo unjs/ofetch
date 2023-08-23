@@ -67,7 +67,11 @@ await ofetch("/api/generate-image", { responseType: "blob" });
 
 ## ✔️ JSON Body
 
-`ofetch` automatically stringifies request body (if an object is passed) and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
+Either of string or object can be passed to `body` option.
+
+If an object is passed, `ofetch` automatically stringifies it and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
+
+`ofetch` uses `JSON.stringify()` to stringify the object passed, so the object may need to have `toJSON` method to be stringified (e.g. an instance of your custom class). Without `toJSON` method, such object has to be converted to a stringifiable value in some way in advance.
 
 ```js
 const { users } = await ofetch("/api/users", {

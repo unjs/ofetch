@@ -66,12 +66,14 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   onRequestError?(
     context: FetchContext & { error: Error }
   ): Promise<void> | void;
+  onRequestProgress?(progress: number): Promise<void> | void;
   onResponse?(
     context: FetchContext & { response: FetchResponse<R> }
   ): Promise<void> | void;
   onResponseError?(
     context: FetchContext & { response: FetchResponse<R> }
   ): Promise<void> | void;
+  onResponseProgress?(progress: number): Promise<void> | void;
 }
 
 export interface $Fetch {
@@ -196,6 +198,28 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
             ? context.options.body
             : JSON.stringify(context.options.body);
 
+        if (context.options.onRequestProgress) {
+          const { readable, writable } = new TransformStream();
+          const _writer = writable.getWriter();
+          const _encoder = new TextEncoder();
+          const contentLength = _encoder.encode(
+            context.options.body
+          ).byteLength;
+          let loaded = 0;
+
+          for (const char of context.options.body) {
+            const chunk = _encoder.encode(char);
+            loaded += chunk.byteLength;
+            _writer.write(chunk);
+            context.options.onRequestProgress(
+              Math.round((loaded / contentLength) * 100)
+            );
+          }
+
+          context.options.body = readable;
+          context.options.duplex = "half";
+        }
+
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
         // Pass empty object as older browsers don't support undefined.
@@ -255,7 +279,37 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       // We override the `.json()` method to parse the body more securely with `destr`
       switch (responseType) {
         case "json": {
-          const data = await context.response.text();
+          const data = await (async function () {
+            /* Custom response.text() function to retrieve text from response and get progress values */
+            let loaded = 0;
+            const contentLength =
+              context.response!.headers.get("content-length")!;
+            const _reader = context.response!.body!.getReader();
+            const _decoder = new TextDecoder();
+            const _chunks: string[] = [];
+
+            async function read(): Promise<string> {
+              const { done, value } = await _reader.read();
+
+              if (done) {
+                return _chunks.join("");
+              }
+
+              loaded += value.byteLength;
+
+              if (context.options.onResponseProgress) {
+                context.options.onResponseProgress(
+                  Math.round((loaded / Number.parseInt(contentLength)) * 100)
+                );
+              }
+
+              const chunk = _decoder.decode(value, { stream: true });
+              _chunks.push(chunk);
+              return await read(); // read the next chunk
+            }
+
+            return await read();
+          })();
           const parseFunction = context.options.parseResponse || destr;
           context.response._data = parseFunction(data);
           break;

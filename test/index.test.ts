@@ -323,6 +323,36 @@ describe("ofetch", () => {
     expect(race).to.equal("timeout");
   });
 
+  it("return progress in onResponseProgress", async () => {
+    let loaded = 0;
+    await $fetch(getURL("post"), {
+      method: "post",
+      body: JSON.stringify({
+        key: "test",
+        json: true,
+      }),
+      onResponseProgress: (progress) => {
+        loaded = progress;
+      },
+    });
+    expect(loaded).to.equal(100);
+  });
+
+  it("return progress in onRequestProgress", async () => {
+    let loaded = 0;
+    await $fetch(getURL("post"), {
+      method: "post",
+      body: JSON.stringify({
+        key: "test",
+        json: true,
+      }),
+      onRequestProgress: (progress) => {
+        loaded = progress;
+      },
+    });
+    expect(loaded).to.equal(100);
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

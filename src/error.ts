@@ -30,6 +30,9 @@ export class FetchError<T = any> extends Error implements IFetchError<T> {
   }
 }
 
+// Augment `FetchError` type to include `IFetchError` properties
+export interface FetchError<T = any> extends IFetchError<T> {}
+
 export function createFetchError<T = any>(
   ctx: FetchContext<T>
 ): IFetchError<T> {

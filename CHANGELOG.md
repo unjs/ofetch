@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.3.3
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.3.2...v1.3.3)
+
+### 🩹 Fixes
+
+- Augment `FetchError` type to include `IFetchError` ([#279](https://github.com/unjs/ofetch/pull/279))
+
+### ❤️ Contributors
+
+- Johann Schopplich ([@johannschopplich](http://github.com/johannschopplich))
+
 ## v1.3.2
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.3.1...v1.3.2)

@@ -17,15 +17,6 @@ export interface IFetchError<T = any> extends Error {
 }
 
 export class FetchError<T = any> extends Error implements IFetchError<T> {
-  request?: FetchRequest;
-  options?: FetchOptions;
-  response?: FetchResponse<T>;
-  data?: T;
-  status?: number;
-  statusText?: string;
-  statusCode?: number;
-  statusMessage?: string;
-
   constructor(message: string, opts?: { cause: unknown }) {
     // @ts-ignore https://v8.dev/features/error-cause
     super(message, opts);
@@ -38,6 +29,9 @@ export class FetchError<T = any> extends Error implements IFetchError<T> {
     }
   }
 }
+
+// Augment `FetchError` type to include `IFetchError` properties
+export interface FetchError<T = any> extends IFetchError<T> {}
 
 export function createFetchError<T = any>(
   ctx: FetchContext<T>

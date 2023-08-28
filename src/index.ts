@@ -1,6 +1,7 @@
 import { createFetch } from "./base";
 
 export * from "./base";
+export type { ResponseType, ResponseMap, MappedType } from "./utils";
 
 // ref: https://github.com/tc39/proposal-global
 const _globalThis = (function () {

@@ -1,3 +1,4 @@
+import type { Readable } from "node:stream";
 import destr from "destr";
 import { withBase, withQuery } from "ufo";
 import type { Fetch, RequestInfo, RequestInit, Response } from "./types";
@@ -14,8 +15,9 @@ import {
 export interface CreateFetchOptions {
   // eslint-disable-next-line no-use-before-define
   defaults?: FetchOptions;
-  fetch: Fetch;
-  Headers: typeof Headers;
+  fetch?: Fetch;
+  Headers?: typeof Headers;
+  AbortController?: typeof AbortController;
 }
 
 export type FetchRequest = RequestInfo;
@@ -43,8 +45,22 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   query?: SearchParameters;
   parseResponse?: (responseText: string) => any;
   responseType?: R;
-  response?: boolean;
+
+  /**
+   * @experimental Set to "half" to enable duplex streaming.
+   * Will be automatically set to "half" when using a ReadableStream as body.
+   * https://fetch.spec.whatwg.org/#enumdef-requestduplex
+   */
+  duplex?: "half" | undefined;
+
+  /** timeout in milliseconds */
+  timeout?: number;
+
   retry?: number | false;
+  /** Delay between retries in milliseconds. */
+  retryDelay?: number;
+  /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
+  retryStatusCodes?: number[];
 
   onRequest?(context: FetchContext): Promise<void> | void;
   onRequestError?(
@@ -83,15 +99,25 @@ const retryStatusCodes = new Set([
   504, //  Gateway Timeout
 ]);
 
-export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
-  const { fetch, Headers } = globalOptions;
+// https://developer.mozilla.org/en-US/docs/Web/API/Response/body
+const nullBodyResponses = new Set([101, 204, 205, 304]);
 
-  function onError(context: FetchContext): Promise<FetchResponse<any>> {
+export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+  const {
+    fetch = globalThis.fetch,
+    Headers = globalThis.Headers,
+    AbortController = globalThis.AbortController,
+  } = globalOptions;
+
+  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
     const isAbort =
-      (context.error && context.error.name === "AbortError") || false;
+      (context.error &&
+        context.error.name === "AbortError" &&
+        !context.options.timeout) ||
+      false;
     // Retry
     if (context.options.retry !== false && !isAbort) {
       let retries;
@@ -102,20 +128,27 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       }
 
       const responseCode = (context.response && context.response.status) || 500;
-      if (retries > 0 && retryStatusCodes.has(responseCode)) {
+      if (
+        retries > 0 &&
+        (Array.isArray(context.options.retryStatusCodes)
+          ? context.options.retryStatusCodes.includes(responseCode)
+          : retryStatusCodes.has(responseCode))
+      ) {
+        const retryDelay = context.options.retryDelay || 0;
+        if (retryDelay > 0) {
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+        }
+        // Timeout
         return $fetchRaw(context.request, {
           ...context.options,
           retry: retries - 1,
+          timeout: context.options.timeout,
         });
       }
     }
 
     // Throw normalized error
-    const error = createFetchError(
-      context.request,
-      context.error,
-      context.response
-    );
+    const error = createFetchError(context);
 
     // Only available on V8 based runtimes (https://v8.dev/docs/stack-trace-api)
     if (Error.captureStackTrace) {
@@ -135,6 +168,9 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       error: undefined,
     };
 
+    // Uppercase method name
+    context.options.method = context.options.method?.toUpperCase();
+
     if (context.options.onRequest) {
       await context.options.onRequest(context);
     }
@@ -149,11 +185,11 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
           ...context.options.query,
         });
       }
-      if (
-        context.options.body &&
-        isPayloadMethod(context.options.method) &&
-        isJSONSerializable(context.options.body)
-      ) {
+    }
+
+    if (context.options.body && isPayloadMethod(context.options.method)) {
+      if (isJSONSerializable(context.options.body)) {
+        // JSON Body
         // Automatically JSON stringify request bodies, when not already a string.
         context.options.body =
           typeof context.options.body === "string"
@@ -170,7 +206,26 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
         if (!context.options.headers.has("accept")) {
           context.options.headers.set("accept", "application/json");
         }
+      } else if (
+        // ReadableStream Body
+        ("pipeTo" in (context.options.body as ReadableStream) &&
+          typeof (context.options.body as ReadableStream).pipeTo ===
+            "function") ||
+        // Node.js Stream Body
+        typeof (context.options.body as Readable).pipe === "function"
+      ) {
+        // eslint-disable-next-line unicorn/no-lonely-if
+        if (!("duplex" in context.options)) {
+          context.options.duplex = "half";
+        }
       }
+    }
+
+    // TODO: Can we merge signals?
+    if (!context.options.signal && context.options.timeout) {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), context.options.timeout);
+      context.options.signal = controller.signal;
     }
 
     try {
@@ -186,19 +241,33 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
       return await onError(context);
     }
 
-    const responseType =
-      (context.options.parseResponse ? "json" : context.options.responseType) ||
-      detectResponseType(context.response.headers.get("content-type") || "");
+    const hasBody =
+      context.response.body &&
+      !nullBodyResponses.has(context.response.status) &&
+      context.options.method !== "HEAD";
+    if (hasBody) {
+      const responseType =
+        (context.options.parseResponse
+          ? "json"
+          : context.options.responseType) ||
+        detectResponseType(context.response.headers.get("content-type") || "");
 
-    // We override the `.json()` method to parse the body more securely with `destr`
-    if (responseType === "json") {
-      const data = await context.response.text();
-      const parseFunction = context.options.parseResponse || destr;
-      context.response._data = parseFunction(data);
-    } else if (responseType === "stream") {
-      context.response._data = context.response.body;
-    } else {
-      context.response._data = await context.response[responseType]();
+      // We override the `.json()` method to parse the body more securely with `destr`
+      switch (responseType) {
+        case "json": {
+          const data = await context.response.text();
+          const parseFunction = context.options.parseResponse || destr;
+          context.response._data = parseFunction(data);
+          break;
+        }
+        case "stream": {
+          context.response._data = context.response.body;
+          break;
+        }
+        default: {
+          context.response._data = await context.response[responseType]();
+        }
+      }
     }
 
     if (context.options.onResponse) {
@@ -226,7 +295,7 @@ export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
 
   $fetch.raw = $fetchRaw;
 
-  $fetch.native = fetch;
+  $fetch.native = (...args) => fetch(...args);
 
   $fetch.create = (defaultOptions = {}) =>
     createFetch({

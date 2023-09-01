@@ -24,6 +24,7 @@ export const fetch =
   (() => Promise.reject(new Error("[ofetch] global.fetch is not supported!")));
 
 export const Headers = _globalThis.Headers;
+export const AbortController = _globalThis.AbortController;
 
-export const ofetch = createFetch({ fetch, Headers });
+export const ofetch = createFetch({ fetch, Headers, AbortController });
 export const $fetch = ofetch;

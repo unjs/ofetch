@@ -1,6 +1,6 @@
 {
   "name": "ofetch",
-  "version": "1.1.1",
+  "version": "1.3.3",
   "description": "A better fetch API. Works on node, browser and workers.",
   "repository": "unjs/ofetch",
   "license": "MIT",
@@ -21,20 +21,35 @@
       "worker": "./dist/index.mjs",
       "workerd": "./dist/index.mjs",
       "node": {
-        "types": "./dist/node.d.ts",
-        "import": "./dist/node.mjs",
-        "require": "./dist/node.cjs"
+        "import": {
+          "types": "./dist/node.d.mts",
+          "default": "./dist/node.mjs"
+        },
+        "require": {
+          "types": "./dist/node.d.cts",
+          "default": "./dist/node.cjs"
+        }
       },
-      "default": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.mjs",
-        "require": "./dist/index.cjs"
-      }
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/node.d.cts",
+        "default": "./dist/node.cjs"
+      },
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     },
     "./node": {
-      "types": "./dist/node.d.ts",
-      "import": "./dist/node.mjs",
-      "require": "./dist/node.cjs"
+      "import": {
+        "types": "./dist/node.d.mts",
+        "default": "./dist/node.mjs"
+      },
+      "require": {
+        "types": "./dist/node.d.cts",
+        "default": "./dist/node.cjs"
+      }
     }
   },
   "main": "./dist/node.cjs",
@@ -55,25 +70,26 @@
     "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
-    "destr": "^2.0.0",
-    "node-fetch-native": "^1.2.0",
-    "ufo": "^1.1.2"
+    "destr": "^2.0.1",
+    "node-fetch-native": "^1.4.0",
+    "ufo": "^1.3.0"
   },
   "devDependencies": {
-    "@types/node": "^20.3.1",
-    "@vitest/coverage-v8": "^0.32.2",
-    "changelogen": "^0.5.3",
-    "eslint": "^8.43.0",
+    "@types/node": "^20.5.6",
+    "@vitest/coverage-v8": "^0.34.3",
+    "changelogen": "^0.5.5",
+    "eslint": "^8.47.0",
     "eslint-config-unjs": "^0.2.1",
     "fetch-blob": "^4.0.0",
     "formdata-polyfill": "^4.0.10",
-    "h3": "^1.6.6",
-    "jiti": "^1.18.2",
-    "listhen": "^1.0.4",
-    "prettier": "^2.8.8",
-    "typescript": "^5.1.3",
-    "unbuild": "^1.2.1",
-    "vitest": "^0.32.2"
+    "h3": "^1.8.0",
+    "jiti": "^1.19.3",
+    "listhen": "^1.4.0",
+    "prettier": "^3.0.2",
+    "std-env": "^3.4.3",
+    "typescript": "^5.2.2",
+    "unbuild": "2.0.0",
+    "vitest": "^0.34.3"
   },
-  "packageManager": "pnpm@8.6.2"
+  "packageManager": "pnpm@8.6.12"
 }

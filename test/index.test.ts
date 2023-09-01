@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import { listen } from "listhen";
 import { getQuery, joinURL } from "ufo";
 import {
@@ -8,10 +9,10 @@ import {
   readRawBody,
   toNodeListener,
 } from "h3";
-import { Blob } from "fetch-blob";
-import { FormData } from "formdata-polyfill/esm.min.js";
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Headers, $fetch } from "../src/node";
+import { Headers, FormData, Blob } from "node-fetch-native";
+import { nodeMajorVersion } from "std-env";
+import { $fetch } from "../src/node";
 
 describe("ofetch", () => {
   let listener;
@@ -61,12 +62,31 @@ describe("ofetch", () => {
         eventHandler(() =>
           createError({ status: 403, statusMessage: "Forbidden" })
         )
+      )
+      .use(
+        "/408",
+        eventHandler(() => createError({ status: 408 }))
+      )
+      .use(
+        "/204",
+        eventHandler(() => null) // eslint-disable-line unicorn/no-null
+      )
+      .use(
+        "/timeout",
+        eventHandler(async () => {
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(createError({ status: 408 }));
+            }, 1000 * 5);
+          });
+        })
       );
+
     listener = await listen(toNodeListener(app));
   });
 
-  afterAll(async () => {
-    await listener.close();
+  afterAll(() => {
+    listener.close().catch(console.error);
   });
 
   it("ok", async () => {
@@ -135,7 +155,7 @@ describe("ofetch", () => {
       const { headers } = await $fetch(getURL("post"), {
         method: "POST",
         body: { num: 42 },
-        headers: sentHeaders,
+        headers: sentHeaders as HeadersInit,
       });
       expect(headers).to.include({ "x-header": "1" });
       expect(headers).to.include({ accept: "application/json" });
@@ -148,6 +168,53 @@ describe("ofetch", () => {
       method: "POST",
       body: message,
       headers: { "Content-Type": "text/plain" },
+    });
+    expect(body).to.deep.eq(message);
+  });
+
+  it("Handle Buffer body", async () => {
+    const message = "Hallo von Pascal";
+    const { body } = await $fetch(getURL("echo"), {
+      method: "POST",
+      body: Buffer.from("Hallo von Pascal"),
+      headers: { "Content-Type": "text/plain" },
+    });
+    expect(body).to.deep.eq(message);
+  });
+
+  it.skipIf(Number(nodeMajorVersion) < 18)(
+    "Handle ReadableStream body",
+    async () => {
+      const message = "Hallo von Pascal";
+      const { body } = await $fetch(getURL("echo"), {
+        method: "POST",
+        headers: {
+          "content-length": "16",
+        },
+        body: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(message));
+            controller.close();
+          },
+        }),
+      });
+      expect(body).to.deep.eq(message);
+    }
+  );
+
+  it.skipIf(Number(nodeMajorVersion) < 18)("Handle Readable body", async () => {
+    const message = "Hallo von Pascal";
+    const { body } = await $fetch(getURL("echo"), {
+      method: "POST",
+      headers: {
+        "content-length": "16",
+      },
+      body: new Readable({
+        read() {
+          this.push(message);
+          this.push(null); // eslint-disable-line unicorn/no-null
+        },
+      }),
     });
     expect(body).to.deep.eq(message);
   });
@@ -168,16 +235,16 @@ describe("ofetch", () => {
       method: "POST",
       body: data,
     });
-    expect(body).to.eq("foo=bar");
+    expect(body).toMatchObject({ foo: "bar" });
   });
 
   it("404", async () => {
     const error = await $fetch(getURL("404")).catch((error_) => error_);
-    expect(error.toString()).to.contain("Cannot find any route matching /404.");
+    expect(error.toString()).to.contain("Cannot find any path matching /404.");
     expect(error.data).to.deep.eq({
       stack: [],
       statusCode: 404,
-      statusMessage: "Cannot find any route matching /404.",
+      statusMessage: "Cannot find any path matching /404.",
     });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request).to.equal(getURL("404"));
@@ -189,11 +256,35 @@ describe("ofetch", () => {
     expect(res?.statusMessage).to.eq("Forbidden");
   });
 
+  it("204 no content", async () => {
+    const res = await $fetch(getURL("204"));
+    expect(res).toBeUndefined();
+  });
+
+  it("HEAD no content", async () => {
+    const res = await $fetch(getURL("/ok"), { method: "HEAD" });
+    expect(res).toBeUndefined();
+  });
+
   it("baseURL with retry", async () => {
     const error = await $fetch("", { baseURL: getURL("404"), retry: 3 }).catch(
       (error_) => error_
     );
     expect(error.request).to.equal(getURL("404"));
+  });
+
+  it("retry with delay", async () => {
+    const slow = $fetch<string>(getURL("408"), {
+      retry: 2,
+      retryDelay: 100,
+    }).catch(() => "slow");
+    const fast = $fetch<string>(getURL("408"), {
+      retry: 2,
+      retryDelay: 1,
+    }).catch(() => "fast");
+
+    const race = await Promise.race([slow, fast]);
+    expect(race).to.equal("fast");
   });
 
   it("abort with retry", () => {
@@ -208,6 +299,28 @@ describe("ofetch", () => {
       console.log("response", response);
     }
     expect(abortHandle()).rejects.toThrow(/aborted/);
+  });
+
+  it("passing request obj should return request obj in error", async () => {
+    const error = await $fetch(getURL("/403"), { method: "post" }).catch(
+      (error) => error
+    );
+    expect(error.toString()).toBe(
+      'FetchError: [POST] "http://localhost:3000/403": 403 Forbidden'
+    );
+    expect(error.request).to.equal(getURL("403"));
+    expect(error.options.method).to.equal("POST");
+    expect(error.response?._data).to.deep.eq(error.data);
+  });
+
+  it("aborting on timeout", async () => {
+    const noTimeout = $fetch(getURL("timeout")).catch(() => "no timeout");
+    const timeout = $fetch(getURL("timeout"), {
+      timeout: 100,
+      retry: 0,
+    }).catch(() => "timeout");
+    const race = await Promise.race([noTimeout, timeout]);
+    expect(race).to.equal("timeout");
   });
 
   it("deep merges defaultOptions", async () => {

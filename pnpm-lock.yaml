@@ -4,63 +4,80 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-dependencies:
-  destr:
-    specifier: ^2.0.1
-    version: 2.0.1
-  node-fetch-native:
-    specifier: ^1.4.0
-    version: 1.4.0
-  ufo:
-    specifier: ^1.3.0
-    version: 1.3.0
+importers:
 
-devDependencies:
-  '@types/node':
-    specifier: ^20.5.8
-    version: 20.5.8
-  '@vitest/coverage-v8':
-    specifier: ^0.34.3
-    version: 0.34.3(vitest@0.34.3)
-  changelogen:
-    specifier: ^0.5.5
-    version: 0.5.5
-  eslint:
-    specifier: ^8.48.0
-    version: 8.48.0
-  eslint-config-unjs:
-    specifier: ^0.2.1
-    version: 0.2.1(eslint@8.48.0)(typescript@5.2.2)
-  fetch-blob:
-    specifier: ^4.0.0
-    version: 4.0.0
-  formdata-polyfill:
-    specifier: ^4.0.10
-    version: 4.0.10
-  h3:
-    specifier: ^1.8.1
-    version: 1.8.1
-  jiti:
-    specifier: ^1.19.3
-    version: 1.19.3
-  listhen:
-    specifier: ^1.4.4
-    version: 1.4.4
-  prettier:
-    specifier: ^3.0.3
-    version: 3.0.3
-  std-env:
-    specifier: ^3.4.3
-    version: 3.4.3
-  typescript:
-    specifier: ^5.2.2
-    version: 5.2.2
-  unbuild:
-    specifier: 2.0.0
-    version: 2.0.0(typescript@5.2.2)
-  vitest:
-    specifier: ^0.34.3
-    version: 0.34.3
+  .:
+    dependencies:
+      destr:
+        specifier: ^2.0.1
+        version: 2.0.1
+      node-fetch-native:
+        specifier: ^1.4.0
+        version: 1.4.0
+      ufo:
+        specifier: ^1.3.0
+        version: 1.3.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.5.8
+        version: 20.5.8
+      '@vitest/coverage-v8':
+        specifier: ^0.34.3
+        version: 0.34.3(vitest@0.34.3)
+      changelogen:
+        specifier: ^0.5.5
+        version: 0.5.5
+      eslint:
+        specifier: ^8.48.0
+        version: 8.48.0
+      eslint-config-unjs:
+        specifier: ^0.2.1
+        version: 0.2.1(eslint@8.48.0)(typescript@5.2.2)
+      fetch-blob:
+        specifier: ^4.0.0
+        version: 4.0.0
+      formdata-polyfill:
+        specifier: ^4.0.10
+        version: 4.0.10
+      h3:
+        specifier: ^1.8.1
+        version: 1.8.1
+      jiti:
+        specifier: ^1.19.3
+        version: 1.19.3
+      listhen:
+        specifier: ^1.4.4
+        version: 1.4.4
+      prettier:
+        specifier: ^3.0.3
+        version: 3.0.3
+      std-env:
+        specifier: ^3.4.3
+        version: 3.4.3
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+      unbuild:
+        specifier: 2.0.0
+        version: 2.0.0(typescript@5.2.2)
+      vitest:
+        specifier: ^0.34.3
+        version: 0.34.3
+
+  examples:
+    dependencies:
+      jiti:
+        specifier: ^1.19.3
+        version: 1.19.3
+      ofetch:
+        specifier: workspace:../src
+        version: link:../src
+
+  playground:
+    dependencies:
+      ofetch:
+        specifier: workspace:../src
+        version: link:../src
 
 packages:
 
@@ -881,6 +898,7 @@ packages:
     dependencies:
       is-glob: 4.0.3
       micromatch: 4.0.5
+      napi-wasm: 1.1.0
     dev: true
     bundledDependencies:
       - napi-wasm
@@ -3044,7 +3062,6 @@ packages:
   /jiti@1.19.3:
     resolution: {integrity: sha512-5eEbBDQT/jF1xg6l36P+mWGGoH9Spuy0PCdSr2dtWRDGC6ph/w9ZCL4lmESW8f8F7MwT3XKescfP0wnZWAKL9w==}
     hasBin: true
-    dev: true
 
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -3353,6 +3370,10 @@ packages:
     resolution: {integrity: sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
+    dev: true
+
+  /napi-wasm@1.1.0:
+    resolution: {integrity: sha512-lHwIAJbmLSjF9VDRm9GoVOy9AGp3aIvkjv+Kvz9h16QR3uSVYH78PNQUnT2U4X53mhlnV2M7wrhibQ3GHicDmg==}
     dev: true
 
   /natural-compare-lite@1.4.0:

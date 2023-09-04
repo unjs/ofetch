@@ -1,0 +1,6 @@
+{
+  "name": "playground",
+  "dependencies": {
+    "ofetch": "workspace:../src"
+  }
+}

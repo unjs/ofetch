@@ -1,9 +1,9 @@
-import { $fetch } from "ofetch"
+import { $fetch } from "ofetch";
 
 async function main() {
-  const data = await $fetch("https://ungh.cc/repos/unjs/ofetch")
+  const data = await $fetch("https://ungh.cc/repos/unjs/ofetch");
 
-  console.log(data)
+  console.log(data);
 }
 
-main().catch(console.error)
+main().catch(console.error);

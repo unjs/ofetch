@@ -21,6 +21,9 @@ export function isJSONSerializable(value: any) {
   if (Array.isArray(value)) {
     return true;
   }
+  if (value.buffer) {
+    return false;
+  }
   return (
     (value.constructor && value.constructor.name === "Object") ||
     typeof value.toJSON === "function"
@@ -46,7 +49,7 @@ export interface ResponseMap {
 export type ResponseType = keyof ResponseMap | "json";
 export type MappedType<
   R extends ResponseType,
-  JsonType = any
+  JsonType = any,
 > = R extends keyof ResponseMap ? ResponseMap[R] : JsonType;
 
 // This provides reasonable defaults for the correct parser based on Content-Type header.

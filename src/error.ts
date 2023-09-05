@@ -1,8 +1,13 @@
-import type { FetchRequest, FetchResponse } from "./fetch";
+import type {
+  FetchContext,
+  FetchOptions,
+  FetchRequest,
+  FetchResponse,
+} from "./fetch";
 
-export class FetchError<T = any> extends Error {
-  name = "FetchError";
+export interface IFetchError<T = any> extends Error {
   request?: FetchRequest;
+  options?: FetchOptions;
   response?: FetchResponse<T>;
   data?: T;
   status?: number;
@@ -11,60 +16,67 @@ export class FetchError<T = any> extends Error {
   statusMessage?: string;
 }
 
+export class FetchError<T = any> extends Error implements IFetchError<T> {
+  constructor(message: string, opts?: { cause: unknown }) {
+    // @ts-ignore https://v8.dev/features/error-cause
+    super(message, opts);
+
+    this.name = "FetchError";
+
+    // Polyfill cause for other runtimes
+    if (opts?.cause && !this.cause) {
+      this.cause = opts.cause;
+    }
+  }
+}
+
+// Augment `FetchError` type to include `IFetchError` properties
+export interface FetchError<T = any> extends IFetchError<T> {}
+
 export function createFetchError<T = any>(
-  request: FetchRequest,
-  error?: Error,
-  response?: FetchResponse<T>
-): FetchError<T> {
-  let message = "";
-  if (error) {
-    message = error.message;
-  }
-  if (request && response) {
-    message = `${message} (${response.status} ${
-      response.statusText
-    } (${request.toString()}))`;
-  } else if (request) {
-    message = `${message} (${request.toString()})`;
+  ctx: FetchContext<T>
+): IFetchError<T> {
+  const errorMessage = ctx.error?.message || ctx.error?.toString() || "";
+
+  const method =
+    (ctx.request as Request)?.method || ctx.options?.method || "GET";
+  const url = (ctx.request as Request)?.url || String(ctx.request) || "/";
+  const requestStr = `[${method}] ${JSON.stringify(url)}`;
+
+  const statusStr = ctx.response
+    ? `${ctx.response.status} ${ctx.response.statusText}`
+    : "<no response>";
+
+  const message = `${requestStr}: ${statusStr}${
+    errorMessage ? ` ${errorMessage}` : ""
+  }`;
+
+  const fetchError: FetchError<T> = new FetchError(
+    message,
+    ctx.error ? { cause: ctx.error } : undefined
+  );
+
+  for (const key of ["request", "options", "response"] as const) {
+    Object.defineProperty(fetchError, key, {
+      get() {
+        return ctx[key];
+      },
+    });
   }
 
-  const fetchError: FetchError<T> = new FetchError(message);
-
-  Object.defineProperty(fetchError, "request", {
-    get() {
-      return request;
-    },
-  });
-  Object.defineProperty(fetchError, "response", {
-    get() {
-      return response;
-    },
-  });
-  Object.defineProperty(fetchError, "data", {
-    get() {
-      return response && response._data;
-    },
-  });
-  Object.defineProperty(fetchError, "status", {
-    get() {
-      return response && response.status;
-    },
-  });
-  Object.defineProperty(fetchError, "statusText", {
-    get() {
-      return response && response.statusText;
-    },
-  });
-  Object.defineProperty(fetchError, "statusCode", {
-    get() {
-      return response && response.status;
-    },
-  });
-  Object.defineProperty(fetchError, "statusMessage", {
-    get() {
-      return response && response.statusText;
-    },
-  });
+  for (const [key, refKey] of [
+    ["data", "_data"],
+    ["status", "status"],
+    ["statusCode", "status"],
+    ["statusText", "statusText"],
+    ["statusMessage", "statusText"],
+  ] as const) {
+    Object.defineProperty(fetchError, key, {
+      get() {
+        return ctx.response && ctx.response[refKey];
+      },
+    });
+  }
 
   return fetchError;
 }

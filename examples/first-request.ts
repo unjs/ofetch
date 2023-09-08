@@ -1,7 +1,7 @@
-import { $fetch } from "ofetch";
+import { ofetch } from "ofetch";
 
 async function main() {
-  const data = await $fetch("https://ungh.cc/repos/unjs/ofetch");
+  const data = await ofetch("https://ungh.cc/repos/unjs/ofetch");
 
   console.log(data);
 }

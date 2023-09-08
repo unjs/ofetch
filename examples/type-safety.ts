@@ -1,4 +1,4 @@
-import { $fetch } from "ofetch";
+import { ofetch } from "ofetch";
 
 interface Repo {
   id: number;
@@ -9,7 +9,7 @@ interface Repo {
 }
 
 async function main() {
-  const { repo } = await $fetch<{ repo: Repo }>(
+  const { repo } = await ofetch<{ repo: Repo }>(
     "https://ungh.cc/repos/unjs/ofetch"
   );
 

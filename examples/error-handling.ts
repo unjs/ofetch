@@ -1,8 +1,8 @@
-import { $fetch } from "ofetch";
+import { ofetch } from "ofetch";
 
 async function main() {
   try {
-    await $fetch("https://api.github.com", {
+    await ofetch("https://api.github.com", {
       method: "POST",
     });
   } catch (error) {

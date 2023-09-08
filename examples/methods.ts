@@ -1,7 +1,7 @@
-import { $fetch } from "ofetch";
+import { ofetch } from "ofetch";
 
 async function main() {
-  const response = await $fetch("https://api.github.com/gists", {
+  const response = await ofetch("https://api.github.com/gists", {
     method: "POST",
   }); // Be careful, we use the GitHub API directly.
 

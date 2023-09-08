@@ -1,7 +1,7 @@
-import { $fetch } from "ofetch";
+import { ofetch } from "ofetch";
 
 async function main() {
-  const response = await $fetch(
+  const response = await ofetch(
     "https://api.github.com/repos/unjs/ofetch/tags",
     {
       query: {

@@ -1,7 +1,7 @@
-import { $fetch } from "ofetch";
+import { ofetch } from "ofetch";
 
 async function main() {
-  const response = await $fetch<string>("https://api.github.com/markdown", {
+  const response = await ofetch<string>("https://api.github.com/markdown", {
     method: "POST",
     // To provide a body, we need to use the `body` option and just use an object.
     body: {

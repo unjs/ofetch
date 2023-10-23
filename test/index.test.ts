@@ -358,4 +358,17 @@ describe("ofetch", () => {
 
     expect(path).to.eq("?b=2&c=3&a=1");
   });
+
+  it("modify global defaultOptions", async () => {
+    $fetch.defaults.baseURL = getURL("url");
+    expect(await $fetch("/x?foo=123")).to.equal("/x?foo=123");
+    $fetch.defaults.baseURL = "";
+  });
+
+  it("modify instance defaultOptions", async () => {
+    const _customFetch = $fetch.create({ baseURL: getURL("ok") });
+    expect(await _customFetch("/")).to.equal("ok");
+    _customFetch.defaults.baseURL = getURL("url");
+    expect(await _customFetch("/x?foo=123")).to.equal("/x?foo=123");
+  });
 });

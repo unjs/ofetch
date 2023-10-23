@@ -163,6 +163,29 @@ By using `baseURL` option, `ofetch` prepends it with respecting to trailing/lead
 await ofetch("/config", { baseURL });
 ```
 
+## ✔️ Access config defaults
+
+You can specify config defaults that will be applied to every request.
+
+### Global defaults
+```ts
+ofetch.defaults.baseURL = baseURL
+await ofetch("/config");
+```
+### Custom instance defaults
+
+```ts
+const instance = ofetch.create();
+// Alter defaults after instance has been created
+instance.defaults.baseURL = baseURL;
+await instance("/config");
+```
+
+```ts
+ofetch.defaults.baseURL = baseURL
+await ofetch("/config");
+```
+
 ## ✔️ Adding Query Search Params
 
 By using `query` option (or `params` as alias), `ofetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):

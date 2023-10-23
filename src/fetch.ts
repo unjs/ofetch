@@ -85,6 +85,7 @@ export interface $Fetch {
   ): Promise<FetchResponse<MappedType<R, T>>>;
   native: Fetch;
   create(defaults: FetchOptions): $Fetch;
+  defaults: FetchOptions;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -102,11 +103,12 @@ const retryStatusCodes = new Set([
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
-export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+export function createFetch(globalOptions: CreateFetchOptions): $Fetch {
   const {
     fetch = globalThis.fetch,
     Headers = globalThis.Headers,
     AbortController = globalThis.AbortController,
+    defaults: defaultFetchOptions = {},
   } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
@@ -163,7 +165,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   ) {
     const context: FetchContext = {
       request: _request,
-      options: mergeFetchOptions(_options, globalOptions.defaults, Headers),
+      options: mergeFetchOptions(_options, defaultFetchOptions, Headers),
       response: undefined,
       error: undefined,
     };
@@ -301,10 +303,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     createFetch({
       ...globalOptions,
       defaults: {
-        ...globalOptions.defaults,
+        ...defaultFetchOptions,
         ...defaultOptions,
       },
     });
+
+  $fetch.defaults = defaultFetchOptions;
 
   return $fetch;
 }

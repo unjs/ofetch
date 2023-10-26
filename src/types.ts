@@ -118,9 +118,10 @@ export interface IFetchError<T = any> extends Error {
 // Other types
 // --------------------------
 
+export type Fetch = typeof globalThis.fetch;
+
 export type FetchRequest = RequestInfo;
+
 export interface SearchParameters {
   [key: string]: any;
 }
-
-export type Fetch = typeof globalThis.fetch;

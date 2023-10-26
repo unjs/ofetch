@@ -77,7 +77,7 @@ export interface CreateFetchOptions {
   AbortController?: typeof AbortController;
 }
 
-export type SharedOptions = Pick<
+export type GlobalOptions = Pick<
   FetchOptions,
   "timeout" | "retry" | "retryDelay"
 >;

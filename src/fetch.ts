@@ -209,12 +209,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
             /* Custom response.text() function to retrieve text from response and get progress values */
             let loaded = 0;
             const contentLength =
-              context.response!.headers.get("content-length")!;
-            const _reader = context.response!.body!.getReader();
+              context.response?.headers.get("content-length") || "0";
+            const _reader = context.response?.body?.getReader();
             const _decoder = new TextDecoder();
             const _chunks: string[] = [];
 
             async function read(): Promise<string> {
+              if (!_reader) {
+                return "";
+              }
               const { done, value } = await _reader.read();
 
               if (done) {

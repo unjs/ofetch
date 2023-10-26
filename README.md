@@ -325,6 +325,7 @@ import { ofetch } from "ofetch";
 
 const proxyAgent = new ProxyAgent("http://localhost:3128");
 const fetchWithProxy = ofetch.create({ dispatcher: proxyAgent });
+
 const data = await fetchWithProxy("https://icanhazip.com");
 ```
 
@@ -336,7 +337,21 @@ import { ofetch } from "ofetch";
 
 const proxyAgent = new ProxyAgent("http://localhost:3128");
 setGlobalDispatcher(proxyAgent);
+
 const data = await ofetch("https://icanhazip.com");
+```
+
+**Example:** Allow self-signed certificated (USE AT YOUR OWN RISK!)
+
+```ts
+import { Agent } from "undici";
+import { ofetch } from "ofetch";
+
+// Note: This make fetch unsecure to MITM attacks. USE AT YOUW OWN RISK!
+const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
+const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
+
+const data = await unsecureFetch("https://www.squid-cache.org/");
 ```
 
 ## 📦 Bundler Notes

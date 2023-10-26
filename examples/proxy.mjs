@@ -1,11 +1,9 @@
-import { ProxyAgent } from "undici";
+import { Agent } from "undici";
 import { ofetch } from "ofetch";
 
-// Note: You need a squid server running locally
-const proxyAgent = new ProxyAgent("http://localhost:3128");
-
-const data = await ofetch("https://icanhazip.com", {
-  dispatcher: proxyAgent,
-});
+// Note: This make fetch unsecure to MITM attacks. USE AT YOUW OWN RISK!
+const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
+const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
+const data = await unsecureFetch("https://www.squid-cache.org/");
 
 console.log(data);

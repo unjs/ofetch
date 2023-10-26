@@ -62,8 +62,8 @@
   "scripts": {
     "build": "unbuild",
     "dev": "vitest",
-    "lint": "eslint --ext .ts . && prettier -c src test playground",
-    "lint:fix": "eslint --fix --ext .ts . && prettier -w src test playground",
+    "lint": "eslint --ext .ts . && prettier -c src test playground examples",
+    "lint:fix": "eslint --fix --ext .ts . && prettier -w src test playground examples",
     "prepack": "pnpm build",
     "play": "jiti playground/index.ts",
     "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
@@ -91,5 +91,5 @@
     "unbuild": "2.0.0",
     "vitest": "^0.34.6"
   },
-  "packageManager": "pnpm@8.8.0"
+  "packageManager": "pnpm@8.9.2"
 }

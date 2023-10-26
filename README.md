@@ -263,43 +263,11 @@ await ofetch("/movies", {
 });
 ```
 
-## 💡 Adding HTTP(S) Agent
+## 🕵️ Adding HTTP(S) Agent
 
-If you need use HTTP(S) Agent, can add `agent` option with `https-proxy-agent` (for Node.js only):
+In Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy.
 
-```js
-import { HttpsProxyAgent } from "https-proxy-agent";
-
-await ofetch("/api", {
-  agent: new HttpsProxyAgent("http://example.com"),
-});
-```
-
-## 🍣 Access to Raw Response
-
-If you need to access raw response (for headers, etc), can use `ofetch.raw`:
-
-```js
-const response = await ofetch.raw("/sushi");
-
-// response._data
-// response.headers
-// ...
-```
-
-## Native fetch
-
-As a shortcut, you can use `ofetch.native` that provides native `fetch` API
-
-```js
-const json = await ofetch.native("/sushi").then((r) => r.json());
-```
-
-## Dispatcher Agent for Node.js
-
-Only in Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy.
-
-This feature is enabled by [undici](https://undici.nodejs.org/) built-in Node.js. Read more [here](https://undici.nodejs.org/#/docs/api/Dispatcher) about Dispatcher API.
+This feature is enabled by [undici](https://undici.nodejs.org/) built-in Node.js. Read more [here](https://undici.nodejs.org/#/docs/api/Dispatcher) about the Dispatcher API.
 
 Some available agents:
 
@@ -352,6 +320,36 @@ const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
 
 const data = await unsecureFetch("https://www.squid-cache.org/");
+```
+
+On older Node.js version (<18), you might also use use `agent`:
+
+```ts
+import { HttpsProxyAgent } from "https-proxy-agent";
+
+await ofetch("/api", {
+  agent: new HttpsProxyAgent("http://example.com"),
+});
+```
+
+## 🍣 Access to Raw Response
+
+If you need to access raw response (for headers, etc), can use `ofetch.raw`:
+
+```js
+const response = await ofetch.raw("/sushi");
+
+// response._data
+// response.headers
+// ...
+```
+
+## 🌿 Using Native Fetch
+
+As a shortcut, you can use `ofetch.native` that provides native `fetch` API
+
+```js
+const json = await ofetch.native("/sushi").then((r) => r.json());
 ```
 
 ## 📦 Bundler Notes

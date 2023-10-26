@@ -1,3 +1,4 @@
+// @ts-ignore
 import { ofetch } from "ofetch";
 
 interface Repo {
@@ -16,4 +17,5 @@ async function main() {
   console.log(`The repo ${repo.name} has ${repo.stars} stars.`); // The repo object is now strongly typed.
 }
 
+// eslint-disable-next-line unicorn/prefer-top-level-await
 main().catch(console.error);

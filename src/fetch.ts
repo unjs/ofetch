@@ -295,6 +295,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
   $fetch.raw = $fetchRaw;
 
+  // @ts-expect-error TODO: Fix conflicting types with undici
   $fetch.native = (...args) => fetch(...args);
 
   $fetch.create = (defaultOptions = {}) =>

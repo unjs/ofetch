@@ -1,7 +1,0 @@
-{
-  "name": "examples",
-  "dependencies": {
-    "jiti": "^1.19.3",
-    "ofetch": "workspace:../src"
-  }
-}

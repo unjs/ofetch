@@ -1,4 +1,4 @@
-import { $fetch } from "ofetch";
+import { $fetch } from "../src/node";
 
 async function main() {
   // const r = await $fetch<string>('http://google.com/404')

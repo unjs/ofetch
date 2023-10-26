@@ -295,6 +295,50 @@ As a shortcut, you can use `ofetch.native` that provides native `fetch` API
 const json = await ofetch.native("/sushi").then((r) => r.json());
 ```
 
+## Dispatcher Agent for Node.js
+
+Only in Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy.
+
+This feature is enabled by [undici](https://undici.nodejs.org/) built-in Node.js. Read more [here](https://undici.nodejs.org/#/docs/api/Dispatcher) about Dispatcher API.
+
+Some available agents:
+
+- `ProxyAgent`: A Proxy Agent class that implements the Agent API. It allows the connection through proxy in a simple way. ([docs](https://undici.nodejs.org/#/docs/api/ProxyAgent))
+- `MockAgent`: A mocked Agent class that implements the Agent API. It allows one to intercept HTTP requests made through undici and return mocked responses instead. ([docs](https://undici.nodejs.org/#/docs/api/MockAgent))
+- `Agent`: Agent allow dispatching requests against multiple different origins. ([docs](https://undici.nodejs.org/#/docs/api/Agent))
+
+- **Example:** Set a proxy agent for one request:
+
+```ts
+import { ProxyAgent } from "undici";
+import { ofetch } from "ofetch";
+
+const proxyAgent = new ProxyAgent("http://localhost:3128");
+const data = await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
+```
+
+**Example:** Create a custom fetch instance that has proxy enabled:
+
+```ts
+import { ProxyAgent, setGlobalDispatcher } from "undici";
+import { ofetch } from "ofetch";
+
+const proxyAgent = new ProxyAgent("http://localhost:3128");
+const fetchWithProxy = ofetch.create({ dispatcher: proxyAgent });
+const data = await fetchWithProxy("https://icanhazip.com");
+```
+
+**Example:** Set a proxy agent for all requests:
+
+```ts
+import { ProxyAgent, setGlobalDispatcher } from "undici";
+import { ofetch } from "ofetch";
+
+const proxyAgent = new ProxyAgent("http://localhost:3128");
+setGlobalDispatcher(proxyAgent);
+const data = await ofetch("https://icanhazip.com");
+```
+
 ## 📦 Bundler Notes
 
 - All targets are exported with Module and CommonJS format and named exports

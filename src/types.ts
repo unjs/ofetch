@@ -72,11 +72,11 @@ export interface $Fetch {
   <T = any, R extends ResponseType = "json">(
     request: FetchRequest,
     options?: FetchOptions<R>
-  ): Promise<MappedType<R, T>>;
+  ): Promise<MappedResponseType<R, T>>;
   raw<T = any, R extends ResponseType = "json">(
     request: FetchRequest,
     options?: FetchOptions<R>
-  ): Promise<FetchResponse<MappedType<R, T>>>;
+  ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
   create(defaults: FetchOptions): $Fetch;
 }
@@ -90,7 +90,7 @@ export interface ResponseMap {
 
 export type ResponseType = keyof ResponseMap | "json";
 
-export type MappedType<
+export type MappedResponseType<
   R extends ResponseType,
   JsonType = any,
 > = R extends keyof ResponseMap ? ResponseMap[R] : JsonType;

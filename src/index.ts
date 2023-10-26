@@ -12,7 +12,7 @@ export type {
   IFetchError,
   ResponseType,
   ResponseMap,
-  MappedType,
+  MappedResponseType,
 } from "./types";
 
 // ref: https://github.com/tc39/proposal-global

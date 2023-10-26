@@ -1,7 +1,5 @@
 {
-  "extends": [
-    "eslint-config-unjs"
-  ],
+  "extends": ["eslint-config-unjs"],
   "rules": {
     "no-undef": 0,
     "unicorn/consistent-destructuring": 0,

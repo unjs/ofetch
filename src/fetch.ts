@@ -1,14 +1,19 @@
 import type { Readable } from "node:stream";
 import destr from "destr";
 import { withBase, withQuery } from "ufo";
-import type { Fetch, RequestInfo, RequestInit, Response } from "./types";
+import type {
+  Fetch,
+  RequestInfo,
+  RequestInit,
+  Response,
+  ResponseType,
+  MappedType,
+} from "./types";
 import { createFetchError } from "./error";
 import {
   isPayloadMethod,
   isJSONSerializable,
   detectResponseType,
-  ResponseType,
-  MappedType,
   mergeFetchOptions,
 } from "./utils";
 

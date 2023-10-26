@@ -54,6 +54,7 @@
   },
   "main": "./dist/node.cjs",
   "module": "./dist/index.mjs",
+  "react-native": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
@@ -71,7 +72,7 @@
   },
   "dependencies": {
     "destr": "^2.0.2",
-    "node-fetch-native": "^1.4.0",
+    "node-fetch-native": "^1.4.1",
     "ufo": "^1.3.1"
   },
   "devDependencies": {

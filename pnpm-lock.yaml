@@ -9,8 +9,8 @@ dependencies:
     specifier: ^2.0.2
     version: 2.0.2
   node-fetch-native:
-    specifier: ^1.4.0
-    version: 1.4.0
+    specifier: ^1.4.1
+    version: 1.4.1
   ufo:
     specifier: ^1.3.1
     version: 1.3.1
@@ -1578,7 +1578,7 @@ packages:
       convert-gitmoji: 0.1.3
       execa: 8.0.1
       mri: 1.2.0
-      node-fetch-native: 1.4.0
+      node-fetch-native: 1.4.1
       ofetch: 1.3.3
       open: 9.1.0
       pathe: 1.1.1
@@ -2598,7 +2598,7 @@ packages:
       defu: 6.1.3
       https-proxy-agent: 7.0.2
       mri: 1.2.0
-      node-fetch-native: 1.4.0
+      node-fetch-native: 1.4.1
       pathe: 1.1.1
       tar: 6.2.0
     transitivePeerDependencies:
@@ -3395,8 +3395,8 @@ packages:
     engines: {node: '>=10.5.0'}
     dev: true
 
-  /node-fetch-native@1.4.0:
-    resolution: {integrity: sha512-F5kfEj95kX8tkDhUCYdV8dg3/8Olx/94zB8+ZNthFs6Bz31UpUi8Xh40TN3thLwXgrwXry1pEg9lJ++tLWTcqA==}
+  /node-fetch-native@1.4.1:
+    resolution: {integrity: sha512-NsXBU0UgBxo2rQLOeWNZqS3fvflWePMECr8CoSWoSTqCqGbVVsvl9vZu1HfQicYN0g5piV9Gh8RTEvo/uP752w==}
 
   /node-forge@1.3.1:
     resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
@@ -3485,7 +3485,7 @@ packages:
     resolution: {integrity: sha512-s1ZCMmQWXy4b5K/TW9i/DtiN8Ku+xCiHcjQ6/J/nDdssirrQNOoB165Zu8EqLMA2lln1JUth9a0aW9Ap2ctrUg==}
     dependencies:
       destr: 2.0.2
-      node-fetch-native: 1.4.0
+      node-fetch-native: 1.4.1
       ufo: 1.3.1
     dev: true
 
@@ -4284,7 +4284,7 @@ packages:
       consola: 3.2.3
       defu: 6.1.3
       mime: 3.0.0
-      node-fetch-native: 1.4.0
+      node-fetch-native: 1.4.1
       pathe: 1.1.1
     dev: true
 

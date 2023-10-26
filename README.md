@@ -36,12 +36,6 @@ const { ofetch } = require("ofetch");
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
 and automatically use [unjs/node-fetch-native](https://github.com/unjs/node-fetch-native). If `globalThis.fetch` is available, will be used instead. To leverage Node.js 17.5.0 experimental native fetch API use [`--experimental-fetch` flag](https://nodejs.org/dist/latest-v17.x/docs/api/cli.html#--experimental-fetch).
 
-### `keepAlive` support
-
-By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an http/https agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
-
-**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
-
 ## ✔️ Parsing Response
 
 `ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to text if it fails to parse.
@@ -263,6 +257,18 @@ await ofetch("/movies", {
 });
 ```
 
+## 🍣 Access to Raw Response
+
+If you need to access raw response (for headers, etc), can use `ofetch.raw`:
+
+```js
+const response = await ofetch.raw("/sushi");
+
+// response._data
+// response.headers
+// ...
+```
+
 ## 🕵️ Adding HTTP(S) Agent
 
 In Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy.
@@ -332,17 +338,11 @@ await ofetch("/api", {
 });
 ```
 
-## 🍣 Access to Raw Response
+### `keepAlive` support (only works for Node < 18)
 
-If you need to access raw response (for headers, etc), can use `ofetch.raw`:
+By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an http/https agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
 
-```js
-const response = await ofetch.raw("/sushi");
-
-// response._data
-// response.headers
-// ...
-```
+**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
 
 ## 🌿 Using Native Fetch
 

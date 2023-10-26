@@ -298,7 +298,7 @@ const json = await ofetch.native("/sushi").then((r) => r.json());
 ## 📦 Bundler Notes
 
 - All targets are exported with Module and CommonJS format and named exports
-- No export is transpiled for sake of modern syntax
+- No export istranspired for sake of modern syntax
   - You probably need to transpile `ofetch`, `destr` and `ufo` packages with babel for ES5 support
 - You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
 
@@ -314,7 +314,7 @@ Default exports are always risky to be mixed with CommonJS exports.
 
 This also guarantees we can introduce more utils without breaking the package and also encourage using `ofetch` name.
 
-**Why not transpiled?**
+**Why nottranspired?**
 
 By keep transpiling libraries we push web backward with legacy code which is unneeded for most of the users.
 

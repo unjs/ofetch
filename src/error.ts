@@ -1,20 +1,4 @@
-import type {
-  FetchContext,
-  FetchOptions,
-  FetchRequest,
-  FetchResponse,
-} from "./fetch";
-
-export interface IFetchError<T = any> extends Error {
-  request?: FetchRequest;
-  options?: FetchOptions;
-  response?: FetchResponse<T>;
-  data?: T;
-  status?: number;
-  statusText?: string;
-  statusCode?: number;
-  statusMessage?: string;
-}
+import type { FetchContext, IFetchError } from "./types";
 
 export class FetchError<T = any> extends Error implements IFetchError<T> {
   constructor(message: string, opts?: { cause: unknown }) {
@@ -29,6 +13,9 @@ export class FetchError<T = any> extends Error implements IFetchError<T> {
     }
   }
 }
+
+// Augment `FetchError` type to include `IFetchError` properties
+export interface FetchError<T = any> extends IFetchError<T> {}
 
 export function createFetchError<T = any>(
   ctx: FetchContext<T>

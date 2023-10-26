@@ -1,5 +1,4 @@
-import type { FetchOptions } from "./fetch";
-import type { ResponseType } from "./types";
+import type { FetchOptions, ResponseType } from "./types";
 
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])

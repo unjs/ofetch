@@ -9,7 +9,6 @@ import {
   mergeFetchOptions,
 } from "./utils";
 import type {
-  RequestInit,
   CreateFetchOptions,
   FetchResponse,
   FetchContext,

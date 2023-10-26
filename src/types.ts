@@ -1,26 +1,23 @@
-// Internal shortcuts
-export type Fetch = typeof globalThis.fetch;
-export type RequestInfo = globalThis.RequestInfo;
-export type RequestInit = globalThis.RequestInit;
-export type Response = globalThis.Response;
+// --------------------------
+// $fetch API
+// --------------------------
 
-export interface CreateFetchOptions {
-  // eslint-disable-next-line no-use-before-define
-  defaults?: FetchOptions;
-  fetch?: Fetch;
-  Headers?: typeof Headers;
-  AbortController?: typeof AbortController;
+export interface $Fetch {
+  <T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedResponseType<R, T>>;
+  raw<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<FetchResponse<MappedResponseType<R, T>>>;
+  native: Fetch;
+  create(defaults: FetchOptions): $Fetch;
 }
 
-export type FetchRequest = RequestInfo;
-
-export interface FetchResponse<T> extends Response {
-  _data?: T;
-}
-
-export interface SearchParameters {
-  [key: string]: any;
-}
+// --------------------------
+// Context
+// --------------------------
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest;
@@ -30,13 +27,17 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   error?: Error;
 }
 
+// --------------------------
+// Options
+// --------------------------
+
 export interface FetchOptions<R extends ResponseType = ResponseType>
   extends Omit<RequestInit, "body"> {
   baseURL?: string;
   body?: RequestInit["body"] | Record<string, any>;
   ignoreResponseError?: boolean;
-  params?: SearchParameters;
-  query?: SearchParameters;
+  params?: Record<string, any>;
+  query?: Record<string, any>;
   parseResponse?: (responseText: string) => any;
   responseType?: R;
 
@@ -68,18 +69,17 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   ): Promise<void> | void;
 }
 
-export interface $Fetch {
-  <T = any, R extends ResponseType = "json">(
-    request: FetchRequest,
-    options?: FetchOptions<R>
-  ): Promise<MappedResponseType<R, T>>;
-  raw<T = any, R extends ResponseType = "json">(
-    request: FetchRequest,
-    options?: FetchOptions<R>
-  ): Promise<FetchResponse<MappedResponseType<R, T>>>;
-  native: Fetch;
-  create(defaults: FetchOptions): $Fetch;
+export interface CreateFetchOptions {
+  // eslint-disable-next-line no-use-before-define
+  defaults?: FetchOptions;
+  fetch?: Fetch;
+  Headers?: typeof Headers;
+  AbortController?: typeof AbortController;
 }
+
+// --------------------------
+// Response Types
+// --------------------------
 
 export interface ResponseMap {
   blob: Blob;
@@ -95,6 +95,14 @@ export type MappedResponseType<
   JsonType = any,
 > = R extends keyof ResponseMap ? ResponseMap[R] : JsonType;
 
+export interface FetchResponse<T> extends Response {
+  _data?: T;
+}
+
+// --------------------------
+// Error
+// --------------------------
+
 export interface IFetchError<T = any> extends Error {
   request?: FetchRequest;
   options?: FetchOptions;
@@ -105,3 +113,14 @@ export interface IFetchError<T = any> extends Error {
   statusCode?: number;
   statusMessage?: string;
 }
+
+// --------------------------
+// Other types
+// --------------------------
+
+export type FetchRequest = RequestInfo;
+export interface SearchParameters {
+  [key: string]: any;
+}
+
+export type Fetch = typeof globalThis.fetch;

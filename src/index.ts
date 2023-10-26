@@ -2,7 +2,7 @@ import { createFetch } from "./base";
 
 export * from "./base";
 
-export type * from "./types";
+export * from "./types";
 
 // ref: https://github.com/tc39/proposal-global
 const _globalThis = (function () {

@@ -157,7 +157,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       // context.options.signal = controller.signal;
 
       // https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static
-      context.options.signal = AbortSignal.timeout(context.options.timeout)
+      context.options.signal = AbortSignal.timeout(context.options.timeout);
     }
 
     try {

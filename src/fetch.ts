@@ -34,7 +34,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const {
     fetch = globalThis.fetch,
     Headers = globalThis.Headers,
-    AbortController = globalThis.AbortController,
+    // AbortController = globalThis.AbortController,
+    AbortSignal = globalThis.AbortSignal,
   } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
@@ -151,9 +152,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     // TODO: Can we merge signals?
     if (!context.options.signal && context.options.timeout) {
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), context.options.timeout);
-      context.options.signal = controller.signal;
+      // const controller = new AbortController();
+      // setTimeout(() => controller.abort(), context.options.timeout);
+      // context.options.signal = controller.signal;
+
+      // https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static
+      context.options.signal = AbortSignal.timeout(context.options.timeout)
     }
 
     try {

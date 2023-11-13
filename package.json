@@ -9,6 +9,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "types": "./dist/index.d.mts",
       "browser": "./dist/index.mjs",
       "bun": "./dist/index.mjs",
       "deno": "./dist/index.mjs",
@@ -38,7 +39,6 @@
         "types": "./dist/node.d.cts",
         "default": "./dist/node.cjs"
       },
-      "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
     "./node": {

@@ -44,9 +44,16 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   /**
    * @experimental Set to "half" to enable duplex streaming.
    * Will be automatically set to "half" when using a ReadableStream as body.
-   * https://fetch.spec.whatwg.org/#enumdef-requestduplex
+   * @see https://fetch.spec.whatwg.org/#enumdef-requestduplex
    */
   duplex?: "half" | undefined;
+
+  /**
+   * Only supported in Node.js >= 18 using undici
+   *
+   * @see https://undici.nodejs.org/#/docs/api/Dispatcher
+   */
+  dispatcher?: InstanceType<typeof import("undici").Dispatcher>;
 
   /** timeout in milliseconds */
   timeout?: number;

@@ -8,6 +8,7 @@
 [![JSDocs][jsdocs-src]][jsdocs-href]
 
 一个更好的 fetch API。兼容 node、浏览器和 Web Workers
+
 ## 🚀 快速开始
 
 安装:
@@ -37,11 +38,11 @@ const { ofetch } = require('ofetch')
 
 ### `keepAlive` 支持
 
-通过设置 `FETCH_KEEP_ALIVE` 环境变量为 `true`, 一个 http/https 代理将会被注册，这样即使请求都完成，也可以保持链接持续存在, 所以对于后续的请求就非常有用，因为不需要再次重复建立连接了。
+通过设置 `FETCH_KEEP_ALIVE` 环境变量为 `true`, 一个 HTTP/HTTPS 代理将会被注册，这样即使请求都完成，也可以保持链接持续存在, 所以对于后续的请求就非常有用，因为不需要重复建立连接了。
 
 **注意:** 这个选项可能会潜在的导致内存泄露。详细可查看 [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
 
-## ✔️ 解析响应
+## ✔️ 响应解析
 
 `ofetch` 使用 [destr](https://github.com/unjs/destr) 巧妙的解析 JSON 和处理原始值, 当解析错误时，会返回传入的值。
 
@@ -65,18 +66,27 @@ await ofetch('/api/generate-image', { responseType: 'blob' })
 ```
 
 ## ✔️ JSON Body
+如果 `body` 是一个带有 `.toJSON()` 方法的对象或类，`ofetch` 将自动对其字符串化。
 
-`ofetch` 会自动把请求体(如果是对象类型就会通过)转换成字符串 and adds JSON `Content-Type` and `Accept` headers (for `put`, `patch` and `post` requests).
+`ofetch` 利用 `JSON.stringify()` 转换传递过来的对象。没有 `.toJSON()` 方法的类在传递给 `body` 选项之前必须转换为字符串值。
 
+对于 `put`, `patch` and `post` 请求方法，当 `body` 是一个字符串或对象时，`ofetch` 会添加默认的头信息 `content-type: application/json` 和 `accept: application/json`（你也可以选择覆盖）
+
+另外，`ofetch` 也支持 `Buffer`、`ReadableStream`、`Stream` 和 [body兼容类型](https://developer.mozilla.org/en-US/docs/Web/API/fetch#body)(中文文档没有body兼容类型内容)的二进制流数据响应。`ofetch` 将自动设置 `duplex:half` 参数以支持流式传输。
+
+**例子:**
 ```js
-const { users } = await ofetch('/api/users', { method: 'POST', body: { some: 'json' } })
+const { users } = await ofetch('/api/users', {
+  method: 'POST',
+  body: { some: 'json' }
+})
 ```
 
 ## ✔️ 处理错误
 
-当 `response.ok` 是 `false` 时，`ofetch` 自动抛出友好且精简的错误和栈信息 (隐藏了内部错误)。
+当 `response.ok` 是 `false` 时，`ofetch` 自动抛出友好且精简的错误和栈信息 (隐藏内部细节)。
 
-解析后的错误内容，可以通过 `error.data` 访问。也可以使用 `FetchError` 类型。
+解析后的错误内容，可以通过 `error.data` 访问。也可以使用 `FetchError` 类型处理错误。
 
 
 ```ts
@@ -99,11 +109,29 @@ await ofetch('/url', { ignoreResponseError: true })
 
 ## ✔️ 自动重试
 
-如果发生错误，`ofetch` 会自动重新发送请求。 默认值是 `1` (排除 `POST`, `PUT`, `PATCH` and `DELETE` 方法，它们的默认值是 `0`)
+如果发生错误或者响应状态码符合`重试状态码`条件时，`ofetch` 会自动重新发送请求。
+
+**重试状态码:**
+- `408` - 请求超市
+- `409` - 冲突
+- `425` - 太早
+- `429` - 请求过多
+- `500` - 服务器内部错误
+- `502` - 错误的网关
+- `503` - 服务不可用
+- `504` - 网关超时
+
+你能使用 `retry` 和 `retryDelay` 两个参数，来指定重试的次数和它们之间延迟的时间，并且可以使用 `retryStatusCodes` 自定义一个状态码数组。
+
+`retry` 默认值是 `1`, 除了 `POST`, `PUT`, `PATCH` and `DELETE` 方法，`ofetch` 不会进行重试，以避免引入副作用。如果设置了一个自定义的 `retry` 值，那所有类型的请求，都将进行重试。
+
+`retryDelay` 的默认值是 `0` 毫秒。
+
 
 ```ts
 await ofetch('http://google.com/404', {
-  retry: 3
+  retry: 3,
+  retryDelay: 500, // ms
 })
 ```
 

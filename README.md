@@ -7,7 +7,7 @@
 [![License][license-src]][license-href]
 [![JSDocs][jsdocs-src]][jsdocs-href]
 
-A better fetch API. Works on node, browser and workers.
+A better fetch API. Works on node, browser, and workers.
 
 ## 🚀 Quick Start
 
@@ -38,13 +38,13 @@ and automatically use [unjs/node-fetch-native](https://github.com/unjs/node-fetc
 
 ### `keepAlive` support
 
-By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an http/https agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection.
+By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an HTTP/HTTPS agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to re-establish a TCP connection.
 
 **Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
 
 ## ✔️ Parsing Response
 
-`ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to text if it fails to parse.
+`ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to the text if it fails to parse.
 
 ```js
 const { users } = await ofetch("/api/users");
@@ -52,7 +52,7 @@ const { users } = await ofetch("/api/users");
 
 For binary content types, `ofetch` will instead return a `Blob` object.
 
-You can optionally provide a different parser than destr, or specify `blob`, `arrayBuffer` or `text` to force parsing the body with the respective `FetchResponse` method.
+You can optionally provide a different parser than `destr`, or specify `blob`, `arrayBuffer`, or `text` to force parsing the body with the respective `FetchResponse` method.
 
 ```js
 // Use JSON.parse
@@ -86,9 +86,9 @@ const { users } = await ofetch("/api/users", {
 
 ## ✔️ Handling Errors
 
-`ofetch` Automatically throw errors when `response.ok` is `false` with a friendly error message and compact stack (hiding internals).
+`ofetch` Automatically throws errors when `response.ok` is `false` with a friendly error message and compact stack (hiding internals).
 
-Parsed error body is available with `error.data`. You may also use `FetchError` type.
+A parsed error body is available with `error.data`. You may also use `FetchError` type.
 
 ```ts
 await ofetch("https://google.com/404");
@@ -110,7 +110,7 @@ await ofetch("/url", { ignoreResponseError: true });
 
 ## ✔️ Auto Retry
 
-`ofetch` Automatically retries the request if an error happens and if response status code is included in `retryStatusCodes` list:
+`ofetch` Automatically retries the request if an error happens and if the response status code is included in `retryStatusCodes` list:
 
 **Retry status codes:**
 
@@ -123,11 +123,11 @@ await ofetch("/url", { ignoreResponseError: true });
 - `503` - Service Unavailable
 - `504` - Gateway Timeout
 
-You can specifcy amount of retry and delay between them using `retry` and `retryDelay` options and also pass a custom array of codes using `retryStatusCodes` option.
+You can specify the amount of retry and delay between them using `retry` and `retryDelay` options and also pass a custom array of codes using `retryStatusCodes` option.
 
-Default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH` and `DELETE` methods where `ofetch` does not retry.
+The default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH`, and `DELETE` methods where `ofetch` does not retry by default to avoid introducing side effects. If you set a custom value for `retry` it will **always retry** for all requests.
 
-Default for `retryDelay` is `0` ms.
+The default for `retryDelay` is `0` ms.
 
 ```ts
 await ofetch("http://google.com/404", {
@@ -138,7 +138,7 @@ await ofetch("http://google.com/404", {
 
 ## ✔️ Timeout
 
-You can specify `timeout` in milliseconds to automatically abort request after a timeout (default is disabled).
+You can specify `timeout` in milliseconds to automatically abort a request after a timeout (default is disabled).
 
 ```ts
 await ofetch("http://google.com/404", {
@@ -148,7 +148,7 @@ await ofetch("http://google.com/404", {
 
 ## ✔️ Type Friendly
 
-Response can be type assisted:
+The response can be type assisted:
 
 ```ts
 const article = await ofetch<Article>(`/api/article/${id}`);
@@ -157,7 +157,7 @@ const article = await ofetch<Article>(`/api/article/${id}`);
 
 ## ✔️ Adding `baseURL`
 
-By using `baseURL` option, `ofetch` prepends it with respecting to trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
+By using `baseURL` option, `ofetch` prepends it for trailing/leading slashes and query search params for baseURL using [ufo](https://github.com/unjs/ufo):
 
 ```js
 await ofetch("/config", { baseURL });
@@ -165,7 +165,7 @@ await ofetch("/config", { baseURL });
 
 ## ✔️ Adding Query Search Params
 
-By using `query` option (or `params` as alias), `ofetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
+By using `query` option (or `params` as alias), `ofetch` adds query search params to the URL by preserving the query in the request itself using [ufo](https://github.com/unjs/ufo):
 
 ```js
 await ofetch("/movie?lang=en", { query: { id: 123 } });
@@ -173,13 +173,13 @@ await ofetch("/movie?lang=en", { query: { id: 123 } });
 
 ## ✔️ Interceptors
 
-It is possible to provide async interceptors to hook into lifecycle events of `ofetch` call.
+Providing async interceptors to hook into lifecycle events of `ofetch` call is possible.
 
 You might want to use `ofetch.create` to set shared interceptors.
 
 ### `onRequest({ request, options })`
 
-`onRequest` is called as soon as `ofetch` is being called, allowing to modify options or just do simple logging.
+`onRequest` is called as soon as `ofetch` is called, allowing you to modify options or do simple logging.
 
 ```js
 await ofetch("/api", {
@@ -196,7 +196,7 @@ await ofetch("/api", {
 
 ### `onRequestError({ request, options, error })`
 
-`onRequestError` will be called when fetch request fails.
+`onRequestError` will be called when the fetch request fails.
 
 ```js
 await ofetch("/api", {
@@ -222,7 +222,7 @@ await ofetch("/api", {
 
 ### `onResponseError({ request, options, response })`
 
-`onResponseError` is same as `onResponse` but will be called when fetch happens but `response.ok` is not `true`.
+`onResponseError` is the same as `onResponse` but will be called when fetch happens but `response.ok` is not `true`.
 
 ```js
 await ofetch("/api", {
@@ -298,17 +298,17 @@ const json = await ofetch.native("/sushi").then((r) => r.json());
 ## 📦 Bundler Notes
 
 - All targets are exported with Module and CommonJS format and named exports
-- No export is transpiled for sake of modern syntax
-  - You probably need to transpile `ofetch`, `destr` and `ufo` packages with babel for ES5 support
+- No export is transpiled for the sake of modern syntax
+  - You probably need to transpile `ofetch`, `destr`, and `ufo` packages with Babel for ES5 support
 - You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
 
 ## ❓ FAQ
 
 **Why export is called `ofetch` instead of `fetch`?**
 
-Using the same name of `fetch` can be confusing since API is different but still it is a fetch so using closest possible alternative. You can however, import `{ fetch }` from `ofetch` which is auto polyfilled for Node.js and using native otherwise.
+Using the same name of `fetch` can be confusing since API is different but still, it is a fetch so using the closest possible alternative. You can, however, import `{ fetch }` from `ofetch` which is auto-polyfill for Node.js and using native otherwise.
 
-**Why not having default export?**
+**Why not have default export?**
 
 Default exports are always risky to be mixed with CommonJS exports.
 
@@ -316,7 +316,7 @@ This also guarantees we can introduce more utils without breaking the package an
 
 **Why not transpiled?**
 
-By keep transpiling libraries we push web backward with legacy code which is unneeded for most of the users.
+By transpiling libraries, we push the web backward with legacy code which is unneeded for most of the users.
 
 If you need to support legacy users, you can optionally transpile the library in your build pipeline.
 

@@ -135,13 +135,22 @@ await ofetch('http://google.com/404', {
 })
 ```
 
+## ✔️ 超时
+你能设置 `timeout` 选项以毫秒为单位指定超时时间，当请求超过设置的时间时，将会自动取消和中止（默认未开启）。
+
+```ts
+await ofetch('http://google.com/404', {
+  timeout: 3000, // 3s 后超时
+})
+```
+
 ## ✔️ 类型友好
 
 响应体可以提供类型辅助:
 
 ```ts
 const article = await ofetch<Article>(`/api/article/${id}`)
-// Auto complete working with article.id
+// 自动完成使用 article.id
 ```
 
 ## ✔️ 添加 `baseURL`
@@ -154,43 +163,45 @@ await ofetch('/config', { baseURL })
 
 ## ✔️ 添加查询搜索参数
 
-By using `query` option (or `params` as alias), `ofetch` adds query search params to URL by preserving query in request itself using [ufo](https://github.com/unjs/ufo):
+<!-- TODO:这句要怎么理解 -->
+通过使用 `query` 参数（或者 `params` 做为别名），`ofetch` 会使用[ufo](https://github.com/unjs/ufo)添加查询搜寻参数到 URL 上，通过保存请求自己的 query
+
 
 ```js
 await ofetch('/movie?lang=en', { query: { id: 123 } })
 ```
 
-## ✔️ Interceptors
+## ✔️ 拦截器
+通过提供异步拦截器，使其能够在 `ofetch` 生命周期内进行回调。
 
-It is possible to provide async interceptors to hook into lifecycle events of `ofetch` call.
-
-You might want to use `ofetch.create` to set shared interceptors.
+你也可以使用 `ofetch.create` 创建一个共享拦截器的实例。
 
 ### `onRequest({ request, options })`
 
-`onRequest` is called as soon as `ofetch` is being called, allowing to modify options or just do simple logging.
+当 `ofetch` 被调用时，`onRequest` 会立即被调用，它能修改选项或者打印简单的日志
+
 
 ```js
 await ofetch('/api', {
   async onRequest({ request, options }) {
-    // Log request
+    // 打印请求日志
     console.log('[fetch request]', request, options)
 
-    // Add `?t=1640125211170` to query search params
+    // 添加 `?t=1640125211170` 查询参数
     options.query = options.query || {}
     options.query.t = new Date()
-  }
-})
+  },
+});
 ```
 
 ### `onRequestError({ request, options, error })`
 
-`onRequestError` will be called when fetch request fails.
+当请求失败时，`onRequestError` 将会被调用。
 
 ```js
 await ofetch('/api', {
   async onRequestError({ request, options, error }) {
-    // Log error
+    // 打印错误日志
     console.log('[fetch request error]', request, error)
   }
 })
@@ -199,12 +210,12 @@ await ofetch('/api', {
 
 ### `onResponse({ request, options, response })`
 
-`onResponse` will be called after `fetch` call and parsing body.
+`fetch` 执行到解析响应体后 `onResponse` 将会被调用
 
 ```js
 await ofetch('/api', {
   async onResponse({ request, response, options }) {
-    // Log response
+    // 打印响应日志
     console.log('[fetch response]', request, response.status, response.body)
   }
 })
@@ -212,32 +223,37 @@ await ofetch('/api', {
 
 ### `onResponseError({ request, options, response })`
 
-`onResponseError` is same as `onResponse` but will be called when fetch happens but `response.ok` is not `true`.
+`onResponseError` 和 `onResponse` 是一样的，但是只在当请求 `response.ok` 不是 `true` 的时候调用。
 
 ```js
 await ofetch('/api', {
   async onResponseError({ request, response, options }) {
-    // Log error
-    console.log('[fetch response error]', request, response.status, response.body)
+    // 打印错误日志
+    console.log(
+      '[fetch response error]',
+      request,
+      response.status,
+      response.body,
+    )
   }
 })
 ```
 
-## ✔️ Create fetch with default options
+## ✔️ 创建默认参数的 fetch
 
-This utility is useful if you need to use common options across several fetch calls.
+如果你有几个使用相同选项的 fetch 调用，那这个方法非常有用。
 
-**Note:** Defaults will be cloned at one level and inherited. Be careful about nested options like `headers`.
+**注意：** 默认只会在第一级克隆并继承。像 `headers` 这类的嵌套参数需要注意。
 
 ```js
 const apiFetch = ofetch.create({ baseURL: '/api' })
 
-apiFetch('/test') // Same as ofetch('/test', { baseURL: '/api' })
+apiFetch('/test') // 和 ofetch('/test', { baseURL: '/api' }) 相同
 ```
 
-## 💡 Adding headers
+## 💡 添加 headers
 
-By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:
+通过使用 `headers` 选项，`ofetch` 可以添加额外的头信息与默认的请求头信息叠加在一起。
 
 ```js
 await ofetch('/movies', {
@@ -248,9 +264,9 @@ await ofetch('/movies', {
 })
 ```
 
-## 💡 Adding HTTP(S) Agent
+## 💡 添加 HTTP(S) 代理
 
-If you need use HTTP(S) Agent, can add `agent` option with `https-proxy-agent` (for Node.js only):
+如果你需要使用 HTTP(S) 代理, 通过添加 `agent` 选项和 `https-proxy-agent` (只有 Node.js 能够使用):
 
 ```js
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -260,9 +276,9 @@ await ofetch('/api', {
 })
 ```
 
-## 🍣 Access to Raw Response
+## 🍣 访问原始响应
 
-If you need to access raw response (for headers, etc), can use `ofetch.raw`:
+如果你需要访问原始响应信息（例如 headers 等），可以使用 `ofetch.raw` 方法。
 
 ```js
 const response = await ofetch.raw('/sushi')
@@ -272,9 +288,9 @@ const response = await ofetch.raw('/sushi')
 // ...
 ```
 
-## Native fetch
+## 原始 fetch
 
-As a shortcut, you can use `ofetch.native` that provides native `fetch` API
+做为一个快捷方法, 你可以使用 `ofetch.native` 获取原始 `fetch` API。
 
 ```js
 const json = await ofetch.native('/sushi').then(r => r.json())
@@ -282,16 +298,16 @@ const json = await ofetch.native('/sushi').then(r => r.json())
 
 ## 📦 Bundler Notes
 
-- All targets are exported with Module and CommonJS format and named exports
-- No export is transpiled for sake of modern syntax
-  - You probably need to transpile `ofetch`, `destr` and `ufo` packages with babel for ES5 support
-- You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
+- 所有产物都以 Module 或 CommonJS 命名风格进行导出。
+- 为了保留现代语法的便利性，不会对导出进行编译。
+  - 为了支持 ES5 你可能需要使用 `Babel` 转义 `ofetch`，`destr` 和 `ufo` 包。
+- 如果需要支持更低版本的浏览器，你需要使用 [unfetch](https://github.com/developit/unfetch) 添加全局 `fetch` 垫片。
 
-## ❓ FAQ
+## ❓ 问答
 
-**Why export is called `ofetch` instead of `fetch`?**
+**为什么叫`ofetch` 而不是`fetch`?**
 
-Using the same name of `fetch` can be confusing since API is different but still it is a fetch so using closest possible alternative. You can however, import `{ fetch }` from `ofetch` which is auto polyfilled for Node.js and using native otherwise.
+使用和 `fetch` 相同的名字，可能会导致困惑，因为从 API 上，它们仍然有一些不同，它是一个使用上与 fetch 非常接近的替代产物。但是，你依然可以使用 import `{ fetch }` from `ofetch`, 它将为 Node.js 自动引入 polyfill，如果原生功能缺失的情况下。
 
 **Why not having default export?**
 

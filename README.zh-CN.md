@@ -296,7 +296,7 @@ const response = await ofetch.raw('/sushi')
 const json = await ofetch.native('/sushi').then(r => r.json())
 ```
 
-## 📦 Bundler Notes
+## 📦 包文件注意事项
 
 - 所有产物都以 Module 或 CommonJS 命名风格进行导出。
 - 为了保留现代语法的便利性，不会对导出进行编译。

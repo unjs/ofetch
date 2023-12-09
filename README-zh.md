@@ -309,19 +309,18 @@ const json = await ofetch.native('/sushi').then(r => r.json())
 
 使用和 `fetch` 相同的名字，可能会导致困惑，因为从 API 上，它们仍然有一些不同，它是一个使用上与 fetch 非常接近的替代产物。但是，你依然可以使用 import `{ fetch }` from `ofetch`, 它将为 Node.js 自动引入 polyfill，如果原生功能缺失的情况下。
 
-**Why not having default export?**
+**为什么没有默认导出?**
 
-Default exports are always risky to be mixed with CommonJS exports.
+默认导出与 CommonJS 混合导出总是存在风险的.
 
-This also guarantees we can introduce more utils without breaking the package and also encourage using `ofetch` name.
+这也保证了我们能在不破坏包的情况下，提供更多的工具，且鼓励我们使用 `ofetch` 名字。
 
-**Why not transpiled?**
+**为什么不转译?**
+转译库，为了更好的兼容性，可能需要发布很久之前的且已经过时的代码兼容性代码，而这些代码对大多数使用者都是不需要的。
 
-By keep transpiling libraries we push web backward with legacy code which is unneeded for most of the users.
+如果你需要支持旧版用户，可以选择在构建流程中对库进行转译。
 
-If you need to support legacy users, you can optionally transpile the library in your build pipeline.
-
-## License
+## 许可证
 
 MIT. Made with 💖
 

@@ -136,7 +136,7 @@ await ofetch("http://google.com/404", {
 });
 ```
 
-> [!TIP]
+> [!NOTE]
 > To mitigate the risk of overloading resources, the number of retries is capped at 25.
 
 ## ✔️ Timeout

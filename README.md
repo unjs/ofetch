@@ -136,6 +136,9 @@ await ofetch("http://google.com/404", {
 });
 ```
 
+> [!TIP]
+> For security reasons, the maximum number of retries will be capped at 25.
+
 ## ✔️ Timeout
 
 You can specify `timeout` in milliseconds to automatically abort a request after a timeout (default is disabled).

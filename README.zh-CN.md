@@ -38,9 +38,9 @@ const { ofetch } = require('ofetch')
 
 ### `keepAlive` 支持
 
-通过设置 `FETCH_KEEP_ALIVE` 环境变量为 `true`, 一个 HTTP/HTTPS 代理将会被注册，这样即使请求都完成，也可以保持链接持续存在, 所以对于后续的请求就非常有用，因为不需要重复建立连接了。
+通过设置 `FETCH_KEEP_ALIVE` 环境变量为 `true`, 一个 HTTP/HTTPS 代理将会被注册，这样即使请求都完成，也可以保持链接持续存在, 对于后续的请求非常有用，因为不需要重复建立连接。
 
-**注意:** 这个选项可能会潜在的导致内存泄露。详细可查看 [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
+**注意:** 这个选项可能会潜在的导致内存泄露。详细可查看 [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325)。
 
 ## ✔️ 响应解析
 
@@ -72,7 +72,7 @@ await ofetch('/api/generate-image', { responseType: 'blob' })
 
 对于 `put`, `patch` and `post` 请求方法，当 `body` 是一个字符串或对象时，`ofetch` 会添加默认的头信息 `content-type: application/json` 和 `accept: application/json`（你也可以选择覆盖）
 
-另外，`ofetch` 也支持 `Buffer`、`ReadableStream`、`Stream` 和 [body兼容类型](https://developer.mozilla.org/en-US/docs/Web/API/fetch#body)(中文文档没有body兼容类型内容)的二进制流数据响应。`ofetch` 将自动设置 `duplex:half` 参数以支持流式传输。
+另外，`ofetch` 也支持 `Buffer`、`ReadableStream`、`Stream` 和 [body兼容类型](https://developer.mozilla.org/en-US/docs/Web/API/fetch#body)（中文文档没有body兼容类型内容）的二进制流数据响应。`ofetch` 将自动设置 `duplex:half` 参数以支持流式传输。
 
 **例子:**
 ```js
@@ -109,7 +109,7 @@ await ofetch('/url', { ignoreResponseError: true })
 
 ## ✔️ 自动重试
 
-如果发生错误或者响应状态码符合`重试状态码`条件时，`ofetch` 会自动重新发送请求。
+如果发生错误或者响应状态码符合 `重试状态码` 条件时，`ofetch` 会自动重新发送请求。
 
 **重试状态码:**
 - `408` - 请求超时
@@ -146,7 +146,7 @@ await ofetch('http://google.com/404', {
 
 ## ✔️ 类型友好
 
-响应体可以提供类型辅助:
+可以提供响应体类型辅助:
 
 ```ts
 const article = await ofetch<Article>(`/api/article/${id}`)
@@ -163,12 +163,11 @@ await ofetch('/config', { baseURL })
 
 ## ✔️ 添加查询搜索参数
 
-<!-- TODO:这句要怎么理解 -->
-通过使用 `query` 参数（或者 `params` 做为别名），`ofetch` 会使用[ufo](https://github.com/unjs/ufo)添加查询搜寻参数到 URL 上，通过保存请求自己的 query
+通过使用 `query` 参数（或者 `params` 做为别名），`ofetch` 会使用[ufo](https://github.com/unjs/ufo)将查询搜寻参数添加到 URL 上，从而保存查询条件。
 
 
 ```js
-await ofetch('/movie?lang=en', { query: { id: 123 } })
+await ofetch('/movie?lang=zh-CN', { query: { id: 123 } })
 ```
 
 ## ✔️ 拦截器
@@ -178,7 +177,7 @@ await ofetch('/movie?lang=en', { query: { id: 123 } })
 
 ### `onRequest({ request, options })`
 
-当 `ofetch` 被调用时，`onRequest` 会立即被调用，它能修改选项或者打印简单的日志
+当 `ofetch` 被调用时，`onRequest` 会立即被调用，可以使用它修改请求选项或者打印简单的日志
 
 
 ```js
@@ -210,7 +209,7 @@ await ofetch('/api', {
 
 ### `onResponse({ request, options, response })`
 
-`fetch` 执行到解析响应体后 `onResponse` 将会被调用
+`fetch` 执行解析响应体后 `onResponse` 将会被调用
 
 ```js
 await ofetch('/api', {
@@ -223,7 +222,7 @@ await ofetch('/api', {
 
 ### `onResponseError({ request, options, response })`
 
-`onResponseError` 和 `onResponse` 是一样的，但是只在当请求 `response.ok` 不是 `true` 的时候调用。
+`onResponseError` 和 `onResponse` 是一样的，但是只在请求 `response.ok` 不是 `true` 的时候调用。
 
 ```js
 await ofetch('/api', {
@@ -315,10 +314,11 @@ const json = await ofetch.native('/sushi').then(r => r.json())
 
 这也保证了我们能在不破坏包的情况下，提供更多的工具，且鼓励我们使用 `ofetch` 名字。
 
-**为什么不转译?**
-转译库，为了更好的兼容性，可能需要发布很久之前的且已经过时的代码兼容性代码，而这些代码对大多数使用者都是不需要的。
+**为什么不编译?**
 
-如果你需要支持旧版用户，可以选择在构建流程中对库进行转译。
+为了更好的兼容性，编译库可能需要包含很老的，且可能已过时的代码，而这些代码对大多数使用者都是不需要的。
+
+如果你需要支持旧版用户，可以选择在构建流程中对库进行编译。
 
 ## 许可证
 

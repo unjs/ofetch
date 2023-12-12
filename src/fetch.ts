@@ -30,6 +30,9 @@ const retryStatusCodes = new Set([
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
+// Sanity default for maximum amount of retries
+const MAX_RETRIES = 25;
+
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const {
     fetch = globalThis.fetch,
@@ -46,11 +49,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         context.error.name === "AbortError" &&
         !context.options.timeout) ||
       false;
+
     // Retry
     if (context.options.retry !== false && !isAbort) {
       let retries;
       if (typeof context.options.retry === "number") {
         retries = context.options.retry;
+        if (retries > MAX_RETRIES) {
+          retries = MAX_RETRIES;
+        }
       } else {
         retries = isPayloadMethod(context.options.method) ? 0 : 1;
       }

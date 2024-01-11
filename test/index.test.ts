@@ -323,7 +323,7 @@ describe("ofetch", () => {
     expect(race).to.equal("timeout");
   });
 
-  it("aborting on timeout message", async () => {
+  it("aborting on timeout reason", async () => {
     await $fetch(getURL("timeout"), {
       timeout: 100,
       retry: 0,

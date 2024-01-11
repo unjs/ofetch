@@ -46,7 +46,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         context.error.name === "AbortError" &&
         !context.options.timeout) ||
       false;
-
     // Retry
     if (context.options.retry !== false && !isAbort) {
       let retries;
@@ -139,7 +138,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         // ReadableStream Body
         ("pipeTo" in (context.options.body as ReadableStream) &&
           typeof (context.options.body as ReadableStream).pipeTo ===
-            "function") ||
+          "function") ||
         // Node.js Stream Body
         typeof (context.options.body as Readable).pipe === "function"
       ) {

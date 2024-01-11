@@ -323,6 +323,15 @@ describe("ofetch", () => {
     expect(race).to.equal("timeout");
   });
 
+  it("aborting on timeout message", async () => {
+    await $fetch(getURL("timeout"), {
+      timeout: 100,
+      retry: 0,
+    }).catch((error) => {
+      expect(error.cause.cause).to.equal("timeout");
+    });
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

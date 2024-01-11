@@ -46,6 +46,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         context.error.name === "AbortError" &&
         !context.options.timeout) ||
       false;
+
     // Retry
     if (context.options.retry !== false && !isAbort) {
       let retries;
@@ -152,7 +153,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     // TODO: Can we merge signals?
     if (!context.options.signal && context.options.timeout) {
       const controller = new AbortController();
-      setTimeout(() => controller.abort(), context.options.timeout);
+      const reason = new Error("Request timeout", { cause: "timeout" });
+      setTimeout(() => controller.abort(reason), context.options.timeout);
       context.options.signal = controller.signal;
     }
 

@@ -100,7 +100,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     context.options.method = context.options.method?.toUpperCase();
 
     if (context.options.onRequest) {
-      await context.options.onRequest(context);
+      if (Array.isArray(context.options.onRequest)) {
+        for (const onRequest of context.options.onRequest) {
+          await onRequest(context);
+        }
+      } else {
+        await context.options.onRequest(context);
+      }
     }
 
     if (typeof context.request === "string") {
@@ -164,7 +170,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     } catch (error) {
       context.error = error as Error;
       if (context.options.onRequestError) {
-        await context.options.onRequestError(context as any);
+        if (Array.isArray(context.options.onRequestError)) {
+          for (const onRequestError of context.options.onRequestError) {
+            await onRequestError(context as any);
+          }
+        } else {
+          await context.options.onRequestError(context as any);
+        }
       }
       return await onError(context);
     }
@@ -199,7 +211,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     if (context.options.onResponse) {
-      await context.options.onResponse(context as any);
+      if (Array.isArray(context.options.onResponse)) {
+        for (const onResponse of context.options.onResponse) {
+          await onResponse(context as any);
+        }
+      } else {
+        await context.options.onResponse(context as any);
+      }
     }
 
     if (
@@ -208,7 +226,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.response.status < 600
     ) {
       if (context.options.onResponseError) {
-        await context.options.onResponseError(context as any);
+        if (Array.isArray(context.options.onResponseError)) {
+          for (const onResponseError of context.options.onResponseError) {
+            await onResponseError(context as any);
+          }
+        } else {
+          await context.options.onResponseError(context as any);
+        }
       }
       return await onError(context);
     }

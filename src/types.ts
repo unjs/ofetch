@@ -57,16 +57,20 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
 
-  onRequest?(context: FetchContext): Promise<void> | void;
-  onRequestError?(
-    context: FetchContext & { error: Error }
-  ): Promise<void> | void;
-  onResponse?(
-    context: FetchContext & { response: FetchResponse<R> }
-  ): Promise<void> | void;
-  onResponseError?(
-    context: FetchContext & { response: FetchResponse<R> }
-  ): Promise<void> | void;
+  onRequest?: Arrayable<(context: FetchContext) => Promise<void> | void>;
+  onRequestError?: Arrayable<
+    (context: FetchContext & { error: Error }) => Promise<void> | void
+  >;
+  onResponse?: Arrayable<
+    (
+      context: FetchContext & { response: FetchResponse<R> }
+    ) => Promise<void> | void
+  >;
+  onResponseError?: Arrayable<
+    (
+      context: FetchContext & { response: FetchResponse<R> }
+    ) => Promise<void> | void
+  >;
 }
 
 export interface CreateFetchOptions {
@@ -130,3 +134,5 @@ export type FetchRequest = RequestInfo;
 export interface SearchParameters {
   [key: string]: any;
 }
+
+type Arrayable<T> = T | Array<T>;

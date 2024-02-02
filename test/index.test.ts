@@ -358,4 +358,94 @@ describe("ofetch", () => {
 
     expect(path).to.eq("?b=2&c=3&a=1");
   });
+
+  describe.each<{ strategy: "overwrite" | "manual" | "before" | "after", expected: string}>([
+    { strategy: 'overwrite', expected: '_local' },
+    { strategy: 'after', expected: '_global_local' },
+    { strategy: 'before', expected: '_local_global' },
+    { strategy: 'manual', expected: '_global' }
+  ])('interceptors $strategy strategy', ({ strategy, expected }) => {
+    it(`onRequest`, async () => {
+      let res = ''
+      const _customFetch = $fetch.create({
+        onRequest: {
+          strategy,
+          handler(ctx, data) {
+            res = (data || '') + '_global';
+            return res
+          },
+        }
+      });
+
+      await _customFetch(getURL("ok"), {
+        onRequest(ctx, data) {
+          res = (data || '') + '_local';
+          return res
+        }
+      });
+      expect(res).to.eq(expected);
+    })
+
+    it(`onRequestError`, async () => {
+      let res = ''
+      const _customFetch = $fetch.create({
+        onRequestError: {
+          strategy,
+          handler(ctx, data) {
+            res = (data instanceof TypeError ? data.name : data) + '_global';
+            return res
+          },
+        },
+        retry: false
+      });
+
+      await _customFetch('/nonexistent', {
+        onRequestError(ctx, data) {
+          res = (data instanceof TypeError ? data.name : data) + '_local';
+          return res
+        }
+      }).catch(() => {});
+      expect(res).to.eq('TypeError' + expected);
+    })
+
+    it(`onResponse`, async () => {
+      const _customFetch = $fetch.create({
+        onResponse: {
+          strategy,
+          handler(ctx, data) {
+            return data + '_global';
+          },
+        }
+      });
+
+      const res = await _customFetch(getURL("ok"), {
+        onResponse(ctx, data) {
+          return data + '_local';
+        }
+      });
+      expect(res).to.eq('ok' + expected);
+    })
+
+    it(`onResponseError`, async () => {
+      const _customFetch = $fetch.create({
+        onResponseError: {
+          strategy,
+          handler(ctx, data) {
+            return {
+              statusCode: data.statusCode + '_global'
+            }
+          },
+        },
+      });
+
+      const res = await _customFetch(getURL("403"), {
+        onResponseError(ctx, data) {
+          return {
+            statusCode: data.statusCode + '_local'
+          }
+        }
+      }).catch(({ data }) => data);
+      expect(res.statusCode).to.eq('403' + expected);
+    })
+  })
 });

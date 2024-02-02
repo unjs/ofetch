@@ -12,7 +12,7 @@ export interface $Fetch {
     options?: FetchOptions<R>
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
-  create(defaults: FetchOptions): $Fetch;
+  create(defaults: GlobalFetchOptions): $Fetch;
 }
 
 // --------------------------
@@ -26,6 +26,18 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   response?: FetchResponse<T>;
   error?: Error;
 }
+
+// --------------------------
+// Interceptor
+// --------------------------
+
+export type InterceptorFn<T> = (context: T, data: any) => Promise<any> | any
+export type Interceptor<T> = InterceptorFn<T> | { 
+  strategy: 'overwrite' | "manual" | "before" | "after", 
+  handler: InterceptorFn<T> 
+}
+
+export type OmitInterceptors<T> = Omit<T, "onRequest" | "onRequestError" | "onResponse" | "onResponseError">;
 
 // --------------------------
 // Options
@@ -57,21 +69,23 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
 
-  onRequest?(context: FetchContext): Promise<void> | void;
-  onRequestError?(
-    context: FetchContext & { error: Error }
-  ): Promise<void> | void;
-  onResponse?(
-    context: FetchContext & { response: FetchResponse<R> }
-  ): Promise<void> | void;
-  onResponseError?(
-    context: FetchContext & { response: FetchResponse<R> }
-  ): Promise<void> | void;
+  onRequest?: InterceptorFn<FetchContext>
+  onRequestError?: InterceptorFn<FetchContext & { error: Error }>
+  onResponse?: InterceptorFn<FetchContext & { response: FetchResponse<R> }>
+  onResponseError?: InterceptorFn<FetchContext & { response: FetchResponse<R> }>
+}
+
+export interface GlobalFetchOptions<R extends ResponseType = ResponseType> 
+  extends OmitInterceptors<FetchOptions<R>> {
+  onRequest?: Interceptor<FetchContext>
+  onRequestError?: Interceptor<FetchContext & { error: Error }>
+  onResponse?: Interceptor<FetchContext & { response: FetchResponse<R> }>
+  onResponseError?: Interceptor<FetchContext & { response: FetchResponse<R> }>
 }
 
 export interface CreateFetchOptions {
   // eslint-disable-next-line no-use-before-define
-  defaults?: FetchOptions;
+  defaults?: GlobalFetchOptions;
   fetch?: Fetch;
   Headers?: typeof Headers;
   AbortController?: typeof AbortController;

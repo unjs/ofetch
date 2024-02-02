@@ -1,4 +1,4 @@
-import type { FetchOptions, ResponseType } from "./types";
+import type { FetchContext, FetchOptions, Interceptor, InterceptorFn, OmitInterceptors, ResponseType } from "./types";
 
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
@@ -66,8 +66,8 @@ export function detectResponseType(_contentType = ""): ResponseType {
 
 // Merging of fetch option objects.
 export function mergeFetchOptions(
-  input: FetchOptions | undefined,
-  defaults: FetchOptions | undefined,
+  input: OmitInterceptors<FetchOptions> | undefined,
+  defaults: OmitInterceptors<FetchOptions> | undefined,
   Headers = globalThis.Headers
 ): FetchOptions {
   const merged: FetchOptions = {
@@ -98,4 +98,27 @@ export function mergeFetchOptions(
   }
 
   return merged;
+}
+
+export async function callInterceptors(
+  ctx: FetchContext,
+  cb?: InterceptorFn<any>,
+  globalCb?: Interceptor<any>,
+  data?: any
+) {
+  if (typeof globalCb === "object") {
+    const { strategy, handler } = globalCb
+
+    if (!cb || strategy === "manual") { 
+      return handler(ctx, data) 
+    }
+    if (strategy === "before") { 
+      return handler(ctx, await cb(ctx, data)) 
+    }
+    if (strategy === "after") { 
+      return cb(ctx, await handler(ctx, data)) 
+    }
+  }
+
+  return cb ? cb(ctx, data) : (globalCb ? (globalCb as InterceptorFn<any>)(ctx, data) : data)
 }

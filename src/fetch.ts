@@ -7,6 +7,7 @@ import {
   isJSONSerializable,
   detectResponseType,
   mergeFetchOptions,
+  callInterceptors,
 } from "./utils";
 import type {
   CreateFetchOptions,
@@ -89,9 +90,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     _request,
     _options = {}
   ) {
+    const { onRequest, onRequestError, onResponse, onResponseError, ...restOptions } = _options
+
     const context: FetchContext = {
       request: _request,
-      options: mergeFetchOptions(_options, globalOptions.defaults, Headers),
+      options: mergeFetchOptions(restOptions, globalOptions.defaults, Headers),
       response: undefined,
       error: undefined,
     };
@@ -99,9 +102,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     // Uppercase method name
     context.options.method = context.options.method?.toUpperCase();
 
-    if (context.options.onRequest) {
-      await context.options.onRequest(context);
-    }
+    await callInterceptors(context, onRequest, globalOptions.defaults?.onRequest)    
 
     if (typeof context.request === "string") {
       if (context.options.baseURL) {
@@ -163,9 +164,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       );
     } catch (error) {
       context.error = error as Error;
-      if (context.options.onRequestError) {
-        await context.options.onRequestError(context as any);
-      }
+
+      await callInterceptors(
+        context, 
+        onRequestError, 
+        globalOptions.defaults?.onRequestError, 
+        context.error
+      )    
+
       return await onError(context);
     }
 
@@ -198,8 +204,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    if (context.options.onResponse) {
-      await context.options.onResponse(context as any);
+    let _result = await callInterceptors(
+      context, 
+      onResponse, 
+      globalOptions.defaults?.onResponse,
+      context.response._data
+    )    
+
+    if (_result !== undefined) { 
+      context.response._data = _result 
     }
 
     if (
@@ -207,9 +220,17 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.response.status >= 400 &&
       context.response.status < 600
     ) {
-      if (context.options.onResponseError) {
-        await context.options.onResponseError(context as any);
+      _result = await callInterceptors(
+        context, 
+        onResponseError, 
+        globalOptions.defaults?.onResponseError,
+        context.response._data
+      )  
+
+      if (_result !== undefined) { 
+        context.response._data = _result 
       }
+
       return await onError(context);
     }
 
@@ -237,3 +258,5 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
   return $fetch;
 }
+
+

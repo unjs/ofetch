@@ -57,6 +57,8 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
 
+  retryCb?: (context: FetchContext) => Promise<boolean> | boolean;
+
   onRequest?(context: FetchContext): Promise<void> | void;
   onRequestError?(
     context: FetchContext & { error: Error }

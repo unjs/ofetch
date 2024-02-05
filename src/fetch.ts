@@ -56,12 +56,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
 
       const responseCode = (context.response && context.response.status) || 500;
-      if (
-        retries > 0 &&
-        (Array.isArray(context.options.retryStatusCodes)
-          ? context.options.retryStatusCodes.includes(responseCode)
-          : retryStatusCodes.has(responseCode))
-      ) {
+      const hasStatusCode = Array.isArray(context.options.retryStatusCodes)
+        ? context.options.retryStatusCodes.includes(responseCode)
+        : retryStatusCodes.has(responseCode);
+      const shouldRetry = context.options.retryCb
+        ? await context.options.retryCb(context)
+        : hasStatusCode;
+
+      if (retries > 0 && shouldRetry) {
         const retryDelay = context.options.retryDelay || 0;
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));

@@ -290,12 +290,10 @@ describe("ofetch", () => {
   it("retry callback", async () => {
     const slow = $fetch<string>(getURL("408"), {
       retry: 2,
-      retryDelay: 100,
       retryCb: () => false,
     }).catch(() => "slow");
     const fast = $fetch<string>(getURL("408"), {
       retry: 2,
-      retryDelay: 1,
       retryCb: () => true,
     }).catch(() => "fast");
 

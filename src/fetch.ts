@@ -1,19 +1,19 @@
-import type { Readable } from "node:stream";
 import destr from "destr";
+import type { Readable } from "node:stream";
 import { withBase, withQuery } from "ufo";
 import { createFetchError } from "./error";
+import type {
+  $Fetch,
+  CreateFetchOptions,
+  FetchContext,
+  FetchResponse,
+} from "./types";
 import {
-  isPayloadMethod,
-  isJSONSerializable,
   detectResponseType,
+  isJSONSerializable,
+  isPayloadMethod,
   mergeFetchOptions,
 } from "./utils";
-import type {
-  CreateFetchOptions,
-  FetchResponse,
-  FetchContext,
-  $Fetch,
-} from "./types";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 const retryStatusCodes = new Set([
@@ -30,14 +30,14 @@ const retryStatusCodes = new Set([
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
-export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+export function createFetch (globalOptions: CreateFetchOptions = {}): $Fetch {
   const {
     fetch = globalThis.fetch,
     Headers = globalThis.Headers,
     AbortController = globalThis.AbortController,
   } = globalOptions;
 
-  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  async function onError (context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
@@ -85,7 +85,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     throw error;
   }
 
-  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw(
+  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw (
     _request,
     _options = {}
   ) {
@@ -138,7 +138,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         // ReadableStream Body
         ("pipeTo" in (context.options.body as ReadableStream) &&
           typeof (context.options.body as ReadableStream).pipeTo ===
-            "function") ||
+          "function") ||
         // Node.js Stream Body
         typeof (context.options.body as Readable).pipe === "function"
       ) {
@@ -150,9 +150,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     // TODO: Can we merge signals?
+    let tControl
     if (!context.options.signal && context.options.timeout) {
       const controller = new AbortController();
-      setTimeout(() => controller.abort(), context.options.timeout);
+      tControl = setTimeout(() => controller.abort(), context.options.timeout);
       context.options.signal = controller.signal;
     }
 
@@ -166,6 +167,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (context.options.onRequestError) {
         await context.options.onRequestError(context as any);
       }
+      if (tControl) clearTimeout(tControl)
       return await onError(context);
     }
 
@@ -210,13 +212,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (context.options.onResponseError) {
         await context.options.onResponseError(context as any);
       }
+      if (tControl) clearTimeout(tControl)
       return await onError(context);
     }
-
+    if (tControl) clearTimeout(tControl)
     return context.response;
   };
 
-  const $fetch = async function $fetch(request, options) {
+  const $fetch = async function $fetch (request, options) {
     const r = await $fetchRaw(request, options);
     return r._data;
   } as $Fetch;

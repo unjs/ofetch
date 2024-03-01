@@ -149,7 +149,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    let abortTimeout: number | undefined;
+    let abortTimeout: NodeJS.Timeout | undefined;
 
     // TODO: Can we merge signals?
     if (!context.options.signal && context.options.timeout) {

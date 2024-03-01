@@ -14,7 +14,6 @@
       "deno": "./dist/index.mjs",
       "edge-light": "./dist/index.mjs",
       "edge-routine": "./dist/index.mjs",
-      "lagon": "./dist/index.mjs",
       "netlify": "./dist/index.mjs",
       "react-native": "./dist/index.mjs",
       "wintercg": "./dist/index.mjs",

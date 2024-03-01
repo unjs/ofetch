@@ -149,10 +149,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
+    let abortTimeout: number | undefined;
+
     // TODO: Can we merge signals?
     if (!context.options.signal && context.options.timeout) {
       const controller = new AbortController();
-      setTimeout(() => controller.abort(), context.options.timeout);
+      abortTimeout = setTimeout(() => controller.abort(), context.options.timeout);
       context.options.signal = controller.signal;
     }
 
@@ -161,7 +163,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         context.request,
         context.options as RequestInit
       );
+      clearTimeout(abortTimeout);
     } catch (error) {
+      clearTimeout(abortTimeout);
       context.error = error as Error;
       if (context.options.onRequestError) {
         await context.options.onRequestError(context as any);

@@ -70,26 +70,26 @@
     "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
-    "destr": "^2.0.2",
-    "node-fetch-native": "^1.4.1",
-    "ufo": "^1.3.2"
+    "destr": "^2.0.3",
+    "node-fetch-native": "^1.6.2",
+    "ufo": "^1.4.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@vitest/coverage-v8": "^1.0.1",
+    "@types/node": "^20.11.24",
+    "@vitest/coverage-v8": "^1.3.1",
     "changelogen": "^0.5.5",
-    "eslint": "^8.54.0",
+    "eslint": "^8.57.0",
     "eslint-config-unjs": "^0.2.1",
     "fetch-blob": "^4.0.0",
     "formdata-polyfill": "^4.0.10",
-    "h3": "^1.9.0",
+    "h3": "^1.11.1",
     "jiti": "^1.21.0",
-    "listhen": "^1.5.5",
-    "prettier": "^3.1.0",
-    "std-env": "^3.5.0",
-    "typescript": "^5.3.2",
+    "listhen": "^1.7.2",
+    "prettier": "^3.2.5",
+    "std-env": "^3.7.0",
+    "typescript": "^5.3.3",
     "unbuild": "2.0.0",
-    "vitest": "^1.0.1"
+    "vitest": "^1.3.1"
   },
-  "packageManager": "pnpm@8.11.0"
+  "packageManager": "pnpm@8.15.4"
 }

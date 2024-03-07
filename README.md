@@ -129,13 +129,20 @@ The default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH`, and `DE
 
 The default for `retryDelay` is `0` ms.
 
-You can also use `retryCb` function to retry on some condition. It takes a fetch context object as an argument.
-
 ```ts
 await ofetch("http://google.com/404", {
   retry: 3,
   retryDelay: 500, // ms
-  retryCb: (ctx) => ctx.error.code === '007'
+});
+```
+
+You can also pass a callback as a `retry` option. It takes a fetch context object and the count of retries and returns a boolean.
+
+```ts
+await $fetch("/api", {
+  retry: (ctx, count) => {
+    return count <= 3 && ctx.error?.code === "007";
+  },
 });
 ```
 

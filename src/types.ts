@@ -51,7 +51,10 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   /** timeout in milliseconds */
   timeout?: number;
 
-  retry?: number | false;
+  retry?:
+    | number
+    | false
+    | ((context: FetchContext, count: number) => Promise<boolean> | boolean);
   /** Delay between retries in milliseconds. */
   retryDelay?: number;
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */

@@ -136,6 +136,16 @@ await ofetch("http://google.com/404", {
 });
 ```
 
+You can also pass a callback as a `retry` option. It takes a fetch context object and the count of retries and returns a boolean.
+
+```ts
+await $fetch("/api", {
+  retry: (ctx, count) => {
+    return count <= 3 && ctx.error?.code === "007";
+  },
+});
+```
+
 ## ✔️ Timeout
 
 You can specify `timeout` in milliseconds to automatically abort a request after a timeout (default is disabled).

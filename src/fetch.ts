@@ -37,7 +37,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     AbortController = globalThis.AbortController,
   } = globalOptions;
 
-  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  async function getRetryResponse(
+    context: FetchContext
+  ): Promise<FetchResponse<any> | void> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
@@ -56,23 +58,34 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
 
       const responseCode = (context.response && context.response.status) || 500;
-      if (
-        retries > 0 &&
-        (Array.isArray(context.options.retryStatusCodes)
-          ? context.options.retryStatusCodes.includes(responseCode)
-          : retryStatusCodes.has(responseCode))
-      ) {
-        const retryDelay = context.options.retryDelay || 0;
+      const hasStatusCode = Array.isArray(context.options.retryStatusCodes)
+        ? context.options.retryStatusCodes.includes(responseCode)
+        : retryStatusCodes.has(responseCode);
+      // @ts-expect-error value for internal use
+      const { retry, retryDelay = 0, _retryCount = 1 } = context.options;
+      const shouldRetry =
+        typeof retry === "function" ? await retry(context, _retryCount) : false;
+
+      if ((retries > 0 && hasStatusCode) || shouldRetry) {
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
         // Timeout
         return $fetchRaw(context.request, {
           ...context.options,
-          retry: retries - 1,
-          timeout: context.options.timeout,
+          retry: typeof retry === "function" ? retry : retries - 1,
+          // @ts-expect-error value for internal use
+          _retryCount: _retryCount + 1,
         });
       }
+    }
+  }
+
+  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+    const retryResponse = await getRetryResponse(context);
+
+    if (retryResponse) {
+      return retryResponse;
     }
 
     // Throw normalized error
@@ -213,7 +226,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       return await onError(context);
     }
 
-    return context.response;
+    const retryResponse = await getRetryResponse(context);
+
+    return retryResponse || context.response;
   };
 
   const $fetch = async function $fetch(request, options) {

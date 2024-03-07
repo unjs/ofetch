@@ -9,7 +9,7 @@ import {
   readRawBody,
   toNodeListener,
 } from "h3";
-import { describe, beforeAll, afterAll, it, expect } from "vitest";
+import { describe, beforeAll, afterAll, it, expect, vi } from "vitest";
 import { Headers, FormData, Blob } from "node-fetch-native";
 import { nodeMajorVersion } from "std-env";
 import { $fetch } from "../src/node";
@@ -288,17 +288,10 @@ describe("ofetch", () => {
   });
 
   it("retry callback", async () => {
-    const slow = $fetch<string>(getURL("408"), {
-      retry: 2,
-      retryCb: () => false,
-    }).catch(() => "slow");
-    const fast = $fetch<string>(getURL("408"), {
-      retry: 2,
-      retryCb: () => true,
-    }).catch(() => "fast");
+    const retry = vi.fn().mockImplementation((_, count) => count <= 3);
+    await $fetch<string>(getURL("ok"), { retry });
 
-    const race = await Promise.race([slow, fast]);
-    expect(race).to.equal("slow");
+    expect(retry).toHaveBeenCalledTimes(4);
   });
 
   it("abort with retry", () => {

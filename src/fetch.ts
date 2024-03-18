@@ -7,6 +7,7 @@ import {
   isJSONSerializable,
   detectResponseType,
   mergeFetchOptions,
+  callInterceptors,
 } from "./utils";
 import type {
   CreateFetchOptions,
@@ -99,9 +100,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     // Uppercase method name
     context.options.method = context.options.method?.toUpperCase();
 
-    if (context.options.onRequest) {
-      await context.options.onRequest(context);
-    }
+    await callInterceptors(context, "onRequest");
 
     if (typeof context.request === "string") {
       if (context.options.baseURL) {
@@ -163,9 +162,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       );
     } catch (error) {
       context.error = error as Error;
-      if (context.options.onRequestError) {
-        await context.options.onRequestError(context as any);
-      }
+      console.log("context.onRequestError", context.options.onRequestError);
+      await callInterceptors(context, "onRequestError");
       return await onError(context);
     }
 
@@ -198,18 +196,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    if (context.options.onResponse) {
-      await context.options.onResponse(context as any);
-    }
+    await callInterceptors(context, "onResponse");
 
     if (
       !context.options.ignoreResponseError &&
       context.response.status >= 400 &&
       context.response.status < 600
     ) {
-      if (context.options.onResponseError) {
-        await context.options.onResponseError(context as any);
-      }
+      console.log("context.response", context.response);
+      await callInterceptors(context, "onResponseError");
       return await onError(context);
     }
 

@@ -28,6 +28,14 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
 }
 
 // --------------------------
+// Interceptor
+// --------------------------
+export type InterceptorCb<T> = (context: T) => Promise<void> | void;
+export type Interceptor<T> =
+  | InterceptorCb<T>
+  | { enforce: "default" | "pre" | "post"; handler: InterceptorCb<T> };
+
+// --------------------------
 // Options
 // --------------------------
 
@@ -57,16 +65,14 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
 
-  onRequest?(context: FetchContext): Promise<void> | void;
-  onRequestError?(
-    context: FetchContext & { error: Error }
-  ): Promise<void> | void;
-  onResponse?(
-    context: FetchContext & { response: FetchResponse<R> }
-  ): Promise<void> | void;
-  onResponseError?(
-    context: FetchContext & { response: FetchResponse<R> }
-  ): Promise<void> | void;
+  onRequest?: Arrayable<Interceptor<FetchContext>>;
+  onRequestError?: Arrayable<Interceptor<FetchContext & { error: Error }>>;
+  onResponse?: Arrayable<
+    Interceptor<FetchContext & { response: FetchResponse<R> }>
+  >;
+  onResponseError?: Arrayable<
+    Interceptor<FetchContext & { response: FetchResponse<R> }>
+  >;
 }
 
 export interface CreateFetchOptions {
@@ -130,3 +136,5 @@ export type FetchRequest = RequestInfo;
 export interface SearchParameters {
   [key: string]: any;
 }
+
+export type Arrayable<T> = T[] | T;

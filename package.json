@@ -71,7 +71,7 @@
   },
   "dependencies": {
     "destr": "^2.0.3",
-    "node-fetch-native": "^1.6.2",
+    "node-fetch-native": "^1.6.3",
     "ufo": "^1.5.3"
   },
   "devDependencies": {

@@ -273,7 +273,7 @@ describe("ofetch", () => {
     expect(error.request).to.equal(getURL("404"));
   });
 
-  it("retry with delay", async () => {
+  it("retry with number delay", async () => {
     const slow = $fetch<string>(getURL("408"), {
       retry: 2,
       retryDelay: 100,
@@ -281,6 +281,20 @@ describe("ofetch", () => {
     const fast = $fetch<string>(getURL("408"), {
       retry: 2,
       retryDelay: 1,
+    }).catch(() => "fast");
+
+    const race = await Promise.race([slow, fast]);
+    expect(race).to.equal("fast");
+  });
+
+  it("retry with callback delay", async () => {
+    const slow = $fetch<string>(getURL("408"), {
+      retry: 2,
+      retryDelay: () => 100,
+    }).catch(() => "slow");
+    const fast = $fetch<string>(getURL("408"), {
+      retry: 2,
+      retryDelay: () => 1,
     }).catch(() => "fast");
 
     const race = await Promise.race([slow, fast]);

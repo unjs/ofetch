@@ -67,6 +67,9 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   onResponseError?(
     context: FetchContext & { response: FetchResponse<R> }
   ): Promise<void> | void;
+
+  onRequestProgress?(progress: number): Promise<void> | void;
+  onResponseProgress?(progress: number): Promise<void> | void;
 }
 
 export interface CreateFetchOptions {

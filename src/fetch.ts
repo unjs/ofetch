@@ -177,11 +177,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    const hasBody =
-      context.response.body &&
+    const allowParse =
       !nullBodyResponses.has(context.response.status) &&
       context.options.method !== "HEAD";
-    if (hasBody) {
+    if (allowParse) {
       const responseType =
         (context.options.parseResponse
           ? "json"
@@ -197,7 +196,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           break;
         }
         case "stream": {
-          context.response._data = context.response.body;
+          context.response._data =
+            context.response.body ||
+            // @ts-ignore Compatible with QQ Browser on iOS
+            context.response._bodyInit?.stream() ||
+            // @ts-ignore Compatible with QQ Browser on iOS
+            context.response._bodyBlob?.stream();
           break;
         }
         default: {

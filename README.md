@@ -238,6 +238,23 @@ await ofetch("/api", {
 });
 ```
 
+### Passing array of interceptors
+
+If necessary, it's also possible to pass an array of function that will be called sequentially.
+
+```js
+await ofetch("/api", {
+  onRequest: [
+    () => {
+      /* Do something */
+    },
+    () => {
+      /* Do something else */
+    },
+  ],
+});
+```
+
 ## ✔️ Create fetch with default options
 
 This utility is useful if you need to use common options across several fetch calls.

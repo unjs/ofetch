@@ -149,10 +149,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
+    let abortTimeout: NodeJS.Timeout | undefined;
+
     // TODO: Can we merge signals?
     if (!context.options.signal && context.options.timeout) {
       const controller = new AbortController();
-      setTimeout(() => controller.abort(), context.options.timeout);
+      abortTimeout = setTimeout(
+        () => controller.abort(),
+        context.options.timeout
+      );
       context.options.signal = controller.signal;
     }
 
@@ -167,6 +172,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         await context.options.onRequestError(context as any);
       }
       return await onError(context);
+    } finally {
+      if (abortTimeout) {
+        clearTimeout(abortTimeout);
+      }
     }
 
     const hasBody =

@@ -74,7 +74,8 @@ export interface CreateFetchOptions {
   defaults?: FetchOptions;
   fetch?: Fetch;
   Headers?: typeof Headers;
-  AbortController?: typeof AbortController;
+  // AbortController?: typeof AbortController;
+  AbortSignal?: typeof AbortSignal;
 }
 
 export type GlobalOptions = Pick<

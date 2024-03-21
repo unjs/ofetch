@@ -21,8 +21,10 @@ const _globalThis = (function () {
   throw new Error("unable to locate global object");
 })();
 
+// ref: https://github.com/unjs/ofetch/issues/295
 export const fetch =
-  _globalThis.fetch ||
+  ((...args: Parameters<typeof globalThis.fetch>) =>
+    _globalThis.fetch(...args)) ||
   (() => Promise.reject(new Error("[ofetch] global.fetch is not supported!")));
 
 export const Headers = _globalThis.Headers;

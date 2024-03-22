@@ -358,4 +358,80 @@ describe("ofetch", () => {
 
     expect(path).to.eq("?b=2&c=3&a=1");
   });
+
+  describe.each<{ interceptors: any; expected: string }>([
+    {
+      interceptors: [{ data: "_a" }, { data: "_b" }, { data: "_c" }],
+      expected: "_a_b_c",
+    },
+    {
+      interceptors: [
+        { data: "_a" },
+        { enforce: "pre", data: "_b" },
+        { enforce: "default", data: "_c" },
+      ],
+      expected: "_b_a_c",
+    },
+    {
+      interceptors: [
+        { enforce: "post", data: "_a" },
+        { data: "_b" },
+        { enforce: "pre", data: "_c" },
+      ],
+      expected: "_c_b_a",
+    },
+  ])(
+    "interceptors must run in the correct order: $expected",
+    ({ interceptors, expected }) => {
+      it.each([
+        {
+          name: "onRequest",
+          url: "ok",
+        },
+        {
+          name: "onResponse",
+          url: "ok",
+        },
+        {
+          name: "onRequestError",
+          url: "ok",
+          abort: true,
+        },
+        {
+          name: "onResponseError",
+          url: "/403",
+        },
+      ])("$name", async ({ name, url, abort }) => {
+        let res = "";
+        const controller = new AbortController();
+        const _customFetch = $fetch.create({
+          [name]: [
+            {
+              enforce: interceptors[0].enforce,
+              handler: () => (res += interceptors[0].data),
+            },
+          ],
+          signal: controller.signal,
+        });
+
+        if (abort) {
+          controller.abort();
+        }
+
+        await _customFetch(getURL(url), {
+          [name]: [
+            {
+              enforce: interceptors[1].enforce,
+              handler: () => (res += interceptors[1].data),
+            },
+            {
+              enforce: interceptors[2].enforce,
+              handler: () => (res += interceptors[2].data),
+            },
+          ],
+        }).catch(() => {});
+        expect(res).to.eq(expected);
+      });
+    }
+  );
 });

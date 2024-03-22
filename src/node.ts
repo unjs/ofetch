@@ -33,7 +33,9 @@ export function createNodeFetch() {
   };
 }
 
-export const fetch = globalThis.fetch || createNodeFetch();
+export const fetch =
+  ((...args: Parameters<typeof globalThis.fetch>) =>
+    globalThis.fetch(...args)) || createNodeFetch();
 
 export const Headers = globalThis.Headers || _Headers;
 export const AbortController = globalThis.AbortController || _AbortController;

@@ -162,7 +162,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       );
     } catch (error) {
       context.error = error as Error;
-      console.log("context.onRequestError", context.options.onRequestError);
       await callInterceptors(context, "onRequestError");
       return await onError(context);
     }
@@ -203,7 +202,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.response.status >= 400 &&
       context.response.status < 600
     ) {
-      console.log("context.response", context.response);
       await callInterceptors(context, "onResponseError");
       return await onError(context);
     }

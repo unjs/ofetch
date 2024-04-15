@@ -24,7 +24,7 @@ const retryStatusCodes = new Set([
   500, // Internal Server Error
   502, // Bad Gateway
   503, // Service Unavailable
-  504, //  Gateway Timeout
+  504, // Gateway Timeout
 ]);
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body

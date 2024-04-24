@@ -263,9 +263,26 @@ await ofetch("/movies", {
 });
 ```
 
-## 💡 Adding HTTP(S) Agent
+## 💡 Adding a HTTP(S) / Proxy Agent
 
-If you need use HTTP(S) Agent, can add `agent` option with `https-proxy-agent` (for Node.js only):
+If you need use a HTTP(S) / Proxy Agent, you can (for Node.js only):
+
+### Node >= v21
+
+Add `ProxyAgent` to `dispatcher` option with `undici`
+
+```js
+import { ofetch } from 'ofetch'
+import { ProxyAgent } from 'undici'
+
+await ofetch("/api", {
+  dispatcher: new ProxyAgent("http://example.com"),
+});
+```
+
+### Node < v21
+
+Add `HttpsProxyAgent` to `agent` option with `https-proxy-agent`
 
 ```js
 import { HttpsProxyAgent } from "https-proxy-agent";

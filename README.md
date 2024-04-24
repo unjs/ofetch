@@ -267,7 +267,7 @@ await ofetch("/movies", {
 
 If you need use a HTTP(S) / Proxy Agent, you can (for Node.js only):
 
-### Node >= v21
+### Node >= v18
 
 Add `ProxyAgent` to `dispatcher` option with `undici`
 
@@ -280,7 +280,7 @@ await ofetch("/api", {
 });
 ```
 
-### Node < v21
+### Node < v18
 
 Add `HttpsProxyAgent` to `agent` option with `https-proxy-agent`
 

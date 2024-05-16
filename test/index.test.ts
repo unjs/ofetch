@@ -337,6 +337,19 @@ describe("ofetch", () => {
     expect(race).to.equal("timeout");
   });
 
+  it("aborting on timeout reason", async () => {
+    await $fetch(getURL("timeout"), {
+      timeout: 100,
+      retry: 0,
+    }).catch((error) => {
+      expect(error.cause.message).to.include(
+        "The operation was aborted due to timeout"
+      );
+      expect(error.cause.name).to.equal("TimeoutError");
+      expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
+    });
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

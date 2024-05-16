@@ -71,12 +71,12 @@
   },
   "dependencies": {
     "destr": "^2.0.3",
-    "node-fetch-native": "^1.6.3",
+    "node-fetch-native": "^1.6.4",
     "ufo": "^1.5.3"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
-    "@vitest/coverage-v8": "^1.4.0",
+    "@types/node": "^20.12.12",
+    "@vitest/coverage-v8": "^1.6.0",
     "changelogen": "^0.5.5",
     "eslint": "^8.57.0",
     "eslint-config-unjs": "^0.2.1",
@@ -87,9 +87,9 @@
     "listhen": "^1.7.2",
     "prettier": "^3.2.5",
     "std-env": "^3.7.0",
-    "typescript": "^5.4.3",
+    "typescript": "^5.4.5",
     "unbuild": "2.0.0",
-    "vitest": "^1.4.0"
+    "vitest": "^1.6.0"
   },
-  "packageManager": "pnpm@8.15.5"
+  "packageManager": "pnpm@9.1.1"
 }

@@ -62,9 +62,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           ? context.options.retryStatusCodes.includes(responseCode)
           : retryStatusCodes.has(responseCode))
       ) {
-        const retryDelay = typeof context.options.retryDelay === 'function' ?
-          context.options.retryDelay(context) :
-          context.options.retryDelay || 0;
+        const retryDelay =
+          typeof context.options.retryDelay === "function"
+            ? context.options.retryDelay(context)
+            : context.options.retryDelay || 0;
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }

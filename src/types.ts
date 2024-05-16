@@ -53,7 +53,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
 
   retry?: number | false;
   /** Delay between retries in milliseconds. */
-  retryDelay?: number;
+  retryDelay?: number | ((context: FetchContext) => number);
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
 

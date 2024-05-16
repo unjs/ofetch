@@ -157,8 +157,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     if (!context.options.signal && context.options.timeout) {
       const controller = new AbortController();
       abortTimeout = setTimeout(() => {
-        const reason = new Error("Request timeout", { cause: "timeout" });
-        controller.abort(reason);
+        const error = new Error(
+          "[TimeoutError]: The operation was aborted due to timeout"
+        );
+        error.name = "TimeoutError";
+        (error as any).code = 23; // DOMException.TIMEOUT_ERR
+        controller.abort(error);
       }, context.options.timeout);
       context.options.signal = controller.signal;
     }

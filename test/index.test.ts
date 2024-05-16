@@ -342,7 +342,11 @@ describe("ofetch", () => {
       timeout: 100,
       retry: 0,
     }).catch((error) => {
-      expect(error.cause.cause).to.equal("timeout");
+      expect(error.cause.message).to.include(
+        "The operation was aborted due to timeout"
+      );
+      expect(error.cause.name).to.equal("TimeoutError");
+      expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
   });
 

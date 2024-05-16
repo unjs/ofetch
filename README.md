@@ -99,7 +99,7 @@ await ofetch("https://google.com/404");
 To catch error response:
 
 ```ts
-await ofetch("/url").catch((err) => err.data);
+await ofetch("/url").catch((error) => error.data);
 ```
 
 To bypass status error catching you can set `ignoreResponseError` option:

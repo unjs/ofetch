@@ -21,7 +21,7 @@ export interface $Fetch {
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest;
-  // eslint-disable-next-line no-use-before-define
+
   options: FetchOptions<R>;
   response?: FetchResponse<T>;
   error?: Error;
@@ -70,7 +70,6 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
 }
 
 export interface CreateFetchOptions {
-  // eslint-disable-next-line no-use-before-define
   defaults?: FetchOptions;
   fetch?: Fetch;
   Headers?: typeof Headers;

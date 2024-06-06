@@ -9,6 +9,11 @@
 
 A better fetch API. Works on node, browser, and workers.
 
+<details>
+  <summary>Spoiler</summary>
+  <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
+</details>
+
 ## 🚀 Quick Start
 
 Install:

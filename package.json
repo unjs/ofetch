@@ -75,21 +75,21 @@
     "ufo": "^1.5.3"
   },
   "devDependencies": {
-    "@types/node": "^20.12.13",
+    "@types/node": "^20.14.2",
     "@vitest/coverage-v8": "^1.6.0",
     "changelogen": "^0.5.5",
-    "eslint": "^9.3.0",
-    "eslint-config-unjs": "^0.3.1",
+    "eslint": "^9.4.0",
+    "eslint-config-unjs": "^0.3.2",
     "fetch-blob": "^4.0.0",
     "formdata-polyfill": "^4.0.10",
     "h3": "^1.11.1",
-    "jiti": "^1.21.0",
+    "jiti": "^1.21.6",
     "listhen": "^1.7.2",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.2",
     "std-env": "^3.7.0",
     "typescript": "^5.4.5",
     "unbuild": "2.0.0",
     "vitest": "^1.6.0"
   },
-  "packageManager": "pnpm@9.1.3"
+  "packageManager": "pnpm@9.3.0"
 }

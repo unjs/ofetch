@@ -8,6 +8,7 @@ import nodeFetch, {
 import { createFetch } from "./base";
 
 export * from "./base";
+export type * from "./types";
 
 export function createNodeFetch() {
   const useKeepAlive = JSON.parse(process.env.FETCH_KEEP_ALIVE || "false");

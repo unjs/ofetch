@@ -1,4 +1,18 @@
-import type { FetchOptions, ResponseType } from "./types";
+import type {
+  Arrayable,
+  FetchContext,
+  FetchOptions,
+  Interceptor,
+  InterceptorCb,
+  ResponseType,
+} from "./types";
+
+const interceptorNames = [
+  "onRequest",
+  "onResponse",
+  "onRequestError",
+  "onResponseError",
+] as const;
 
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
@@ -66,13 +80,23 @@ export function detectResponseType(_contentType = ""): ResponseType {
 
 // Merging of fetch option objects.
 export function mergeFetchOptions(
-  input: FetchOptions | undefined,
-  defaults: FetchOptions | undefined,
+  input?: FetchOptions,
+  defaults?: FetchOptions,
   Headers = globalThis.Headers
 ): FetchOptions {
+  const interceptors: Pick<FetchOptions, (typeof interceptorNames)[number]> =
+    {};
+
+  for (const key of interceptorNames) {
+    if (input?.[key] || defaults?.[key]) {
+      interceptors[key] = mergeInterceptors(defaults?.[key], input?.[key]);
+    }
+  }
+
   const merged: FetchOptions = {
     ...defaults,
     ...input,
+    ...interceptors,
   };
 
   // Merge params and query
@@ -98,4 +122,36 @@ export function mergeFetchOptions(
   }
 
   return merged;
+}
+
+function mergeInterceptors(
+  defaults?: Arrayable<Interceptor<any>>,
+  input?: Arrayable<Interceptor<any>>
+): InterceptorCb<any>[] {
+  return [
+    ...(defaults ? [defaults].flat() : []),
+    ...(input ? [input].flat() : []),
+  ]
+    .sort((a: any, b: any) => {
+      if (a?.enforce === "pre" || b?.enforce === "post") {
+        return -1;
+      }
+      if (b?.enforce === "pre" || a?.enforce === "post") {
+        return 1;
+      }
+      return 0;
+    })
+    .map((item) => (typeof item === "object" ? item.handler : item));
+}
+
+export async function callInterceptors(
+  ctx: FetchContext,
+  name: (typeof interceptorNames)[number]
+) {
+  if (!ctx.options[name]) {
+    return;
+  }
+  for (const interceptor of ctx.options[name] as InterceptorCb<any>[]) {
+    await interceptor(ctx);
+  }
 }

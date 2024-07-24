@@ -24,7 +24,7 @@ const retryStatusCodes = new Set([
   500, // Internal Server Error
   502, // Bad Gateway
   503, // Service Unavailable
-  504, //  Gateway Timeout
+  504, // Gateway Timeout
 ]);
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
@@ -62,7 +62,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           ? context.options.retryStatusCodes.includes(responseCode)
           : retryStatusCodes.has(responseCode))
       ) {
-        const retryDelay = context.options.retryDelay || 0;
+        const retryDelay =
+          typeof context.options.retryDelay === "function"
+            ? context.options.retryDelay(context)
+            : context.options.retryDelay || 0;
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
@@ -70,7 +73,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         return $fetchRaw(context.request, {
           ...context.options,
           retry: retries - 1,
-          timeout: context.options.timeout,
         });
       }
     }
@@ -149,10 +151,19 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
+    let abortTimeout: NodeJS.Timeout | undefined;
+
     // TODO: Can we merge signals?
     if (!context.options.signal && context.options.timeout) {
       const controller = new AbortController();
-      setTimeout(() => controller.abort(), context.options.timeout);
+      abortTimeout = setTimeout(() => {
+        const error = new Error(
+          "[TimeoutError]: The operation was aborted due to timeout"
+        );
+        error.name = "TimeoutError";
+        (error as any).code = 23; // DOMException.TIMEOUT_ERR
+        controller.abort(error);
+      }, context.options.timeout);
       context.options.signal = controller.signal;
     }
 
@@ -167,6 +178,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         await context.options.onRequestError(context as any);
       }
       return await onError(context);
+    } finally {
+      if (abortTimeout) {
+        clearTimeout(abortTimeout);
+      }
     }
 
     const hasBody =
@@ -223,7 +238,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
   $fetch.raw = $fetchRaw;
 
-  // @ts-expect-error TODO: Fix conflicting types with undici
   $fetch.native = (...args) => fetch(...args);
 
   $fetch.create = (defaultOptions = {}) =>

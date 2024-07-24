@@ -21,7 +21,7 @@ export interface $Fetch {
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest;
-  // eslint-disable-next-line no-use-before-define
+
   options: FetchOptions<R>;
   response?: FetchResponse<T>;
   error?: Error;
@@ -53,7 +53,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
 
   retry?: number | false;
   /** Delay between retries in milliseconds. */
-  retryDelay?: number;
+  retryDelay?: number | ((context: FetchContext) => number);
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
 
@@ -70,7 +70,6 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
 }
 
 export interface CreateFetchOptions {
-  // eslint-disable-next-line no-use-before-define
   defaults?: FetchOptions;
   fetch?: Fetch;
   Headers?: typeof Headers;

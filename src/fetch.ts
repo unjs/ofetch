@@ -177,7 +177,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (context.options.onRequestError) {
         await context.options.onRequestError(context as any);
       }
-      return await onError(context);
+      const err = await onError(context)
+      return err; 
     } finally {
       if (abortTimeout) {
         clearTimeout(abortTimeout);
@@ -225,7 +226,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (context.options.onResponseError) {
         await context.options.onResponseError(context as any);
       }
-      return await onError(context);
+      const err = await onError(context)
+      return err; 
     }
 
     return context.response;

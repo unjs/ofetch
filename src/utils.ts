@@ -8,7 +8,7 @@ export function isPayloadMethod(method = "GET") {
 }
 
 export function isJSONSerializable(value: any) {
-  if (value === undefined) {
+  if (value === undefined || value.buffer) {
     return false;
   }
   const t = typeof value;
@@ -20,9 +20,6 @@ export function isJSONSerializable(value: any) {
   }
   if (Array.isArray(value)) {
     return true;
-  }
-  if (value.buffer) {
-    return false;
   }
   return (
     (value.constructor && value.constructor.name === "Object") ||

@@ -121,7 +121,7 @@ await ofetch("/url", { ignoreResponseError: true });
 
 - `408` - Request Timeout
 - `409` - Conflict
-- `425` - Too Early (Experimental)
+- `425` - Too Early ([Experimental](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Early-Data))
 - `429` - Too Many Requests
 - `500` - Internal Server Error
 - `502` - Bad Gateway

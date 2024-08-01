@@ -1,10 +1,11 @@
 import type { FetchOptions, ResponseType } from "./types";
 
 const payloadMethods = new Set(
-  Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
+  Object.freeze(["PATCH", "POST", "PUT", "DELETE"] as const)
 );
 export function isPayloadMethod(method = "GET") {
-  return payloadMethods.has(method.toUpperCase());
+  type PayloadMethods<T> = T extends Set<infer U> ? U : never  
+  return payloadMethods.has(method.toUpperCase() as PayloadMethods<typeof payloadMethods>);
 }
 
 export function isJSONSerializable(value: any) {

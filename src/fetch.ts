@@ -16,16 +16,18 @@ import type {
 } from "./types";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-const retryStatusCodes = new Set(new Int16Array([
-  408, // Request Timeout
-  409, // Conflict
-  425, // Too Early (Experimental)
-  429, // Too Many Requests
-  500, // Internal Server Error
-  502, // Bad Gateway
-  503, // Service Unavailable
-  504, // Gateway Timeout
-]));
+const retryStatusCodes = new Set(
+  new Int16Array([
+    408, // Request Timeout
+    409, // Conflict
+    425, // Too Early (Experimental)
+    429, // Too Many Requests
+    500, // Internal Server Error
+    502, // Bad Gateway
+    503, // Service Unavailable
+    504, // Gateway Timeout
+  ])
+);
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
 const nullBodyResponses = new Set(new Int16Array([101, 204, 205, 304]));

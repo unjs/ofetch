@@ -240,11 +240,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
   $fetch.native = (...args) => fetch(...args);
 
-  $fetch.create = (defaultOptions = {}) =>
+  $fetch.create = (defaultOptions = {}, customGlobalOptions = {}) =>
     createFetch({
       ...globalOptions,
+      ...customGlobalOptions,
       defaults: {
         ...globalOptions.defaults,
+        ...customGlobalOptions.defaults,
         ...defaultOptions,
       },
     });

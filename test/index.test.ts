@@ -273,7 +273,7 @@ describe("ofetch", () => {
     expect(error.request).to.equal(getURL("404"));
   });
 
-  it("retry with delay", async () => {
+  it("retry with number delay", async () => {
     const slow = $fetch<string>(getURL("408"), {
       retry: 2,
       retryDelay: 100,
@@ -281,6 +281,20 @@ describe("ofetch", () => {
     const fast = $fetch<string>(getURL("408"), {
       retry: 2,
       retryDelay: 1,
+    }).catch(() => "fast");
+
+    const race = await Promise.race([slow, fast]);
+    expect(race).to.equal("fast");
+  });
+
+  it("retry with callback delay", async () => {
+    const slow = $fetch<string>(getURL("408"), {
+      retry: 2,
+      retryDelay: () => 100,
+    }).catch(() => "slow");
+    const fast = $fetch<string>(getURL("408"), {
+      retry: 2,
+      retryDelay: () => 1,
     }).catch(() => "fast");
 
     const race = await Promise.race([slow, fast]);
@@ -321,6 +335,19 @@ describe("ofetch", () => {
     }).catch(() => "timeout");
     const race = await Promise.race([noTimeout, timeout]);
     expect(race).to.equal("timeout");
+  });
+
+  it("aborting on timeout reason", async () => {
+    await $fetch(getURL("timeout"), {
+      timeout: 100,
+      retry: 0,
+    }).catch((error) => {
+      expect(error.cause.message).to.include(
+        "The operation was aborted due to timeout"
+      );
+      expect(error.cause.name).to.equal("TimeoutError");
+      expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
+    });
   });
 
   it("deep merges defaultOptions", async () => {

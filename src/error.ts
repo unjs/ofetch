@@ -1,5 +1,6 @@
 import type { FetchContext, IFetchError } from "./types";
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class FetchError<T = any> extends Error implements IFetchError<T> {
   constructor(message: string, opts?: { cause: unknown }) {
     // @ts-ignore https://v8.dev/features/error-cause

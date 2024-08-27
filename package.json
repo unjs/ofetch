@@ -75,10 +75,10 @@
     "ufo": "^1.5.4"
   },
   "devDependencies": {
-    "@types/node": "^20.14.12",
-    "@vitest/coverage-v8": "^1.6.0",
+    "@types/node": "^22.5.0",
+    "@vitest/coverage-v8": "^2.0.5",
     "changelogen": "^0.5.5",
-    "eslint": "^9.7.0",
+    "eslint": "^9.9.1",
     "eslint-config-unjs": "^0.3.2",
     "fetch-blob": "^4.0.0",
     "formdata-polyfill": "^4.0.10",
@@ -89,7 +89,7 @@
     "std-env": "^3.7.0",
     "typescript": "^5.5.4",
     "unbuild": "2.0.0",
-    "vitest": "^1.6.0"
+    "vitest": "^2.0.5"
   },
-  "packageManager": "pnpm@9.6.0"
+  "packageManager": "pnpm@9.9.0"
 }

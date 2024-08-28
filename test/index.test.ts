@@ -386,7 +386,7 @@ describe("ofetch", () => {
     expect(path).to.eq("?b=2&c=3&a=1");
   });
 
-  it("calls listeners", async () => {
+  it("calls hooks", async () => {
     const onRequest = vi.fn();
     const onRequestError = vi.fn();
     const onResponse = vi.fn();

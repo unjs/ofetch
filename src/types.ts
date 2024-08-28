@@ -44,6 +44,11 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
    */
   dispatcher?: InstanceType<typeof import("undici").Dispatcher>;
 
+  /**
+   * Only supported older Node.js versions using node-fetch-native polyfill.
+   */
+  agent?: unknown;
+
   /** timeout in milliseconds */
   timeout?: number;
 

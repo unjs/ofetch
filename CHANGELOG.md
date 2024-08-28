@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.3.4
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.3.3...v1.3.4)
+
+### 🚀 Enhancements
+
+- Export all types ([#280](https://github.com/unjs/ofetch/pull/280))
+- Expose `GlobalOptions` type ([#307](https://github.com/unjs/ofetch/pull/307))
+
+### 🩹 Fixes
+
+- Clear abort timeout after response was received ([#369](https://github.com/unjs/ofetch/pull/369))
+
+### 💅 Refactors
+
+- Remove extra line ([#374](https://github.com/unjs/ofetch/pull/374))
+
+### 📖 Documentation
+
+- Add initial examples ([#288](https://github.com/unjs/ofetch/pull/288))
+
+### 📦 Build
+
+- Add top level `react-native` field ([03680dd](https://github.com/unjs/ofetch/commit/03680dd))
+
+### 🏡 Chore
+
+- **release:** V1.3.3 ([31c61c1](https://github.com/unjs/ofetch/commit/31c61c1))
+- Update dependencies ([308f03f](https://github.com/unjs/ofetch/commit/308f03f))
+- Ignore conflicting ts error for now ([3a73165](https://github.com/unjs/ofetch/commit/3a73165))
+- Improve docs ([173d5b9](https://github.com/unjs/ofetch/commit/173d5b9))
+- Remove lagon ([#346](https://github.com/unjs/ofetch/pull/346))
+- Update lockfile ([4b6d1ba](https://github.com/unjs/ofetch/commit/4b6d1ba))
+- Fix build error ([472c4d9](https://github.com/unjs/ofetch/commit/472c4d9))
+- Update node-fetch-native ([fa2cc07](https://github.com/unjs/ofetch/commit/fa2cc07))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Alex Liu ([@Mini-ghost](http://github.com/Mini-ghost))
+- Danila Rodichkin ([@daniluk4000](http://github.com/daniluk4000))
+- Maxime Pauvert ([@maximepvrt](http://github.com/maximepvrt))
+- Estéban ([@Barbapapazes](http://github.com/Barbapapazes))
+- Saman <bounoable@gmail.com>
+
 ## v1.3.3
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.3.2...v1.3.3)

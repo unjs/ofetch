@@ -8,6 +8,7 @@ import nodeFetch, {
 import { createFetch } from "./base";
 
 export * from "./base";
+export type * from "./types";
 
 export function createNodeFetch() {
   const useKeepAlive = JSON.parse(process.env.FETCH_KEEP_ALIVE || "false");
@@ -33,7 +34,9 @@ export function createNodeFetch() {
   };
 }
 
-export const fetch = globalThis.fetch || createNodeFetch();
+export const fetch = globalThis.fetch
+  ? (...args: Parameters<typeof globalThis.fetch>) => globalThis.fetch(...args)
+  : (createNodeFetch() as typeof globalThis.fetch);
 
 export const Headers = globalThis.Headers || _Headers;
 export const AbortController = globalThis.AbortController || _AbortController;

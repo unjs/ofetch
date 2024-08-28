@@ -6,4 +6,5 @@ export default defineBuildConfig({
     emitCJS: true,
   },
   entries: ["src/index", "src/node"],
+  externals: ["undici"],
 });

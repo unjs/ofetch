@@ -16,23 +16,12 @@ export interface $Fetch {
 }
 
 // --------------------------
-// Context
-// --------------------------
-
-export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
-  request: FetchRequest;
-
-  options: FetchOptions<R>;
-  response?: FetchResponse<T>;
-  error?: Error;
-}
-
-// --------------------------
 // Options
 // --------------------------
 
-export interface FetchOptions<R extends ResponseType = ResponseType>
-  extends Omit<RequestInit, "body"> {
+export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
+  extends Omit<RequestInit, "body">,
+    FetchHooks<T, R> {
   baseURL?: string;
   body?: RequestInit["body"] | Record<string, any>;
   ignoreResponseError?: boolean;
@@ -52,25 +41,12 @@ export interface FetchOptions<R extends ResponseType = ResponseType>
   timeout?: number;
 
   retry?: number | false;
+
   /** Delay between retries in milliseconds. */
-  retryDelay?: number | ((context: FetchContext) => number);
+  retryDelay?: number | ((context: FetchContext<T, R>) => number);
+
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
-
-  onRequest?: Arrayable<(context: FetchContext) => Promise<void> | void>;
-  onRequestError?: Arrayable<
-    (context: FetchContext & { error: Error }) => Promise<void> | void
-  >;
-  onResponse?: Arrayable<
-    (
-      context: FetchContext & { response: FetchResponse<R> }
-    ) => Promise<void> | void
-  >;
-  onResponseError?: Arrayable<
-    (
-      context: FetchContext & { response: FetchResponse<R> }
-    ) => Promise<void> | void
-  >;
 }
 
 export interface CreateFetchOptions {
@@ -84,6 +60,35 @@ export type GlobalOptions = Pick<
   FetchOptions,
   "timeout" | "retry" | "retryDelay"
 >;
+
+// --------------------------
+// Hooks and Context
+// --------------------------
+
+export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
+  request: FetchRequest;
+  options: FetchOptions<R>;
+  response?: FetchResponse<T>;
+  error?: Error;
+}
+
+type MaybePromise<T> = T | Promise<T>;
+type MaybeArray<T> = T | T[];
+
+export type FetchHook<C extends FetchContext = FetchContext> = (
+  context: C
+) => MaybePromise<void>;
+
+export interface FetchHooks<T = any, R extends ResponseType = ResponseType> {
+  onRequest?: MaybeArray<FetchHook<FetchContext<T, R>>>;
+  onRequestError?: MaybeArray<FetchHook<FetchContext<T, R> & { error: Error }>>;
+  onResponse?: MaybeArray<
+    FetchHook<FetchContext<T, R> & { response: FetchResponse<T> }>
+  >;
+  onResponseError?: MaybeArray<
+    FetchHook<FetchContext<T, R> & { response: FetchResponse<T> }>
+  >;
+}
 
 // --------------------------
 // Response Types
@@ -133,5 +138,3 @@ export type FetchRequest = RequestInfo;
 export interface SearchParameters {
   [key: string]: any;
 }
-
-type Arrayable<T> = T | Array<T>;

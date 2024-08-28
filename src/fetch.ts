@@ -7,6 +7,7 @@ import {
   isJSONSerializable,
   detectResponseType,
   mergeFetchOptions,
+  callHooks,
 } from "./utils";
 import type {
   CreateFetchOptions,
@@ -102,13 +103,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     context.options.method = context.options.method?.toUpperCase();
 
     if (context.options.onRequest) {
-      if (Array.isArray(context.options.onRequest)) {
-        for (const onRequest of context.options.onRequest) {
-          await onRequest(context);
-        }
-      } else {
-        await context.options.onRequest(context);
-      }
+      await callHooks(context, context.options.onRequest);
     }
 
     if (typeof context.request === "string") {
@@ -181,13 +176,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     } catch (error) {
       context.error = error as Error;
       if (context.options.onRequestError) {
-        if (Array.isArray(context.options.onRequestError)) {
-          for (const onRequestError of context.options.onRequestError) {
-            await onRequestError(context as any);
-          }
-        } else {
-          await context.options.onRequestError(context as any);
-        }
+        await callHooks(
+          context as FetchContext & { error: Error },
+          context.options.onRequestError
+        );
       }
       return await onError(context);
     } finally {
@@ -226,13 +218,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     if (context.options.onResponse) {
-      if (Array.isArray(context.options.onResponse)) {
-        for (const onResponse of context.options.onResponse) {
-          await onResponse(context as any);
-        }
-      } else {
-        await context.options.onResponse(context as any);
-      }
+      await callHooks(
+        context as FetchContext & { response: FetchResponse<any> },
+        context.options.onResponse
+      );
     }
 
     if (
@@ -241,13 +230,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.response.status < 600
     ) {
       if (context.options.onResponseError) {
-        if (Array.isArray(context.options.onResponseError)) {
-          for (const onResponseError of context.options.onResponseError) {
-            await onResponseError(context as any);
-          }
-        } else {
-          await context.options.onResponseError(context as any);
-        }
+        await callHooks(
+          context as FetchContext & { response: FetchResponse<any> },
+          context.options.onResponseError
+        );
       }
       return await onError(context);
     }

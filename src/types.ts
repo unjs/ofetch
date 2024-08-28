@@ -70,7 +70,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 export interface ResolvedFetchOptions<
   R extends ResponseType = ResponseType,
   T = any,
-> extends Omit<FetchOptions<R, T>, "params"> {
+> extends FetchOptions<R, T> {
   headers: Headers;
 }
 

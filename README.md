@@ -291,19 +291,27 @@ const response = await ofetch.raw("/sushi");
 // ...
 ```
 
+## 🌿 Using Native Fetch
+
+As a shortcut, you can use `ofetch.native` that provides native `fetch` API
+
+```js
+const json = await ofetch.native("/sushi").then((r) => r.json());
+```
+
 ## 🕵️ Adding HTTP(S) Agent
 
-In Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy.
+In Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy and self-signed certificates.
 
-This feature is enabled by [undici](https://undici.nodejs.org/) built-in Node.js. Read more [here](https://undici.nodejs.org/#/docs/api/Dispatcher) about the Dispatcher API.
+This feature is enabled by [undici](https://undici.nodejs.org/) built-in Node.js. [read more](https://undici.nodejs.org/#/docs/api/Dispatcher) about the Dispatcher API.
 
 Some available agents:
 
-- `ProxyAgent`: A Proxy Agent class that implements the Agent API. It allows the connection through proxy in a simple way. ([docs](https://undici.nodejs.org/#/docs/api/ProxyAgent))
+- `ProxyAgent`: A Proxy Agent class that implements the Agent API. It allows the connection through a proxy in a simple way. ([docs](https://undici.nodejs.org/#/docs/api/ProxyAgent))
 - `MockAgent`: A mocked Agent class that implements the Agent API. It allows one to intercept HTTP requests made through undici and return mocked responses instead. ([docs](https://undici.nodejs.org/#/docs/api/MockAgent))
-- `Agent`: Agent allow dispatching requests against multiple different origins. ([docs](https://undici.nodejs.org/#/docs/api/Agent))
+- `Agent`: Agent allows dispatching requests against multiple different origins. ([docs](https://undici.nodejs.org/#/docs/api/Agent))
 
-- **Example:** Set a proxy agent for one request:
+**Example:** Set a proxy agent for one request:
 
 ```ts
 import { ProxyAgent } from "undici";
@@ -337,13 +345,13 @@ setGlobalDispatcher(proxyAgent);
 const data = await ofetch("https://icanhazip.com");
 ```
 
-**Example:** Allow self-signed certificated (USE AT YOUR OWN RISK!)
+**Example:** Allow self-signed certificates (USE AT YOUR OWN RISK!)
 
 ```ts
 import { Agent } from "undici";
 import { ofetch } from "ofetch";
 
-// Note: This make fetch unsecure to MITM attacks. USE AT YOUW OWN RISK!
+// Note: This makes fetch unsecure against MITM attacks. USE AT YOUW OWN RISK!
 const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
 
@@ -365,14 +373,6 @@ await ofetch("/api", {
 By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an HTTP/HTTPS agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to re-establish a TCP connection.
 
 **Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
-
-## 🌿 Using Native Fetch
-
-As a shortcut, you can use `ofetch.native` that provides native `fetch` API
-
-```js
-const json = await ofetch.native("/sushi").then((r) => r.json());
-```
 
 ## 📦 Bundler Notes
 

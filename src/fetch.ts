@@ -7,6 +7,7 @@ import {
   isJSONSerializable,
   detectResponseType,
   mergeFetchOptions,
+  callHooks,
 } from "./utils";
 import type {
   CreateFetchOptions,
@@ -102,7 +103,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     context.options.method = context.options.method?.toUpperCase();
 
     if (context.options.onRequest) {
-      await context.options.onRequest(context);
+      await callHooks(context, context.options.onRequest);
     }
 
     if (typeof context.request === "string") {
@@ -175,7 +176,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     } catch (error) {
       context.error = error as Error;
       if (context.options.onRequestError) {
-        await context.options.onRequestError(context as any);
+        await callHooks(
+          context as FetchContext & { error: Error },
+          context.options.onRequestError
+        );
       }
       return await onError(context);
     } finally {
@@ -214,7 +218,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     if (context.options.onResponse) {
-      await context.options.onResponse(context as any);
+      await callHooks(
+        context as FetchContext & { response: FetchResponse<any> },
+        context.options.onResponse
+      );
     }
 
     if (
@@ -223,7 +230,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.response.status < 600
     ) {
       if (context.options.onResponseError) {
-        await context.options.onResponseError(context as any);
+        await callHooks(
+          context as FetchContext & { response: FetchResponse<any> },
+          context.options.onResponseError
+        );
       }
       return await onError(context);
     }

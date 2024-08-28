@@ -9,7 +9,7 @@ import {
   readRawBody,
   toNodeListener,
 } from "h3";
-import { describe, beforeAll, afterAll, it, expect } from "vitest";
+import { describe, beforeAll, afterAll, it, expect, vi } from "vitest";
 import { Headers, FormData, Blob } from "node-fetch-native";
 import { nodeMajorVersion } from "std-env";
 import { $fetch } from "../src/node";
@@ -384,5 +384,75 @@ describe("ofetch", () => {
     });
 
     expect(path).to.eq("?b=2&c=3&a=1");
+  });
+
+  it("calls hooks", async () => {
+    const onRequest = vi.fn();
+    const onRequestError = vi.fn();
+    const onResponse = vi.fn();
+    const onResponseError = vi.fn();
+
+    await $fetch(getURL("/ok"), {
+      onRequest,
+      onRequestError,
+      onResponse,
+      onResponseError,
+    });
+
+    expect(onRequest).toHaveBeenCalledOnce();
+    expect(onRequestError).not.toHaveBeenCalled();
+    expect(onResponse).toHaveBeenCalledOnce();
+    expect(onResponseError).not.toHaveBeenCalled();
+
+    onRequest.mockReset();
+    onRequestError.mockReset();
+    onResponse.mockReset();
+    onResponseError.mockReset();
+
+    await $fetch(getURL("/403"), {
+      onRequest,
+      onRequestError,
+      onResponse,
+      onResponseError,
+    }).catch((error) => error);
+
+    expect(onRequest).toHaveBeenCalledOnce();
+    expect(onRequestError).not.toHaveBeenCalled();
+    expect(onResponse).toHaveBeenCalledOnce();
+    expect(onResponseError).toHaveBeenCalledOnce();
+
+    onRequest.mockReset();
+    onRequestError.mockReset();
+    onResponse.mockReset();
+    onResponseError.mockReset();
+
+    await $fetch(getURL("/ok"), {
+      onRequest: [onRequest, onRequest],
+      onRequestError: [onRequestError, onRequestError],
+      onResponse: [onResponse, onResponse],
+      onResponseError: [onResponseError, onResponseError],
+    });
+
+    expect(onRequest).toHaveBeenCalledTimes(2);
+    expect(onRequestError).not.toHaveBeenCalled();
+    expect(onResponse).toHaveBeenCalledTimes(2);
+    expect(onResponseError).not.toHaveBeenCalled();
+
+    onRequest.mockReset();
+    onRequestError.mockReset();
+    onResponse.mockReset();
+    onResponseError.mockReset();
+
+    await $fetch(getURL("/403"), {
+      onRequest: [onRequest, onRequest],
+      onRequestError: [onRequestError, onRequestError],
+      onResponse: [onResponse, onResponse],
+      onResponseError: [onResponseError, onResponseError],
+    }).catch((error) => error);
+
+    expect(onRequest).toHaveBeenCalledTimes(2);
+    expect(onRequestError).not.toHaveBeenCalled();
+    expect(onResponse).toHaveBeenCalledTimes(2);
+    expect(onResponseError).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,4 +1,9 @@
-import type { FetchOptions, ResponseType } from "./types";
+import type {
+  FetchContext,
+  FetchHook,
+  FetchOptions,
+  ResponseType,
+} from "./types";
 
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
@@ -98,4 +103,19 @@ export function mergeFetchOptions(
   }
 
   return merged;
+}
+
+export async function callHooks<C extends FetchContext = FetchContext>(
+  context: C,
+  hooks: FetchHook<C> | FetchHook<C>[] | undefined
+): Promise<void> {
+  if (hooks) {
+    if (Array.isArray(hooks)) {
+      for (const hook of hooks) {
+        await hook(context);
+      }
+    } else {
+      await hooks(context);
+    }
+  }
 }

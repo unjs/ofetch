@@ -96,7 +96,6 @@ export function resolveFetchOptions<
     ...defaults,
     ...input,
     query,
-    // @ts-expect-error backward compatibility
     params: query,
     headers,
   };

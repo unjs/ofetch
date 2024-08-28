@@ -1,4 +1,4 @@
-import type { Readable } from "node:stream";
+import type { Readable } from "stream";
 import destr from "destr";
 import { withBase, withQuery } from "ufo";
 import { createFetchError } from "./error";

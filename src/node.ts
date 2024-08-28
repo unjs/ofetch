@@ -1,5 +1,5 @@
-import http from "node:http";
-import https, { AgentOptions } from "node:https";
+import http from "http";
+import https, { AgentOptions } from "https";
 import nodeFetch, {
   Headers as _Headers,
   AbortController as _AbortController,

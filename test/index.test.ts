@@ -388,6 +388,21 @@ describe("ofetch", () => {
     expect(parseParams(path)).toMatchObject(parseParams("?b=2&c=3&a=1"));
   });
 
+  it("uses request headers", async () => {
+    expect(
+      await $fetch(
+        new Request(getURL("echo"), { headers: { foo: "1" } }),
+        {}
+      ).then((r) => r.headers)
+    ).toMatchObject({ foo: "1" });
+
+    expect(
+      await $fetch(new Request(getURL("echo"), { headers: { foo: "1" } }), {
+        headers: { foo: "2", bar: "3" },
+      }).then((r) => r.headers)
+    ).toMatchObject({ foo: "2", bar: "3" });
+  });
+
   it("calls hooks", async () => {
     const onRequest = vi.fn();
     const onRequestError = vi.fn();

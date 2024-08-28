@@ -98,6 +98,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     const context: FetchContext = {
       request: _request,
       options: resolveFetchOptions<R, T>(
+        _request,
         _options,
         globalOptions.defaults as unknown as FetchOptions<R, T>,
         Headers

@@ -2,6 +2,7 @@ import type {
   FetchContext,
   FetchHook,
   FetchOptions,
+  FetchRequest,
   ResolvedFetchOptions,
   ResponseType,
 } from "./types";
@@ -74,12 +75,17 @@ export function resolveFetchOptions<
   R extends ResponseType = ResponseType,
   T = any,
 >(
+  request: FetchRequest,
   input: FetchOptions<R, T> | undefined,
   defaults: FetchOptions<R, T> | undefined,
   Headers: typeof globalThis.Headers
 ): ResolvedFetchOptions<R, T> {
   // Merge headers
-  const headers = mergeHeaders(input?.headers, defaults?.headers, Headers);
+  const headers = mergeHeaders(
+    input?.headers ?? (request as Request)?.headers,
+    defaults?.headers,
+    Headers
+  );
 
   // Merge query/params
   let query: Record<string, any> | undefined;

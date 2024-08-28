@@ -23,11 +23,17 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
   extends Omit<RequestInit, "body">,
     FetchHooks<T, R> {
   baseURL?: string;
+
   body?: RequestInit["body"] | Record<string, any>;
+
   ignoreResponseError?: boolean;
+
   params?: Record<string, any>;
+
   query?: Record<string, any>;
+
   parseResponse?: (responseText: string) => any;
+
   responseType?: R;
 
   /**
@@ -61,6 +67,13 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
   retryStatusCodes?: number[];
 }
 
+export interface ResolvedFetchOptions<
+  R extends ResponseType = ResponseType,
+  T = any,
+> extends Omit<FetchOptions<R, T>, "params"> {
+  headers: Headers;
+}
+
 export interface CreateFetchOptions {
   defaults?: FetchOptions;
   fetch?: Fetch;
@@ -79,7 +92,7 @@ export type GlobalOptions = Pick<
 
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest;
-  options: FetchOptions<R>;
+  options: ResolvedFetchOptions<R>;
   response?: FetchResponse<T>;
   error?: Error;
 }

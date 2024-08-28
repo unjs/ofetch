@@ -2,6 +2,7 @@ import type {
   FetchContext,
   FetchHook,
   FetchOptions,
+  ResolvedFetchOptions,
   ResponseType,
 } from "./types";
 
@@ -69,40 +70,55 @@ export function detectResponseType(_contentType = ""): ResponseType {
   return "blob";
 }
 
-// Merging of fetch option objects.
-export function mergeFetchOptions(
-  input: FetchOptions | undefined,
-  defaults: FetchOptions | undefined,
-  Headers = globalThis.Headers
-): FetchOptions {
-  const merged: FetchOptions = {
-    ...defaults,
-    ...input,
-  };
+export function resolveFetchOptions<
+  R extends ResponseType = ResponseType,
+  T = any,
+>(
+  input: FetchOptions<R, T> | undefined,
+  defaults: FetchOptions<R, T> | undefined,
+  Headers: typeof globalThis.Headers
+): ResolvedFetchOptions<R, T> {
+  // Merge headers
+  const headers = mergeHeaders(input?.headers, defaults?.headers, Headers);
 
-  // Merge params and query
-  if (defaults?.params && input?.params) {
-    merged.params = {
+  // Merge query/params
+  let query: Record<string, any> | undefined;
+  if (defaults?.query || defaults?.params || input?.params || input?.query) {
+    query = {
       ...defaults?.params,
-      ...input?.params,
-    };
-  }
-  if (defaults?.query && input?.query) {
-    merged.query = {
       ...defaults?.query,
+      ...input?.params,
       ...input?.query,
     };
   }
 
-  // Merge headers
-  if (defaults?.headers && input?.headers) {
-    merged.headers = new Headers(defaults?.headers || {});
-    for (const [key, value] of new Headers(input?.headers || {})) {
-      merged.headers.set(key, value);
+  return {
+    ...defaults,
+    ...input,
+    query,
+    // @ts-expect-error backward compatibility
+    params: query,
+    headers,
+  };
+}
+
+function mergeHeaders(
+  input: HeadersInit | undefined,
+  defaults: HeadersInit | undefined,
+  Headers: typeof globalThis.Headers
+): Headers {
+  if (!defaults) {
+    return new Headers(input);
+  }
+  const headers = new Headers(defaults);
+  if (input) {
+    for (const [key, value] of Symbol.iterator in input || Array.isArray(input)
+      ? input
+      : new Headers(input)) {
+      headers.set(key, value);
     }
   }
-
-  return merged;
+  return headers;
 }
 
 export async function callHooks<C extends FetchContext = FetchContext>(

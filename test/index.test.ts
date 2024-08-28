@@ -383,7 +383,9 @@ describe("ofetch", () => {
       "x-header-c": "3",
     });
 
-    expect(path).to.eq("?b=2&c=3&a=1");
+    const parseParams = (str: string) =>
+      Object.fromEntries(new URLSearchParams(str).entries());
+    expect(parseParams(path)).toMatchObject(parseParams("?b=2&c=3&a=1"));
   });
 
   it("calls hooks", async () => {

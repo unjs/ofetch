@@ -403,6 +403,44 @@ describe("ofetch", () => {
     ).toMatchObject({ foo: "2", bar: "3" });
   });
 
+  it("hook errors", async () => {
+    // onRequest
+    await expect(
+      $fetch(getURL("/ok"), {
+        onRequest: () => {
+          throw new Error("error in onRequest");
+        },
+      })
+    ).rejects.toThrow("error in onRequest");
+
+    // onRequestError
+    await expect(
+      $fetch("/" /* non absolute is not acceptable */, {
+        onRequestError: () => {
+          throw new Error("error in onRequestError");
+        },
+      })
+    ).rejects.toThrow("error in onRequestError");
+
+    // onResponse
+    await expect(
+      $fetch(getURL("/ok"), {
+        onRequest: () => {
+          throw new Error("error in onResponse");
+        },
+      })
+    ).rejects.toThrow("error in onResponse");
+
+    // onResponseError
+    await expect(
+      $fetch(getURL("/403"), {
+        onResponseError: () => {
+          throw new Error("error in onResponseError");
+        },
+      })
+    ).rejects.toThrow("error in onResponseError");
+  });
+
   it("calls hooks", async () => {
     const onRequest = vi.fn();
     const onRequestError = vi.fn();

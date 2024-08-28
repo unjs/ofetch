@@ -6,14 +6,17 @@ import {
   isPayloadMethod,
   isJSONSerializable,
   detectResponseType,
-  mergeFetchOptions,
+  resolveFetchOptions,
   callHooks,
 } from "./utils";
 import type {
   CreateFetchOptions,
   FetchResponse,
+  ResponseType,
   FetchContext,
   $Fetch,
+  FetchRequest,
+  FetchOptions,
 } from "./types";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -88,13 +91,18 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     throw error;
   }
 
-  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw(
-    _request,
-    _options = {}
-  ) {
+  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
+    T = any,
+    R extends ResponseType = "json",
+  >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
     const context: FetchContext = {
       request: _request,
-      options: mergeFetchOptions(_options, globalOptions.defaults, Headers),
+      options: resolveFetchOptions<R, T>(
+        _request,
+        _options,
+        globalOptions.defaults as unknown as FetchOptions<R, T>,
+        Headers
+      ),
       response: undefined,
       error: undefined,
     };
@@ -110,11 +118,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (context.options.baseURL) {
         context.request = withBase(context.request, context.options.baseURL);
       }
-      if (context.options.query || context.options.params) {
-        context.request = withQuery(context.request, {
-          ...context.options.params,
-          ...context.options.query,
-        });
+      if (context.options.query) {
+        context.request = withQuery(context.request, context.options.query);
       }
     }
 

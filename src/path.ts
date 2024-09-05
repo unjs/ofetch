@@ -76,8 +76,15 @@ export function withBase(input = "", base = ""): string {
  * Returns the URL with the given query parameters. If a query parameter is undefined, it is omitted.
  */
 export function withQuery(input: string, query: QueryObject): string {
-  const url = new URL(input, "http://localhost");
-  const searchParams = new URLSearchParams(url.search);
+  let url: URL | undefined;
+  let searchParams: URLSearchParams;
+
+  if (input.includes("?")) {
+    url = new URL(input, "http://localhost");
+    searchParams = new URLSearchParams(url.search);
+  } else {
+    searchParams = new URLSearchParams();
+  }
 
   for (const [key, value] of Object.entries(query)) {
     if (value === undefined) {
@@ -97,12 +104,16 @@ export function withQuery(input: string, query: QueryObject): string {
     }
   }
 
-  url.search = searchParams.toString();
-  let urlWithQuery = url.toString();
+  const queryString = searchParams.toString();
 
-  if (urlWithQuery.startsWith("http://localhost")) {
-    urlWithQuery = urlWithQuery.slice(16);
+  if (url) {
+    url.search = queryString;
+    let urlWithQuery = url.toString();
+    if (urlWithQuery.startsWith("http://localhost")) {
+      urlWithQuery = urlWithQuery.slice(16);
+    }
+    return urlWithQuery;
   }
 
-  return urlWithQuery;
+  return queryString ? `${input}?${queryString}` : input;
 }

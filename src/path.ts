@@ -9,6 +9,8 @@ export type QueryValue =
   | undefined;
 export type QueryObject = Record<string, QueryValue | QueryValue[]>;
 
+const DEFAULT_BASE_URL = "http://localhost";
+
 /**
  * Removes the leading slash from the given path if it has one.
  */
@@ -80,7 +82,7 @@ export function withQuery(input: string, query: QueryObject): string {
   let searchParams: URLSearchParams;
 
   if (input.includes("?")) {
-    url = new URL(input, "http://localhost");
+    url = new URL(input, DEFAULT_BASE_URL);
     searchParams = new URLSearchParams(url.search);
   } else {
     searchParams = new URLSearchParams();
@@ -109,7 +111,7 @@ export function withQuery(input: string, query: QueryObject): string {
   if (url) {
     url.search = queryString;
     let urlWithQuery = url.toString();
-    if (urlWithQuery.startsWith("http://localhost")) {
+    if (urlWithQuery.startsWith(DEFAULT_BASE_URL)) {
       urlWithQuery = urlWithQuery.slice(16);
     }
     return urlWithQuery;

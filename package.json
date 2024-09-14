@@ -75,8 +75,8 @@
     "ufo": "^1.5.4"
   },
   "devDependencies": {
-    "@types/node": "^22.5.4",
-    "@vitest/coverage-v8": "^2.0.5",
+    "@types/node": "^22.5.5",
+    "@vitest/coverage-v8": "^2.1.1",
     "changelogen": "^0.5.5",
     "eslint": "^9.10.0",
     "eslint-config-unjs": "^0.3.2",
@@ -87,10 +87,10 @@
     "listhen": "^1.7.2",
     "prettier": "^3.3.3",
     "std-env": "^3.7.0",
-    "typescript": "^5.5.4",
+    "typescript": "^5.6.2",
     "unbuild": "2.0.0",
     "undici": "^6.19.8",
-    "vitest": "^2.0.5"
+    "vitest": "^2.1.1"
   },
-  "packageManager": "pnpm@9.9.0"
+  "packageManager": "pnpm@9.10.0"
 }

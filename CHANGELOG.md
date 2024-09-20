@@ -2,6 +2,65 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.4.0
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.3.4...v1.4.0)
+
+### 🚀 Enhancements
+
+- Support `retryDelay` with callback function ([#372](https://github.com/unjs/ofetch/pull/372))
+- Add better message and code for timeout error ([#351](https://github.com/unjs/ofetch/pull/351))
+- Allow custom global options for `$fetch.create` ([#401](https://github.com/unjs/ofetch/pull/401))
+- Support interceptors arrays ([#353](https://github.com/unjs/ofetch/pull/353))
+- Always clone and normalize `options.headers` and `options.query` ([#436](https://github.com/unjs/ofetch/pull/436))
+
+### 🩹 Fixes
+
+- Export types from `node` export condition ([#407](https://github.com/unjs/ofetch/pull/407))
+- Use wrapper to allow patching global `fetch` ([#377](https://github.com/unjs/ofetch/pull/377))
+
+### 📖 Documentation
+
+- Add docs for using undici dispatcher ([#389](https://github.com/unjs/ofetch/pull/389))
+
+### 🌊 Types
+
+- Add `agent` and `dispatcher` options (node-specific) ([#308](https://github.com/unjs/ofetch/pull/308))
+
+### 🏡 Chore
+
+- **release:** V1.3.4 ([5cc16a0](https://github.com/unjs/ofetch/commit/5cc16a0))
+- Remove extra space ([#384](https://github.com/unjs/ofetch/pull/384))
+- Update deps ([509a037](https://github.com/unjs/ofetch/commit/509a037))
+- Update to eslint v9 ([e63c598](https://github.com/unjs/ofetch/commit/e63c598))
+- Apply automated fixes ([f8f5413](https://github.com/unjs/ofetch/commit/f8f5413))
+- Add back spoiler ([dba1915](https://github.com/unjs/ofetch/commit/dba1915))
+- Add experimental for `Too Early` status ([#426](https://github.com/unjs/ofetch/pull/426))
+- Update dependencies ([b5fe505](https://github.com/unjs/ofetch/commit/b5fe505))
+- Update deps ([20f67b9](https://github.com/unjs/ofetch/commit/20f67b9))
+
+### ✅ Tests
+
+- Add additional tests for hook errors ([7ff4d11](https://github.com/unjs/ofetch/commit/7ff4d11))
+
+### 🤖 CI
+
+- Update node version ([4faac04](https://github.com/unjs/ofetch/commit/4faac04))
+- Update autifix ([79483ab](https://github.com/unjs/ofetch/commit/79483ab))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Antoine Rey <antoinerey38@gmail.com>
+- Cafu Chino <kirino@cafuchino.cn>
+- Marco Solazzi <marco.solazzi@gmail.com>
+- @beer ([@iiio2](http://github.com/iiio2))
+- Daniel Roe ([@danielroe](http://github.com/danielroe))
+- Arlo <webfansplz@gmail.com>
+- Alexander Topalo <topaloalexander@gmail.com>
+- Sam Blowes <samblowes@hotmail.com>
+- Kongmoumou ([@kongmoumou](http://github.com/kongmoumou))
+
 ## v1.3.4
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.3.3...v1.3.4)

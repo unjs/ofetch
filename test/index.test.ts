@@ -510,4 +510,31 @@ describe("ofetch", () => {
     expect(onResponse).toHaveBeenCalledTimes(2);
     expect(onResponseError).toHaveBeenCalledTimes(2);
   });
+
+  it("should support method aliases like get, post, put, etc.", async () => {
+    // Test the GET alias
+    expect(await $fetch.get(getURL("ok"))).to.equal("ok");
+
+    // Test the POST alias
+    const { body: postBody } = await $fetch.post(getURL("post"), {
+      body: { test: "post" },
+    });
+    expect(postBody).to.deep.eq({ test: "post" });
+
+    // Test the PUT alias
+    const { body: putBody } = await $fetch.put(getURL("post"), {
+      body: { test: "put" },
+    });
+    expect(putBody).to.deep.eq({ test: "put" });
+
+    // Test the DELETE alias
+    const deleteResponse = await $fetch.delete(getURL("ok"));
+    expect(deleteResponse).to.equal("ok");
+
+    // Test the PATCH alias
+    const { body: patchBody } = await $fetch.patch(getURL("post"), {
+      body: { test: "patch" },
+    });
+    expect(patchBody).to.deep.eq({ test: "patch" });
+  });
 });

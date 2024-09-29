@@ -15,6 +15,7 @@ import type {
   ResponseType,
   FetchContext,
   $Fetch,
+  FetchWithAliases,
   FetchRequest,
   FetchOptions,
 } from "./types";
@@ -246,10 +247,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     return context.response;
   };
 
-  const $fetch = async function $fetch(request, options) {
+  const $fetch: FetchWithAliases = async function $fetch(request, options) {
     const r = await $fetchRaw(request, options);
     return r._data;
-  } as $Fetch;
+  } as FetchWithAliases;
 
   $fetch.raw = $fetchRaw;
 
@@ -265,6 +266,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         ...defaultOptions,
       },
     });
+
+  const methods = ["get", "post", "put", "patch", "delete", "head", "options"];
+
+  for (const method of methods) {
+    $fetch[method] = (request, options = {}) => {
+      return $fetch(request, { ...options, method: method.toUpperCase() });
+    };
+  }
 
   return $fetch;
 }

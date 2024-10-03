@@ -425,7 +425,7 @@ describe("ofetch", () => {
     // onResponse
     await expect(
       $fetch(getURL("/ok"), {
-        onRequest: () => {
+        onResponse: () => {
           throw new Error("error in onResponse");
         },
       })

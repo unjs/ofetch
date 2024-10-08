@@ -215,7 +215,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           break;
         }
         case "stream": {
-          context.response._data = context.response.body;
+          context.response._data =
+            context.response.body ||
+            // https://github.com/JakeChampion/fetch/issues/1454
+            (context.response as any)._bodyInit;
           break;
         }
         default: {

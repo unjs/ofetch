@@ -218,8 +218,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         }
         case "stream": {
           context.response._data =
-            context.response.body ||            
-            (context.response as any)._bodyInit; // (see refs above)
+            context.response.body || (context.response as any)._bodyInit; // (see refs above)
           break;
         }
         default: {

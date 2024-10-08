@@ -203,7 +203,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     const hasBody =
-      context.response.body &&
+      (context.response.body ||
+        // https://github.com/unjs/ofetch/issues/324
+        // https://github.com/unjs/ofetch/issues/294
+        // https://github.com/JakeChampion/fetch/issues/1454
+        (context.response as any)._bodyInit) &&
       !nullBodyResponses.has(context.response.status) &&
       context.options.method !== "HEAD";
     if (hasBody) {
@@ -222,7 +226,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           break;
         }
         case "stream": {
-          context.response._data = context.response.body;
+          context.response._data =
+            context.response.body || (context.response as any)._bodyInit; // (see refs above)
           break;
         }
         default: {

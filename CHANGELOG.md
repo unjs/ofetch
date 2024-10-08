@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.4.1
+
+[compare changes](https://github.com/unjs/ofetch/compare/v1.4.0...v1.4.1)
+
+### 🩹 Fixes
+
+- Remove undefined `method` and `query`/`params` from fetch options ([#451](https://github.com/unjs/ofetch/pull/451))
+- Use `response._bodyInit` as fallback for react-native and qq ([#398](https://github.com/unjs/ofetch/pull/398))
+
+### 🏡 Chore
+
+- **examples:** Fix typos ([#450](https://github.com/unjs/ofetch/pull/450))
+- Update dependencies ([caaf04d](https://github.com/unjs/ofetch/commit/caaf04d))
+- Update eslint config ([b4c9990](https://github.com/unjs/ofetch/commit/b4c9990))
+
+### ✅ Tests
+
+- Fix typo ([#448](https://github.com/unjs/ofetch/pull/448))
+
+### ❤️ Contributors
+
+- Joshua Sosso ([@joshmossas](http://github.com/joshmossas))
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- @beer ([@iiio2](http://github.com/iiio2))
+- Cooper Roper <cooproper@hotmail.com>
+
 ## v1.4.0
 
 [compare changes](https://github.com/unjs/ofetch/compare/v1.3.4...v1.4.0)

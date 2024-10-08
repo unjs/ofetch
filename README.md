@@ -41,12 +41,6 @@ const { ofetch } = require("ofetch");
 We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
 and automatically use [unjs/node-fetch-native](https://github.com/unjs/node-fetch-native). If `globalThis.fetch` is available, will be used instead. To leverage Node.js 17.5.0 experimental native fetch API use [`--experimental-fetch` flag](https://nodejs.org/dist/latest-v17.x/docs/api/cli.html#--experimental-fetch).
 
-### `keepAlive` support
-
-By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an HTTP/HTTPS agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to re-establish a TCP connection.
-
-**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
-
 ## ✔️ Parsing Response
 
 `ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to the text if it fails to parse.
@@ -243,6 +237,23 @@ await ofetch("/api", {
 });
 ```
 
+### Passing array of interceptors
+
+If necessary, it's also possible to pass an array of function that will be called sequentially.
+
+```js
+await ofetch("/api", {
+  onRequest: [
+    () => {
+      /* Do something */
+    },
+    () => {
+      /* Do something else */
+    },
+  ],
+});
+```
+
 ## ✔️ Create fetch with default options
 
 This utility is useful if you need to use common options across several fetch calls.
@@ -268,35 +279,6 @@ await ofetch("/movies", {
 });
 ```
 
-## 💡 Adding a HTTP(S) / Proxy Agent
-
-If you need use a HTTP(S) / Proxy Agent, you can (for Node.js only):
-
-### Node >= v18
-
-Add `ProxyAgent` to `dispatcher` option with `undici`
-
-```js
-import { ofetch } from 'ofetch'
-import { ProxyAgent } from 'undici'
-
-await ofetch("/api", {
-  dispatcher: new ProxyAgent("http://example.com"),
-});
-```
-
-### Node < v18
-
-Add `HttpsProxyAgent` to `agent` option with `https-proxy-agent`
-
-```js
-import { HttpsProxyAgent } from "https-proxy-agent";
-
-await ofetch("/api", {
-  agent: new HttpsProxyAgent("http://example.com"),
-});
-```
-
 ## 🍣 Access to Raw Response
 
 If you need to access raw response (for headers, etc), can use `ofetch.raw`:
@@ -309,13 +291,86 @@ const response = await ofetch.raw("/sushi");
 // ...
 ```
 
-## Native fetch
+## 🌿 Using Native Fetch
 
 As a shortcut, you can use `ofetch.native` that provides native `fetch` API
 
 ```js
 const json = await ofetch.native("/sushi").then((r) => r.json());
 ```
+
+## 🕵️ Adding HTTP(S) Agent
+
+In Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy and self-signed certificates. This feature is enabled by [undici](https://undici.nodejs.org/) built-in Node.js. [read more](https://undici.nodejs.org/#/docs/api/Dispatcher) about the Dispatcher API.
+
+Some available agents:
+
+- `ProxyAgent`: A Proxy Agent class that implements the Agent API. It allows the connection through a proxy in a simple way. ([docs](https://undici.nodejs.org/#/docs/api/ProxyAgent))
+- `MockAgent`: A mocked Agent class that implements the Agent API. It allows one to intercept HTTP requests made through undici and return mocked responses instead. ([docs](https://undici.nodejs.org/#/docs/api/MockAgent))
+- `Agent`: Agent allows dispatching requests against multiple different origins. ([docs](https://undici.nodejs.org/#/docs/api/Agent))
+
+**Example:** Set a proxy agent for one request:
+
+```ts
+import { ProxyAgent } from "undici";
+import { ofetch } from "ofetch";
+
+const proxyAgent = new ProxyAgent("http://localhost:3128");
+const data = await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
+```
+
+**Example:** Create a custom fetch instance that has proxy enabled:
+
+```ts
+import { ProxyAgent, setGlobalDispatcher } from "undici";
+import { ofetch } from "ofetch";
+
+const proxyAgent = new ProxyAgent("http://localhost:3128");
+const fetchWithProxy = ofetch.create({ dispatcher: proxyAgent });
+
+const data = await fetchWithProxy("https://icanhazip.com");
+```
+
+**Example:** Set a proxy agent for all requests:
+
+```ts
+import { ProxyAgent, setGlobalDispatcher } from "undici";
+import { ofetch } from "ofetch";
+
+const proxyAgent = new ProxyAgent("http://localhost:3128");
+setGlobalDispatcher(proxyAgent);
+
+const data = await ofetch("https://icanhazip.com");
+```
+
+**Example:** Allow self-signed certificates (USE AT YOUR OWN RISK!)
+
+```ts
+import { Agent } from "undici";
+import { ofetch } from "ofetch";
+
+// Note: This makes fetch unsecure against MITM attacks. USE AT YOUW OWN RISK!
+const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
+const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
+
+const data = await unsecureFetch("https://www.squid-cache.org/");
+```
+
+On older Node.js version (<18), you might also use use `agent`:
+
+```ts
+import { HttpsProxyAgent } from "https-proxy-agent";
+
+await ofetch("/api", {
+  agent: new HttpsProxyAgent("http://example.com"),
+});
+```
+
+### `keepAlive` support (only works for Node < 18)
+
+By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an HTTP/HTTPS agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to re-establish a TCP connection.
+
+**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
 
 ## 📦 Bundler Notes
 

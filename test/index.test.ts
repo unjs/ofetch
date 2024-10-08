@@ -9,7 +9,7 @@ import {
   readRawBody,
   toNodeListener,
 } from "h3";
-import { describe, beforeAll, afterAll, it, expect } from "vitest";
+import { describe, beforeAll, afterAll, it, expect, vi } from "vitest";
 import { Headers, FormData, Blob } from "node-fetch-native";
 import { nodeMajorVersion } from "std-env";
 import { $fetch } from "../src/node";
@@ -383,6 +383,131 @@ describe("ofetch", () => {
       "x-header-c": "3",
     });
 
-    expect(path).to.eq("?b=2&c=3&a=1");
+    const parseParams = (str: string) =>
+      Object.fromEntries(new URLSearchParams(str).entries());
+    expect(parseParams(path)).toMatchObject(parseParams("?b=2&c=3&a=1"));
+  });
+
+  it("uses request headers", async () => {
+    expect(
+      await $fetch(
+        new Request(getURL("echo"), { headers: { foo: "1" } }),
+        {}
+      ).then((r) => r.headers)
+    ).toMatchObject({ foo: "1" });
+
+    expect(
+      await $fetch(new Request(getURL("echo"), { headers: { foo: "1" } }), {
+        headers: { foo: "2", bar: "3" },
+      }).then((r) => r.headers)
+    ).toMatchObject({ foo: "2", bar: "3" });
+  });
+
+  it("hook errors", async () => {
+    // onRequest
+    await expect(
+      $fetch(getURL("/ok"), {
+        onRequest: () => {
+          throw new Error("error in onRequest");
+        },
+      })
+    ).rejects.toThrow("error in onRequest");
+
+    // onRequestError
+    await expect(
+      $fetch("/" /* non absolute is not acceptable */, {
+        onRequestError: () => {
+          throw new Error("error in onRequestError");
+        },
+      })
+    ).rejects.toThrow("error in onRequestError");
+
+    // onResponse
+    await expect(
+      $fetch(getURL("/ok"), {
+        onResponse: () => {
+          throw new Error("error in onResponse");
+        },
+      })
+    ).rejects.toThrow("error in onResponse");
+
+    // onResponseError
+    await expect(
+      $fetch(getURL("/403"), {
+        onResponseError: () => {
+          throw new Error("error in onResponseError");
+        },
+      })
+    ).rejects.toThrow("error in onResponseError");
+  });
+
+  it("calls hooks", async () => {
+    const onRequest = vi.fn();
+    const onRequestError = vi.fn();
+    const onResponse = vi.fn();
+    const onResponseError = vi.fn();
+
+    await $fetch(getURL("/ok"), {
+      onRequest,
+      onRequestError,
+      onResponse,
+      onResponseError,
+    });
+
+    expect(onRequest).toHaveBeenCalledOnce();
+    expect(onRequestError).not.toHaveBeenCalled();
+    expect(onResponse).toHaveBeenCalledOnce();
+    expect(onResponseError).not.toHaveBeenCalled();
+
+    onRequest.mockReset();
+    onRequestError.mockReset();
+    onResponse.mockReset();
+    onResponseError.mockReset();
+
+    await $fetch(getURL("/403"), {
+      onRequest,
+      onRequestError,
+      onResponse,
+      onResponseError,
+    }).catch((error) => error);
+
+    expect(onRequest).toHaveBeenCalledOnce();
+    expect(onRequestError).not.toHaveBeenCalled();
+    expect(onResponse).toHaveBeenCalledOnce();
+    expect(onResponseError).toHaveBeenCalledOnce();
+
+    onRequest.mockReset();
+    onRequestError.mockReset();
+    onResponse.mockReset();
+    onResponseError.mockReset();
+
+    await $fetch(getURL("/ok"), {
+      onRequest: [onRequest, onRequest],
+      onRequestError: [onRequestError, onRequestError],
+      onResponse: [onResponse, onResponse],
+      onResponseError: [onResponseError, onResponseError],
+    });
+
+    expect(onRequest).toHaveBeenCalledTimes(2);
+    expect(onRequestError).not.toHaveBeenCalled();
+    expect(onResponse).toHaveBeenCalledTimes(2);
+    expect(onResponseError).not.toHaveBeenCalled();
+
+    onRequest.mockReset();
+    onRequestError.mockReset();
+    onResponse.mockReset();
+    onResponseError.mockReset();
+
+    await $fetch(getURL("/403"), {
+      onRequest: [onRequest, onRequest],
+      onRequestError: [onRequestError, onRequestError],
+      onResponse: [onResponse, onResponse],
+      onResponseError: [onResponseError, onResponseError],
+    }).catch((error) => error);
+
+    expect(onRequest).toHaveBeenCalledTimes(2);
+    expect(onRequestError).not.toHaveBeenCalled();
+    expect(onResponse).toHaveBeenCalledTimes(2);
+    expect(onResponseError).toHaveBeenCalledTimes(2);
   });
 });

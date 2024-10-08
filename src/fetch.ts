@@ -6,13 +6,17 @@ import {
   isPayloadMethod,
   isJSONSerializable,
   detectResponseType,
-  mergeFetchOptions,
+  resolveFetchOptions,
+  callHooks,
 } from "./utils";
 import type {
   CreateFetchOptions,
   FetchResponse,
+  ResponseType,
   FetchContext,
   $Fetch,
+  FetchRequest,
+  FetchOptions,
 } from "./types";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -87,13 +91,18 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     throw error;
   }
 
-  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw(
-    _request,
-    _options = {}
-  ) {
+  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
+    T = any,
+    R extends ResponseType = "json",
+  >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
     const context: FetchContext = {
       request: _request,
-      options: mergeFetchOptions(_options, globalOptions.defaults, Headers),
+      options: resolveFetchOptions<R, T>(
+        _request,
+        _options,
+        globalOptions.defaults as unknown as FetchOptions<R, T>,
+        Headers
+      ),
       response: undefined,
       error: undefined,
     };
@@ -102,18 +111,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     context.options.method = context.options.method?.toUpperCase();
 
     if (context.options.onRequest) {
-      await context.options.onRequest(context);
+      await callHooks(context, context.options.onRequest);
     }
 
     if (typeof context.request === "string") {
       if (context.options.baseURL) {
         context.request = withBase(context.request, context.options.baseURL);
       }
-      if (context.options.query || context.options.params) {
-        context.request = withQuery(context.request, {
-          ...context.options.params,
-          ...context.options.query,
-        });
+      if (context.options.query) {
+        context.request = withQuery(context.request, context.options.query);
       }
     }
 
@@ -175,7 +181,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     } catch (error) {
       context.error = error as Error;
       if (context.options.onRequestError) {
-        await context.options.onRequestError(context as any);
+        await callHooks(
+          context as FetchContext & { error: Error },
+          context.options.onRequestError
+        );
       }
       return await onError(context);
     } finally {
@@ -218,7 +227,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     if (context.options.onResponse) {
-      await context.options.onResponse(context as any);
+      await callHooks(
+        context as FetchContext & { response: FetchResponse<any> },
+        context.options.onResponse
+      );
     }
 
     if (
@@ -227,7 +239,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.response.status < 600
     ) {
       if (context.options.onResponseError) {
-        await context.options.onResponseError(context as any);
+        await callHooks(
+          context as FetchContext & { response: FetchResponse<any> },
+          context.options.onResponseError
+        );
       }
       return await onError(context);
     }
@@ -244,11 +259,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
   $fetch.native = (...args) => fetch(...args);
 
-  $fetch.create = (defaultOptions = {}) =>
+  $fetch.create = (defaultOptions = {}, customGlobalOptions = {}) =>
     createFetch({
       ...globalOptions,
+      ...customGlobalOptions,
       defaults: {
         ...globalOptions.defaults,
+        ...customGlobalOptions.defaults,
         ...defaultOptions,
       },
     });

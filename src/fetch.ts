@@ -108,7 +108,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     };
 
     // Uppercase method name
-    context.options.method = context.options.method?.toUpperCase();
+    if (context.options.method) {
+      context.options.method = context.options.method.toUpperCase();
+    }
 
     if (context.options.onRequest) {
       await callHooks(context, context.options.onRequest);
@@ -120,6 +122,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
       if (context.options.query) {
         context.request = withQuery(context.request, context.options.query);
+        delete context.options.query;
+      }
+      if ("query" in context.options) {
+        delete context.options.query;
+      }
+      if ("params" in context.options) {
+        delete context.options.params;
       }
     }
 

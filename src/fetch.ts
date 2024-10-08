@@ -195,9 +195,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     const hasBody =
       (context.response.body ||
-        // React Native whatwg-fetch check. Can be removed when the following occurs
-        // 1) https://github.com/JakeChampion/fetch/issues/1454 is fixed
-        // 2) React Native upgrades to the whatwg-fetch version that has this fix
+        // https://github.com/JakeChampion/fetch/issues/1454
         (context.response as any)._bodyInit) &&
       !nullBodyResponses.has(context.response.status) &&
       context.options.method !== "HEAD";

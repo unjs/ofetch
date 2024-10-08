@@ -196,6 +196,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     const hasBody =
       (context.response.body ||
         // https://github.com/JakeChampion/fetch/issues/1454
+        // https://github.com/unjs/ofetch/issues/294
         (context.response as any)._bodyInit) &&
       !nullBodyResponses.has(context.response.status) &&
       context.options.method !== "HEAD";
@@ -218,6 +219,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           context.response._data =
             context.response.body ||
             // https://github.com/JakeChampion/fetch/issues/1454
+            // https://github.com/unjs/ofetch/issues/294
             (context.response as any)._bodyInit;
           break;
         }

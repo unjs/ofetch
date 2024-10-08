@@ -9,7 +9,15 @@ import {
   readRawBody,
   toNodeListener,
 } from "h3";
-import { describe, beforeEach, beforeAll, afterAll, it, expect, vi } from "vitest";
+import {
+  describe,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  it,
+  expect,
+  vi,
+} from "vitest";
 import { Headers, FormData, Blob } from "node-fetch-native";
 import { nodeMajorVersion } from "std-env";
 import { $fetch } from "../src/node";
@@ -18,7 +26,7 @@ describe("ofetch", () => {
   let listener;
   const getURL = (url) => joinURL(listener.url, url);
 
-  const fetch = vi.spyOn(globalThis, "fetch")
+  const fetch = vi.spyOn(globalThis, "fetch");
 
   beforeAll(async () => {
     const app = createApp()
@@ -92,8 +100,8 @@ describe("ofetch", () => {
   });
 
   beforeEach(() => {
-    fetch.mockClear()
-  })
+    fetch.mockClear();
+  });
 
   it("ok", async () => {
     expect(await $fetch(getURL("ok"))).to.equal("ok");
@@ -517,12 +525,12 @@ describe("ofetch", () => {
     expect(onResponseError).toHaveBeenCalledTimes(2);
   });
 
-  it('default fetch options', async () => {
-    await $fetch('https://jsonplaceholder.typicode.com/todos/1', {})
-    expect(fetch).toHaveBeenCalledOnce()
-    const options = fetch.mock.calls[0][1]
+  it("default fetch options", async () => {
+    await $fetch("https://jsonplaceholder.typicode.com/todos/1", {});
+    expect(fetch).toHaveBeenCalledOnce();
+    const options = fetch.mock.calls[0][1];
     expect(options).toStrictEqual({
       headers: expect.any(Headers),
-    })
-  })
+    });
+  });
 });

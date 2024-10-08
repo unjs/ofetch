@@ -109,7 +109,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     // Uppercase method name
     if (context.options.method) {
-      context.options.method = context.options.method.toUpperCase()
+      context.options.method = context.options.method.toUpperCase();
     }
 
     if (context.options.onRequest) {
@@ -124,10 +124,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         context.request = withQuery(context.request, context.options.query);
         delete context.options.query;
       }
-      if ('query' in context.options) {
+      if ("query" in context.options) {
         delete context.options.query;
       }
-      if ('params' in context.options) {
+      if ("params" in context.options) {
         delete context.options.params;
       }
     }
@@ -155,7 +155,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         // ReadableStream Body
         ("pipeTo" in (context.options.body as ReadableStream) &&
           typeof (context.options.body as ReadableStream).pipeTo ===
-          "function") ||
+            "function") ||
         // Node.js Stream Body
         typeof (context.options.body as Readable).pipe === "function"
       ) {

@@ -13,7 +13,49 @@ export interface $Fetch {
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
   create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
+  // Method Aliases
+  get<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedResponseType<R, T>>;
+
+  post<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedResponseType<R, T>>;
+
+  put<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedResponseType<R, T>>;
+
+  delete<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedResponseType<R, T>>;
+
+  patch<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedResponseType<R, T>>;
+
+  head<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedResponseType<R, T>>;
+
+  options<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<MappedResponseType<R, T>>;
 }
+
+export type FetchWithAliases = $Fetch & {
+  [method: string]: <T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ) => Promise<MappedResponseType<R, T>>;
+};
 
 // --------------------------
 // Options

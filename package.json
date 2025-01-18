@@ -88,7 +88,7 @@
     "prettier": "^3.3.3",
     "std-env": "^3.8.0",
     "typescript": "^5.6.3",
-    "unbuild": "^2.0.0",
+    "unbuild": "^3.3.1",
     "undici": "^6.20.1",
     "vitest": "^2.1.4"
   },

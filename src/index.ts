@@ -9,6 +9,7 @@ const _globalThis = (function () {
   if (typeof globalThis !== "undefined") {
     return globalThis;
   }
+  /* eslint-disable unicorn/prefer-global-this */
   if (typeof self !== "undefined") {
     return self;
   }
@@ -18,6 +19,7 @@ const _globalThis = (function () {
   if (typeof global !== "undefined") {
     return global;
   }
+  /* eslint-enable unicorn/prefer-global-this */
   throw new Error("unable to locate global object");
 })();
 

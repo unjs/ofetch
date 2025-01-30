@@ -349,7 +349,7 @@ const data = await ofetch("https://icanhazip.com");
 import { ProxyAgent } from "undici";
 import { ofetch } from "ofetch";
 
-// Note: This makes fetch unsecure against MITM attacks. USE AT YOUW OWN RISK!
+// Note: This makes fetch unsecure against MITM attacks. USE AT YOUR OWN RISK!
 const unsecureProxyAgent = new ProxyAgent({ requestTls: { rejectUnauthorized: false } });
 const unsecureFetch = ofetch.create({ dispatcher: unsecureProxyAgent });
 

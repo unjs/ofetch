@@ -19,11 +19,11 @@ importers:
         version: 1.5.4
     devDependencies:
       '@types/node':
-        specifier: ^22.10.10
-        version: 22.10.10
+        specifier: ^22.13.0
+        version: 22.13.0
       '@vitest/coverage-v8':
         specifier: ^3.0.4
-        version: 3.0.4(vitest@3.0.4(@types/node@22.10.10))
+        version: 3.0.4(vitest@3.0.4(@types/node@22.13.0))
       changelogen:
         specifier: ^0.5.7
         version: 0.5.7(magicast@0.3.5)
@@ -65,7 +65,7 @@ importers:
         version: 7.3.0
       vitest:
         specifier: ^3.0.4
-        version: 3.0.4(@types/node@22.10.10)
+        version: 3.0.4(@types/node@22.13.0)
 
 packages:
 
@@ -782,8 +782,8 @@ packages:
   '@types/mdast@3.0.15':
     resolution: {integrity: sha512-LnwD+mUEfxWMa1QpDraczIn6k0Ee3SMicuYSSzS6ZYl2gKS09EClnJYGd8Du6rfc5r/GZEk5o1mRb8TaTj03sQ==}
 
-  '@types/node@22.10.10':
-    resolution: {integrity: sha512-X47y/mPNzxviAGY5TcYPtYL8JsY3kAq2n8fMmKoRCxq/c4v4pyGNCzM2R6+M5/umG4ZfHuT+sgqDYqWc9rJ6ww==}
+  '@types/node@22.13.0':
+    resolution: {integrity: sha512-ClIbNe36lawluuvq3+YYhnIN2CELi+6q8NpnM7PYp4hBn/TatfboPgVSm2rwKRfnV2M+Ty9GWDFI64KEe+kysA==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -3031,7 +3031,7 @@ snapshots:
     dependencies:
       '@types/unist': 2.0.11
 
-  '@types/node@22.10.10':
+  '@types/node@22.13.0':
     dependencies:
       undici-types: 6.20.0
 
@@ -3118,7 +3118,7 @@ snapshots:
       '@typescript-eslint/types': 8.20.0
       eslint-visitor-keys: 4.2.0
 
-  '@vitest/coverage-v8@3.0.4(vitest@3.0.4(@types/node@22.10.10))':
+  '@vitest/coverage-v8@3.0.4(vitest@3.0.4(@types/node@22.13.0))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2
@@ -3132,7 +3132,7 @@ snapshots:
       std-env: 3.8.0
       test-exclude: 7.0.1
       tinyrainbow: 2.0.0
-      vitest: 3.0.4(@types/node@22.10.10)
+      vitest: 3.0.4(@types/node@22.13.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -3143,13 +3143,13 @@ snapshots:
       chai: 5.1.2
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.0.4(vite@5.4.12(@types/node@22.10.10))':
+  '@vitest/mocker@3.0.4(vite@5.4.12(@types/node@22.13.0))':
     dependencies:
       '@vitest/spy': 3.0.4
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 5.4.12(@types/node@22.10.10)
+      vite: 5.4.12(@types/node@22.13.0)
 
   '@vitest/pretty-format@3.0.4':
     dependencies:
@@ -4793,13 +4793,13 @@ snapshots:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
 
-  vite-node@3.0.4(@types/node@22.10.10):
+  vite-node@3.0.4(@types/node@22.13.0):
     dependencies:
       cac: 6.7.14
       debug: 4.4.0
       es-module-lexer: 1.6.0
       pathe: 2.0.2
-      vite: 5.4.12(@types/node@22.10.10)
+      vite: 5.4.12(@types/node@22.13.0)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -4811,19 +4811,19 @@ snapshots:
       - supports-color
       - terser
 
-  vite@5.4.12(@types/node@22.10.10):
+  vite@5.4.12(@types/node@22.13.0):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.1
       rollup: 4.31.0
     optionalDependencies:
-      '@types/node': 22.10.10
+      '@types/node': 22.13.0
       fsevents: 2.3.3
 
-  vitest@3.0.4(@types/node@22.10.10):
+  vitest@3.0.4(@types/node@22.13.0):
     dependencies:
       '@vitest/expect': 3.0.4
-      '@vitest/mocker': 3.0.4(vite@5.4.12(@types/node@22.10.10))
+      '@vitest/mocker': 3.0.4(vite@5.4.12(@types/node@22.13.0))
       '@vitest/pretty-format': 3.0.4
       '@vitest/runner': 3.0.4
       '@vitest/snapshot': 3.0.4
@@ -4839,11 +4839,11 @@ snapshots:
       tinyexec: 0.3.2
       tinypool: 1.0.2
       tinyrainbow: 2.0.0
-      vite: 5.4.12(@types/node@22.10.10)
-      vite-node: 3.0.4(@types/node@22.10.10)
+      vite: 5.4.12(@types/node@22.13.0)
+      vite-node: 3.0.4(@types/node@22.13.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 22.10.10
+      '@types/node': 22.13.0
     transitivePeerDependencies:
       - less
       - lightningcss

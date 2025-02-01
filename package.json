@@ -75,7 +75,7 @@
     "ufo": "^1.5.4"
   },
   "devDependencies": {
-    "@types/node": "^22.10.10",
+    "@types/node": "^22.13.0",
     "@vitest/coverage-v8": "^3.0.4",
     "changelogen": "^0.5.7",
     "eslint": "^9.19.0",

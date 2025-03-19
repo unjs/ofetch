@@ -402,6 +402,20 @@ describe("ofetch", () => {
     expect(parseParams(path)).toMatchObject(parseParams("?b=2&c=3&a=1"));
   });
 
+  it("when set params in onRequest", async () => {
+    const _customFetch = $fetch.create({});
+    const { path } = await _customFetch(getURL("echo"), {
+      onRequest(ctx) {
+        ctx.options.params = {
+          d: 4,
+        }
+      }
+    });
+    const parseParams = (str: string) =>
+      Object.fromEntries(new URLSearchParams(str).entries());
+    expect(parseParams(path)).toMatchObject(parseParams("?d=4"));
+  });
+
   it("uses request headers", async () => {
     expect(
       await $fetch(

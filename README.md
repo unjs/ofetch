@@ -132,6 +132,7 @@ The default for `retryDelay` is `0` ms.
 await ofetch("http://google.com/404", {
   retry: 3,
   retryDelay: 500, // ms
+  retryStatusCodes: [ 404, 500 ], // response status codes to retry
 });
 ```
 

@@ -159,6 +159,19 @@ describe("ofetch", () => {
     ).body;
     expect(body2).to.deep.eq([{ num: 42 }, { num: 43 }]);
 
+    let body3;
+    await $fetch(getURL("post"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: { num: 42 },
+      onResponse(ctx) {
+        body3 = ctx.options.body;
+      },
+    });
+    expect(body3).equals("num=42");
+
     const headerFetches = [
       [["X-header", "1"]],
       { "x-header": "1" },

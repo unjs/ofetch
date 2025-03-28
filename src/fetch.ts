@@ -168,8 +168,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     let abortTimeout: NodeJS.Timeout | undefined;
 
-    // TODO: Can we merge signals?
-    if (!context.options.signal && context.options.timeout) {
+    if (context.options.timeout) {
       const controller = new AbortController();
       abortTimeout = setTimeout(() => {
         const error = new Error(
@@ -179,6 +178,20 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         (error as any).code = 23; // DOMException.TIMEOUT_ERR
         controller.abort(error);
       }, context.options.timeout);
+
+      const optionSinal = context.options.signal;
+      if (optionSinal) {
+        const onAbort = () => {
+          controller.abort(optionSinal.reason);
+          clearTimeout(abortTimeout);
+        };
+        if (optionSinal.aborted) {
+          onAbort();
+        } else {
+          optionSinal.addEventListener("abort", onAbort);
+        }
+      }
+
       context.options.signal = controller.signal;
     }
 

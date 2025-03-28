@@ -144,7 +144,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
                 ).toString()
               : JSON.stringify(context.options.body);
         }
-        
+
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
         // Pass empty object as older browsers don't support undefined.

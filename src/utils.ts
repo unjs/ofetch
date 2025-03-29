@@ -31,6 +31,12 @@ export function isJSONSerializable(value: any) {
   if (value.buffer) {
     return false;
   }
+  // FormData should't be JSON serializable,
+  // but `Bun` adds a `toJSON` method to it, which is not standard.
+  // issue: https://github.com/unjs/ofetch/issues/439
+  if(value instanceof FormData) {
+    return false;
+  }
   return (
     (value.constructor && value.constructor.name === "Object") ||
     typeof value.toJSON === "function"

@@ -92,5 +92,5 @@
     "undici": "^7.5.0",
     "vitest": "^3.0.9"
   },
-  "packageManager": "pnpm@9.15.9"
+  "packageManager": "pnpm@10.7.1"
 }

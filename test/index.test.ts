@@ -96,7 +96,7 @@ describe("ofetch", () => {
         eventHandler((event) => {
           event.node.res.statusCode = 202;
           event.node.res.statusMessage = "Accepted";
-          return "Accepted!!"; // eslint-disable-line unicorn/no-null
+          return "Accepted!!";
         })
       );
     listener = await listen(toNodeListener(app));

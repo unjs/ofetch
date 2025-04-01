@@ -61,18 +61,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
       const responseCode = (context.response && context.response.status) || 500;
       if (
-        retries > 0 &&
-        (Array.isArray(context.options.retryStatusCodes)
-          ? context.options.retryStatusCodes.includes(responseCode)
-          : retryStatusCodes.has(responseCode))
+        isRetryTarget(
+          retries > 0,
+          responseCode,
+          context.options.retryStatusCodes,
+          retryStatusCodes
+        )
       ) {
-        const retryDelay =
-          typeof context.options.retryDelay === "function"
-            ? context.options.retryDelay(context)
-            : context.options.retryDelay || 0;
-        if (retryDelay > 0) {
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
-        }
+        await retryDelay(context.options.retryDelay, context);
         // Timeout
         return $fetchRaw(context.request, {
           ...context.options,
@@ -90,6 +86,34 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
     throw error;
   }
+
+  const isRetryTarget = (
+    countWithinRange: boolean,
+    responseCode: number,
+    targetStatusCodes: number[] | undefined,
+    defaultTargetStatusCodes: Set<number>
+  ) => {
+    return (
+      countWithinRange &&
+      (Array.isArray(targetStatusCodes)
+        ? targetStatusCodes.includes(responseCode)
+        : defaultTargetStatusCodes.has(responseCode))
+    );
+  };
+
+  const retryDelay = async <T, R extends ResponseType>(
+    delay:
+      | number
+      | ((context: FetchContext<any, ResponseType>) => number)
+      | undefined,
+    context: FetchContext<T, R>
+  ) => {
+    const retryDelay =
+      typeof delay === "function" ? delay(context) : delay || 0;
+    if (retryDelay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
+    }
+  };
 
   const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
     T = any,
@@ -187,6 +211,23 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         context.request,
         context.options as RequestInit
       );
+      const maxRetryCount = context.options.retryOnSuccess || 0;
+      for (
+        let retry = 0;
+        isRetryTarget(
+          retry < maxRetryCount,
+          context.response.status,
+          context.options.retryStatusCodesOnSuccess,
+          new Set()
+        );
+        retry++
+      ) {
+        await retryDelay(context.options.retryDelayOnSuccess, context);
+        context.response = await fetch(
+          context.request,
+          context.options as RequestInit
+        );
+      }
     } catch (error) {
       context.error = error as Error;
       if (context.options.onRequestError) {

@@ -90,8 +90,15 @@ describe("ofetch", () => {
             }, 1000 * 5);
           });
         })
+      )
+      .use(
+        "/202",
+        eventHandler((event) => {
+          event.node.res.statusCode = 202;
+          event.node.res.statusMessage = "Accepted";
+          return "Accepted!!"; // eslint-disable-line unicorn/no-null
+        })
       );
-
     listener = await listen(toNodeListener(app));
   });
 
@@ -327,6 +334,26 @@ describe("ofetch", () => {
       console.log("response", response);
     }
     expect(abortHandle()).rejects.toThrow(/aborted/);
+  });
+
+  it("202", async () => {
+    const actual = await $fetch(getURL("202"));
+    expect(actual).to.equal("Accepted!!");
+  });
+
+  it("202 - with retry count", async () => {
+    const dummy = vi.fn();
+    const actual = await $fetch(getURL("202"), {
+      retryStatusCodesOnSuccess: [202],
+      retryOnSuccess: 3,
+      retryDelayOnSuccess: (_: any) => {
+        dummy();
+        return 100;
+      },
+    });
+    expect(actual).to.equal("Accepted!!");
+    expect(dummy).toHaveBeenCalledTimes(3);
+    dummy.mockReset();
   });
 
   it("passing request obj should return request obj in error", async () => {

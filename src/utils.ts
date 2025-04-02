@@ -66,8 +66,8 @@ export function detectResponseType(_contentType = ""): ResponseType {
 
   // SSE
   // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#sending_events_from_the_server
-  if (contentType === 'text/event-stream') {
-    return 'stream'
+  if (contentType === "text/event-stream") {
+    return "stream";
   }
 
   if (textTypes.has(contentType) || contentType.startsWith("text/")) {

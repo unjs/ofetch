@@ -267,6 +267,36 @@ const apiFetch = ofetch.create({ baseURL: "/api" });
 apiFetch("/test"); // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
+### 💪 Augment `FetchOptions` interface
+
+You can augment the `FetchOptions` interface to add custom properties.
+
+```ts
+// Place this in any `.ts` or `.d.ts` file.
+// Ensure it's included in the project's tsconfig.json "files".
+declare module "ofetch" {
+  interface FetchOptions {
+    // Custom properties 
+    requiresAuth?: boolean;
+  }
+}
+
+export {}
+```
+
+This lets you pass and use those properties with full type safety throughout `ofetch` calls.
+
+```ts
+const myFetch = ofetch.create({
+  onRequest(context) {
+    //      ^? { ..., options: {..., requiresAuth?: boolean }}
+    console.log(context.options.requiresAuth);
+  },
+});
+
+myFetch("/foo", { requiresAuth: true })
+```
+
 ## 💡 Adding headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:

@@ -51,7 +51,7 @@ const { users } = await ofetch("/api/users");
 
 For binary content types, `ofetch` will instead return a `Blob` object.
 
-You can optionally provide a different parser than `destr`, or specify `blob`, `arrayBuffer`, or `text` to force parsing the body with the respective `FetchResponse` method.
+You can optionally provide a different parser than `destr`, or specify `blob`, `arrayBuffer`, `text` or `stream` to force parsing the body with the respective `FetchResponse` method.
 
 ```js
 // Use JSON.parse
@@ -62,6 +62,9 @@ await ofetch("/movie?lang=en", { parseResponse: (txt) => txt });
 
 // Get the blob version of the response
 await ofetch("/api/generate-image", { responseType: "blob" });
+
+// Get the stream version of the response
+await ofetch("/api/generate-image", { responseType: "stream" });
 ```
 
 ## ✔️ JSON Body
@@ -298,6 +301,22 @@ As a shortcut, you can use `ofetch.native` that provides native `fetch` API
 
 ```js
 const json = await ofetch.native("/sushi").then((r) => r.json());
+```
+
+## 📡 SSE
+
+**Example:** Handle SSE response:
+
+```js
+const stream = await ofetch("/sse")
+const reader = stream.getReader();
+const decoder = new TextDecoder()
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  // Here is the chunked text of the SSE response.
+  const text = decoder.decode(value)
+}
 ```
 
 ## 🕵️ Adding HTTP(S) Agent

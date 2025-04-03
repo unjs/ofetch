@@ -364,6 +364,47 @@ describe("ofetch", () => {
     });
   });
 
+  it("URLSearchParams", async () => {
+    const urlSearchParams = new URLSearchParams({
+      foo: "foo",
+    });
+    const _customFetch = $fetch.create({
+      query: {
+        a: 0,
+      },
+      params: {
+        b: 1,
+      },
+      urlSearchParams,
+      onRequest: ({ options }) => {
+        options.urlSearchParams ||= new URLSearchParams();
+        options.urlSearchParams.set("token", "token");
+        options.query = {
+          ...options.query,
+          ...Object.fromEntries(options.urlSearchParams.entries()),
+        };
+      },
+    });
+    const customURLSearchParams = new URLSearchParams({
+      bar: "bar",
+    });
+    const { path } = await _customFetch(getURL("echo"), {
+      query: {
+        c: 2,
+      },
+      params: {
+        d: 3,
+      },
+      urlSearchParams: customURLSearchParams,
+    });
+
+    const parseParams = (str: string) =>
+      Object.fromEntries(new URLSearchParams(str).entries());
+    expect(parseParams(path)).toMatchObject(
+      parseParams("?a=0&b=1&foo=foo&c=2&d=3&bar=bar&token=token")
+    );
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

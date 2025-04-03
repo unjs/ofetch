@@ -89,12 +89,21 @@ export function resolveFetchOptions<
 
   // Merge query/params
   let query: Record<string, any> | undefined;
-  if (defaults?.query || defaults?.params || input?.params || input?.query) {
+  if (
+    defaults?.query ||
+    defaults?.params ||
+    defaults?.urlSearchParams ||
+    input?.params ||
+    input?.query ||
+    input?.urlSearchParams
+  ) {
     query = {
       ...defaults?.params,
       ...defaults?.query,
+      ...Object.fromEntries(defaults?.urlSearchParams?.entries() ?? []),
       ...input?.params,
       ...input?.query,
+      ...Object.fromEntries(input?.urlSearchParams?.entries() ?? []),
     };
   }
 

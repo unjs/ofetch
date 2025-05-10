@@ -1,7 +1,7 @@
 import { $fetch } from "..";
 
 async function main() {
-  await $fetch("http://google.com/404");
+  await $fetch("https://google.com/404");
 }
 
 // eslint-disable-next-line unicorn/prefer-top-level-await

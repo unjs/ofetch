@@ -1,3 +1,34 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="right">
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=en">English</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=zh-CN">简体中文</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=zh-TW">繁體中文</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=ja">日本語</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=ko">한국어</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=hi">हिन्दी</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=th">ไทย</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=fr">Français</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=de">Deutsch</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=es">Español</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=it">Itapano</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=ru">Русский</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=pt">Português</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=nl">Nederlands</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=pl">Polski</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=ar">العربية</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=fa">فارسی</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=tr">Türkçe</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=vi">Tiếng Việt</a></p>
+        <p><a href="https://openaitx.github.io/view.html?user=unjs&project=ofetch&lang=id">Bahasa Indonesia</a></p>
+      </div>
+    </div>
+  </details>
+</div>
+
 # ofetch
 
 [![npm version][npm-version-src]][npm-version-href]

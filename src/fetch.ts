@@ -166,21 +166,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    let abortTimeout: NodeJS.Timeout | undefined;
+    const mergedSignal = AbortSignal.any([
+      typeof context.options.timeout === "number" ? AbortSignal.timeout(context.options.timeout) : undefined,
+      context.options.signal,
+    ].filter((s): s is NonNullable<typeof s> => Boolean(s)))
 
-    // TODO: Can we merge signals?
-    if (!context.options.signal && context.options.timeout) {
-      const controller = new AbortController();
-      abortTimeout = setTimeout(() => {
-        const error = new Error(
-          "[TimeoutError]: The operation was aborted due to timeout"
-        );
-        error.name = "TimeoutError";
-        (error as any).code = 23; // DOMException.TIMEOUT_ERR
-        controller.abort(error);
-      }, context.options.timeout);
-      context.options.signal = controller.signal;
-    }
+    context.options.signal = mergedSignal
 
     try {
       context.response = await fetch(
@@ -196,10 +187,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         );
       }
       return await onError(context);
-    } finally {
-      if (abortTimeout) {
-        clearTimeout(abortTimeout);
-      }
     }
 
     const hasBody =

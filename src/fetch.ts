@@ -35,8 +35,11 @@ const retryStatusCodes = new Set([
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
-  const { fetch = globalThis.fetch, Headers = globalThis.Headers } =
-    globalOptions;
+  const {
+    fetch = globalThis.fetch,
+    Headers = globalThis.Headers,
+    AbortController = globalThis.AbortController,
+  } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
@@ -169,6 +172,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           ? AbortSignal.timeout(context.options.timeout)
           : undefined,
         context.options.signal,
+        AbortController.signal,
         // eslint-disable-next-line unicorn/prefer-native-coercion-functions
       ].filter((s): s is NonNullable<typeof s> => Boolean(s))
     );

@@ -531,6 +531,7 @@ describe("ofetch", () => {
     const options = fetch.mock.calls[0][1];
     expect(options).toStrictEqual({
       headers: expect.any(Headers),
+      signal: expect.any(AbortSignal),
     });
   });
 });

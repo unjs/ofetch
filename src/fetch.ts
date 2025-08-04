@@ -35,11 +35,8 @@ const retryStatusCodes = new Set([
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
-  const {
-    fetch = globalThis.fetch,
-    Headers = globalThis.Headers,
-    AbortController = globalThis.AbortController,
-  } = globalOptions;
+  const { fetch = globalThis.fetch, Headers = globalThis.Headers } =
+    globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
@@ -166,12 +163,17 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    const mergedSignal = AbortSignal.any([
-      typeof context.options.timeout === "number" ? AbortSignal.timeout(context.options.timeout) : undefined,
-      context.options.signal,
-    ].filter((s): s is NonNullable<typeof s> => Boolean(s)))
+    const mergedSignal = AbortSignal.any(
+      [
+        typeof context.options.timeout === "number"
+          ? AbortSignal.timeout(context.options.timeout)
+          : undefined,
+        context.options.signal,
+        // eslint-disable-next-line unicorn/prefer-native-coercion-functions
+      ].filter((s): s is NonNullable<typeof s> => Boolean(s))
+    );
 
-    context.options.signal = mergedSignal
+    context.options.signal = mergedSignal;
 
     try {
       context.response = await fetch(

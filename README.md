@@ -267,36 +267,6 @@ const apiFetch = ofetch.create({ baseURL: "/api" });
 apiFetch("/test"); // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
-### 💪 Augment `FetchOptions` interface
-
-You can augment the `FetchOptions` interface to add custom properties.
-
-```ts
-// Place this in any `.ts` or `.d.ts` file.
-// Ensure it's included in the project's tsconfig.json "files".
-declare module "ofetch" {
-  interface FetchOptions {
-    // Custom properties 
-    requiresAuth?: boolean;
-  }
-}
-
-export {}
-```
-
-This lets you pass and use those properties with full type safety throughout `ofetch` calls.
-
-```ts
-const myFetch = ofetch.create({
-  onRequest(context) {
-    //      ^? { ..., options: {..., requiresAuth?: boolean }}
-    console.log(context.options.requiresAuth);
-  },
-});
-
-myFetch("/foo", { requiresAuth: true })
-```
-
 ## 💡 Adding headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:
@@ -402,6 +372,36 @@ await ofetch("/api", {
 By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an HTTP/HTTPS agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to re-establish a TCP connection.
 
 **Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
+
+### 💪 Augment `FetchOptions` interface
+
+You can augment the `FetchOptions` interface to add custom properties.
+
+```ts
+// Place this in any `.ts` or `.d.ts` file.
+// Ensure it's included in the project's tsconfig.json "files".
+declare module "ofetch" {
+  interface FetchOptions {
+    // Custom properties 
+    requiresAuth?: boolean;
+  }
+}
+
+export {}
+```
+
+This lets you pass and use those properties with full type safety throughout `ofetch` calls.
+
+```ts
+const myFetch = ofetch.create({
+  onRequest(context) {
+    //      ^? { ..., options: {..., requiresAuth?: boolean }}
+    console.log(context.options.requiresAuth);
+  },
+});
+
+myFetch("/foo", { requiresAuth: true })
+```
 
 ## 📦 Bundler Notes
 

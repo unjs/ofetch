@@ -70,7 +70,7 @@ If an object or a class with a `.toJSON()` method is passed to the `body` option
 
 `ofetch` utilizes `JSON.stringify()` to convert the passed object. Classes without a `.toJSON()` method have to be converted into a string value in advance before being passed to the `body` option.
 
-For `PUT`, `PATCH`, and `POST` request methods, when a string or object body is set, `ofetch` adds the default `content-type: "application/json"` and `accept: "application/json"` headers (which you can always override).
+For `PUT`, `PATCH`, and `POST` request methods, when a string or object body is set, `ofetch` adds the default `"content-type": "application/json"` and `accept: "application/json"` headers (which you can always override).
 
 Additionally, `ofetch` supports binary responses with `Buffer`, `ReadableStream`, `Stream`, and [compatible body types](https://developer.mozilla.org/en-US/docs/Web/API/fetch#body). `ofetch` will automatically set the `duplex: "half"` option for streaming support!
 

@@ -134,18 +134,23 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.body && isPayloadMethod(context.options.method)) {
       if (isJSONSerializable(context.options.body)) {
-        // JSON Body
-        // Automatically JSON stringify request bodies, when not already a string.
-        context.options.body =
-          typeof context.options.body === "string"
-            ? context.options.body
-            : JSON.stringify(context.options.body);
+        const contentType = context.options.headers.get("content-type");
+
+        // Automatically stringify request bodies, when not already a string.
+        if (typeof context.options.body !== "string") {
+          context.options.body =
+            contentType === "application/x-www-form-urlencoded"
+              ? new URLSearchParams(
+                  context.options.body as Record<string, any>
+                ).toString()
+              : JSON.stringify(context.options.body);
+        }
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
         // Pass empty object as older browsers don't support undefined.
         context.options.headers = new Headers(context.options.headers || {});
-        if (!context.options.headers.has("content-type")) {
+        if (!contentType) {
           context.options.headers.set("content-type", "application/json");
         }
         if (!context.options.headers.has("accept")) {

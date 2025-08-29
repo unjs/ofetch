@@ -28,6 +28,9 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   ignoreResponseError?: boolean;
 
+  /**
+   * @deprecated use query instead.
+   */
   params?: Record<string, any>;
 
   query?: Record<string, any>;

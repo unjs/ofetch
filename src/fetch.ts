@@ -136,9 +136,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (isJSONSerializable(context.options.body)) {
         // Automatically stringify request bodies, when not already a string.
         if (typeof context.options.body !== "string") {
+          const contentType = context.options.headers.get("content-type");
           context.options.body =
-            context.options.headers.get("content-type") ===
-            "application/x-www-form-urlencoded"
+            contentType === "application/x-www-form-urlencoded"
               ? new URLSearchParams(
                   context.options.body as Record<string, any>
                 ).toString()

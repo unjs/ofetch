@@ -68,6 +68,15 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
+
+  /**  status ok, but retry. e.g.202 */
+  retryOnSuccess?: number | false;
+
+  /** Delay between retries in milliseconds when ok status. e.g.202 */
+  retryDelayOnSuccess?: number | ((context: FetchContext<T, R>) => number);
+
+  /** Default is undefined */
+  retryStatusCodesOnSuccess?: number[];
 }
 
 export interface ResolvedFetchOptions<

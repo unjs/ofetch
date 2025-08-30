@@ -531,7 +531,17 @@ describe("ofetch", () => {
     const options = fetch.mock.calls[0][1];
     expect(options).toStrictEqual({
       headers: expect.any(Headers),
+    });
+    fetch.mockReset();
+    await $fetch("https://jsonplaceholder.typicode.com/todos/1", {
+      timeout: 10_000,
+    });
+    expect(fetch).toHaveBeenCalledOnce();
+    const options2 = fetch.mock.calls[0][1];
+    expect(options2).toStrictEqual({
+      headers: expect.any(Headers),
       signal: expect.any(AbortSignal),
+      timeout: 10_000,
     });
   });
 });

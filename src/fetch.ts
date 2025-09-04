@@ -59,12 +59,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         retries = isPayloadMethod(context.options.method) ? 0 : 1;
       }
 
-      const responseCode = (context.response && context.response.status) || 500;
       if (
         retries > 0 &&
-        (Array.isArray(context.options.retryStatusCodes)
-          ? context.options.retryStatusCodes.includes(responseCode)
-          : retryStatusCodes.has(responseCode))
+        (!context.response ||
+          (Array.isArray(context.options.retryStatusCodes)
+            ? context.options.retryStatusCodes.includes(context.response.status)
+            : retryStatusCodes.has(context.response.status)))
       ) {
         const retryDelay =
           typeof context.options.retryDelay === "function"

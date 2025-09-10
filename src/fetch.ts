@@ -178,6 +178,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           ].filter((s): s is NonNullable<typeof s> => Boolean(s))
         );
       } else {
+        // TODO: Use AbortSignal.timeout in next major
         const controller = new AbortController();
         abortTimeout = setTimeout(() => {
           const error = new Error(

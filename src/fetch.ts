@@ -170,12 +170,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.timeout) {
       if (context.options.signal) {
-        context.options.signal = AbortSignal.any(
-          [
-            AbortSignal.timeout(context.options.timeout),
-            context.options.signal,
-          ]
-        );
+        context.options.signal = AbortSignal.any([
+          AbortSignal.timeout(context.options.timeout),
+          context.options.signal,
+        ]);
       } else {
         // TODO: Use AbortSignal.timeout in next major
         const controller = new AbortController();

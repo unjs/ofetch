@@ -174,8 +174,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           [
             AbortSignal.timeout(context.options.timeout),
             context.options.signal,
-            // eslint-disable-next-line unicorn/prefer-native-coercion-functions
-          ].filter((s): s is NonNullable<typeof s> => Boolean(s))
+          ]
         );
       } else {
         // TODO: Use AbortSignal.timeout in next major

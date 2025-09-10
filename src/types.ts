@@ -78,9 +78,6 @@ export interface CreateFetchOptions {
   defaults?: FetchOptions;
   fetch?: Fetch;
   Headers?: typeof Headers;
-  /**
-   * @deprecated AbortController is not used internally anymore and will be removed in future versions.
-   */
   AbortController?: typeof AbortController;
 }
 

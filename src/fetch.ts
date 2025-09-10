@@ -35,8 +35,11 @@ const retryStatusCodes = new Set([
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
-  const { fetch = globalThis.fetch, Headers = globalThis.Headers } =
-    globalOptions;
+  const {
+    fetch = globalThis.fetch,
+    Headers = globalThis.Headers,
+    AbortController = globalThis.AbortController,
+  } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
@@ -162,14 +165,30 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         }
       }
     }
-    if (typeof context.options.timeout === "number") {
-      context.options.signal = AbortSignal.any(
-        [
-          AbortSignal.timeout(context.options.timeout),
-          context.options.signal,
-          // eslint-disable-next-line unicorn/prefer-native-coercion-functions
-        ].filter((s): s is NonNullable<typeof s> => Boolean(s))
-      );
+
+    let abortTimeout: NodeJS.Timeout | undefined;
+
+    if (context.options.timeout) {
+      if (context.options.signal) {
+        context.options.signal = AbortSignal.any(
+          [
+            AbortSignal.timeout(context.options.timeout),
+            context.options.signal,
+            // eslint-disable-next-line unicorn/prefer-native-coercion-functions
+          ].filter((s): s is NonNullable<typeof s> => Boolean(s))
+        );
+      } else {
+        const controller = new AbortController();
+        abortTimeout = setTimeout(() => {
+          const error = new Error(
+            "[TimeoutError]: The operation was aborted due to timeout"
+          );
+          error.name = "TimeoutError";
+          (error as any).code = 23; // DOMException.TIMEOUT_ERR
+          controller.abort(error);
+        }, context.options.timeout);
+        context.options.signal = controller.signal;
+      }
     }
 
     try {
@@ -186,6 +205,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         );
       }
       return await onError(context);
+    } finally {
+      if (abortTimeout) {
+        clearTimeout(abortTimeout);
+      }
     }
 
     const hasBody =

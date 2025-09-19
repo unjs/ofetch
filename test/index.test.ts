@@ -377,6 +377,93 @@ describe("ofetch", () => {
     });
   });
 
+  it("retries when retryCondition (sync) returns true", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryCondition: () => {
+        called++;
+        return true;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("retries when retryCondition (async) returns true", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryCondition: async () => {
+        called++;
+        return true;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("does not retry when retryCondition returns false and status does not match", async () => {
+    let called = 0;
+    await $fetch(getURL("404"), {
+      retry: 2,
+      retryCondition: () => {
+        called++;
+        return false;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(1);
+  });
+
+  it("retries on matching status even if retryCondition returns false", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryCondition: () => {
+        called++;
+        return false;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("throws if retryCondition throws (consumer error) propagates error to consumer", async () => {
+    let called = 0;
+    await expect(
+      $fetch(getURL("408"), {
+        retry: 2,
+        retryCondition: () => {
+          called++;
+          throw new Error("bad predicate");
+        },
+      })
+    ).rejects.toThrow("bad predicate");
+    expect(called).to.equal(1);
+  });
+
+  it("retries when both retryStatusCodes and retryCondition allow", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryStatusCodes: [408],
+      retryCondition: () => {
+        called++;
+        return true;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("retries when only retryStatusCodes match and retryCondition is absent", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryStatusCodes: [408],
+      onResponseError: () => {
+        called++;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

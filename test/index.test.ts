@@ -29,6 +29,7 @@ describe("ofetch", () => {
   const fetch = vi.spyOn(globalThis, "fetch");
 
   beforeAll(async () => {
+    let bodyRetryHits = 0;
     const app = createApp()
       .use(
         "/ok",
@@ -89,6 +90,20 @@ describe("ofetch", () => {
               resolve(createError({ status: 408 }));
             }, 1000 * 5);
           });
+        })
+      )
+      .use(
+        "/retry-body",
+        eventHandler(() => {
+          if (bodyRetryHits < 3) {
+            bodyRetryHits++;
+            return createError({
+              status: 408,
+              statusMessage: "Pending",
+              data: { status: "pending", attempt: bodyRetryHits },
+            });
+          }
+          return { status: "ready" };
         })
       );
 
@@ -462,6 +477,22 @@ describe("ofetch", () => {
       },
     }).catch(() => "failed");
     expect(called).to.equal(3);
+  });
+
+  it("retries using retryCondition that inspects parsed body until ready", async () => {
+    let predicateCalls = 0;
+
+    const res = await $fetch(getURL("retry-body"), {
+      retry: 5,
+      retryDelay: 1,
+      retryCondition: (ctx) => {
+        predicateCalls++;
+        return ctx.response?._data?.data?.status !== "ready";
+      },
+    });
+
+    expect(res).to.deep.equal({ status: "ready" });
+    expect(predicateCalls).to.equal(3);
   });
 
   it("deep merges defaultOptions", async () => {

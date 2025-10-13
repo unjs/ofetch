@@ -392,11 +392,11 @@ describe("ofetch", () => {
     });
   });
 
-  it("retries when retryCondition (sync) returns true", async () => {
+  it("retries when retryIf (sync) returns true", async () => {
     let called = 0;
     await $fetch(getURL("408"), {
       retry: 2,
-      retryCondition: () => {
+      retryIf: () => {
         called++;
         return true;
       },
@@ -404,11 +404,11 @@ describe("ofetch", () => {
     expect(called).to.equal(3);
   });
 
-  it("retries when retryCondition (async) returns true", async () => {
+  it("retries when retryIf (async) returns true", async () => {
     let called = 0;
     await $fetch(getURL("408"), {
       retry: 2,
-      retryCondition: async () => {
+      retryIf: async () => {
         called++;
         return true;
       },
@@ -416,11 +416,11 @@ describe("ofetch", () => {
     expect(called).to.equal(3);
   });
 
-  it("does not retry when retryCondition returns false and status does not match", async () => {
+  it("does not retry when retryIf returns false and status does not match", async () => {
     let called = 0;
     await $fetch(getURL("404"), {
       retry: 2,
-      retryCondition: () => {
+      retryIf: () => {
         called++;
         return false;
       },
@@ -428,11 +428,11 @@ describe("ofetch", () => {
     expect(called).to.equal(1);
   });
 
-  it("retries on matching status even if retryCondition returns false", async () => {
+  it("retries on matching status even if retryIf returns false", async () => {
     let called = 0;
     await $fetch(getURL("408"), {
       retry: 2,
-      retryCondition: () => {
+      retryIf: () => {
         called++;
         return false;
       },
@@ -440,12 +440,12 @@ describe("ofetch", () => {
     expect(called).to.equal(3);
   });
 
-  it("throws if retryCondition throws (consumer error) propagates error to consumer", async () => {
+  it("throws if retryIf throws (consumer error) propagates error to consumer", async () => {
     let called = 0;
     await expect(
       $fetch(getURL("408"), {
         retry: 2,
-        retryCondition: () => {
+        retryIf: () => {
           called++;
           throw new Error("bad predicate");
         },
@@ -454,12 +454,12 @@ describe("ofetch", () => {
     expect(called).to.equal(1);
   });
 
-  it("retries when both retryStatusCodes and retryCondition allow", async () => {
+  it("retries when both retryStatusCodes and retryIf allow", async () => {
     let called = 0;
     await $fetch(getURL("408"), {
       retry: 2,
       retryStatusCodes: [408],
-      retryCondition: () => {
+      retryIf: () => {
         called++;
         return true;
       },
@@ -467,7 +467,7 @@ describe("ofetch", () => {
     expect(called).to.equal(3);
   });
 
-  it("retries when only retryStatusCodes match and retryCondition is absent", async () => {
+  it("retries when only retryStatusCodes match and retryIf is absent", async () => {
     let called = 0;
     await $fetch(getURL("408"), {
       retry: 2,
@@ -479,13 +479,13 @@ describe("ofetch", () => {
     expect(called).to.equal(3);
   });
 
-  it("retries using retryCondition that inspects parsed body until ready", async () => {
+  it("retries using retryIf that inspects parsed body until ready", async () => {
     let predicateCalls = 0;
 
     const res = await $fetch(getURL("retry-body"), {
       retry: 5,
       retryDelay: 1,
-      retryCondition: (ctx) => {
+      retryIf: (ctx) => {
         predicateCalls++;
         return ctx.response?._data?.data?.status !== "ready";
       },

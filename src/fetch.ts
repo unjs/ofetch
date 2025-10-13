@@ -66,8 +66,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         : retryStatusCodes.has(responseCode);
 
       const isConditionalRetry =
-        typeof context.options.retryCondition === "function"
-          ? await context.options.retryCondition(context)
+        typeof context.options.retryIf === "function"
+          ? await context.options.retryIf(context)
           : false;
 
       const shouldRetry = isRetryableStatus || isConditionalRetry;

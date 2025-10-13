@@ -73,7 +73,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
    * Condition to retry the request.
    * @default false
    */
-  retryCondition?: (context: FetchContext<T, R>) => boolean | Promise<boolean>;
+  retryIf?: (context: FetchContext<T, R>) => boolean | Promise<boolean>;
 }
 
 export interface ResolvedFetchOptions<

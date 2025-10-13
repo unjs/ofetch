@@ -29,6 +29,7 @@ describe("ofetch", () => {
   const fetch = vi.spyOn(globalThis, "fetch");
 
   beforeAll(async () => {
+    let bodyRetryHits = 0;
     const app = createApp()
       .use(
         "/ok",
@@ -89,6 +90,20 @@ describe("ofetch", () => {
               resolve(createError({ status: 408 }));
             }, 1000 * 5);
           });
+        })
+      )
+      .use(
+        "/retry-body",
+        eventHandler(() => {
+          if (bodyRetryHits < 3) {
+            bodyRetryHits++;
+            return createError({
+              status: 408,
+              statusMessage: "Pending",
+              data: { status: "pending", attempt: bodyRetryHits },
+            });
+          }
+          return { status: "ready" };
         })
       );
 
@@ -375,6 +390,109 @@ describe("ofetch", () => {
       expect(error.cause.name).to.equal("TimeoutError");
       expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
+  });
+
+  it("retries when retryIf (sync) returns true", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryIf: () => {
+        called++;
+        return true;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("retries when retryIf (async) returns true", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryIf: async () => {
+        called++;
+        return true;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("does not retry when retryIf returns false and status does not match", async () => {
+    let called = 0;
+    await $fetch(getURL("404"), {
+      retry: 2,
+      retryIf: () => {
+        called++;
+        return false;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(1);
+  });
+
+  it("retries on matching status even if retryIf returns false", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryIf: () => {
+        called++;
+        return false;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("throws if retryIf throws (consumer error) propagates error to consumer", async () => {
+    let called = 0;
+    await expect(
+      $fetch(getURL("408"), {
+        retry: 2,
+        retryIf: () => {
+          called++;
+          throw new Error("bad predicate");
+        },
+      })
+    ).rejects.toThrow("bad predicate");
+    expect(called).to.equal(1);
+  });
+
+  it("retries when both retryStatusCodes and retryIf allow", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryStatusCodes: [408],
+      retryIf: () => {
+        called++;
+        return true;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("retries when only retryStatusCodes match and retryIf is absent", async () => {
+    let called = 0;
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryStatusCodes: [408],
+      onResponseError: () => {
+        called++;
+      },
+    }).catch(() => "failed");
+    expect(called).to.equal(3);
+  });
+
+  it("retries using retryIf that inspects parsed body until ready", async () => {
+    let predicateCalls = 0;
+
+    const res = await $fetch(getURL("retry-body"), {
+      retry: 5,
+      retryDelay: 1,
+      retryIf: (ctx) => {
+        predicateCalls++;
+        return ctx.response?._data?.data?.status !== "ready";
+      },
+    });
+
+    expect(res).to.deep.equal({ status: "ready" });
+    expect(predicateCalls).to.equal(3);
   });
 
   it("deep merges defaultOptions", async () => {

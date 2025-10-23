@@ -328,7 +328,7 @@ describe("ofetch", () => {
     expect(race).to.equal("fast");
   });
 
-  it("abort with retry", () => {
+  it("abort with retry", async () => {
     const controller = new AbortController();
     async function abortHandle() {
       controller.abort();
@@ -339,7 +339,24 @@ describe("ofetch", () => {
       });
       console.log("response", response);
     }
-    expect(abortHandle()).rejects.toThrow(/aborted/);
+    await expect(abortHandle()).rejects.toThrow(/aborted/);
+  });
+
+  it("abort with both timeout & signal", async () => {
+    async function abortHandle(autoTimeout: number, manualTimeout: number) {
+      const controller = new AbortController();
+      setTimeout(
+        () => controller.abort(new Error("ManualAbortError")),
+        manualTimeout
+      );
+      await $fetch("timeout", {
+        baseURL: getURL("timeout"),
+        timeout: autoTimeout,
+        signal: controller.signal,
+      });
+    }
+    await expect(abortHandle(100, 200)).rejects.toThrow(/TimeoutError/);
+    await expect(abortHandle(200, 100)).rejects.toThrow(/ManualAbortError/);
   });
 
   it("passing request obj should return request obj in error", async () => {

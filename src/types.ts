@@ -35,6 +35,8 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   query?: Record<string, any>;
 
+  urlSearchParams?: URLSearchParams;
+
   parseResponse?: (responseText: string) => any;
 
   responseType?: R;

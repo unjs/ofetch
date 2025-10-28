@@ -1,12 +1,12 @@
 name: ci
 
-on: { push: { branches: [main] }, pull_request: { branches: [v1] } }
+on: { push: { branches: [v1] }, pull_request: { branches: [v1] } }
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     strategy:
-      matrix: { node: [18, 20, 22, 24] }
+      matrix: { node: [20, 22, 24] }
     steps:
       - uses: actions/checkout@v5
       - run: corepack enable

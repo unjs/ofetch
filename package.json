@@ -10,18 +10,16 @@
     "./package.json": "./package.json",
     "./dist/index.mjs": "./dist/index.mjs"
   },
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.mts",
   "files": [
-    "dist",
-    "node.d.ts"
+    "dist"
   ],
   "scripts": {
-    "build": "unbuild",
+    "build": "obuild src/index.ts",
     "dev": "vitest",
-    "lint": "eslint . && prettier -c src test playground examples",
-    "lint:fix": "eslint --fix . && prettier -w src test playground examples",
+    "lint": "eslint . && prettier -c src test examples",
+    "lint:fix": "eslint --fix . && prettier -w src test examples",
     "prepack": "pnpm build",
-    "play": "jiti playground/index.ts",
     "release": "pnpm test && pnpm build && changelogen --release --prerelease --publish --publishTag alpha --push",
     "test": "pnpm lint && vitest run --coverage"
   },
@@ -35,15 +33,10 @@
     "changelogen": "^0.6.2",
     "eslint": "^9.38.0",
     "eslint-config-unjs": "^0.5.0",
-    "fetch-blob": "^4.0.0",
-    "formdata-polyfill": "^4.0.10",
     "h3": "^2.0.1-rc.5",
-    "jiti": "^2.6.1",
-    "listhen": "^1.9.0",
+    "obuild": "^0.3.0",
     "prettier": "^3.6.2",
-    "std-env": "^3.10.0",
     "typescript": "^5.9.3",
-    "unbuild": "^3.6.1",
     "undici": "^7.16.0",
     "vitest": "^4.0.4"
   },

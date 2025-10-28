@@ -9,6 +9,9 @@
 
 A better fetch API. Works on node, browser, and workers.
 
+> [!IMPORTANT]
+> You are on v2 (alpha) development branch. See [v1](https://github.com/unjs/ofetch/tree/v1) for v1 docs.
+
 <details>
   <summary>Spoiler</summary>
   <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
@@ -135,7 +138,7 @@ The default for `retryDelay` is `0` ms.
 await ofetch("http://google.com/404", {
   retry: 3,
   retryDelay: 500, // ms
-  retryStatusCodes: [ 404, 500 ], // response status codes to retry
+  retryStatusCodes: [404, 500], // response status codes to retry
 });
 ```
 
@@ -308,14 +311,14 @@ const json = await ofetch.native("/sushi").then((r) => r.json());
 **Example:** Handle SSE response:
 
 ```js
-const stream = await ofetch("/sse")
+const stream = await ofetch("/sse");
 const reader = stream.getReader();
-const decoder = new TextDecoder()
+const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
   // Here is the chunked text of the SSE response.
-  const text = decoder.decode(value)
+  const text = decoder.decode(value);
 }
 ```
 
@@ -401,12 +404,12 @@ You can augment the `FetchOptions` interface to add custom properties.
 // Ensure it's included in the project's tsconfig.json "files".
 declare module "ofetch" {
   interface FetchOptions {
-    // Custom properties 
+    // Custom properties
     requiresAuth?: boolean;
   }
 }
 
-export {}
+export {};
 ```
 
 This lets you pass and use those properties with full type safety throughout `ofetch` calls.
@@ -419,7 +422,7 @@ const myFetch = ofetch.create({
   },
 });
 
-myFetch("/foo", { requiresAuth: true })
+myFetch("/foo", { requiresAuth: true });
 ```
 
 ## 📦 Bundler Notes

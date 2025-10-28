@@ -1,6 +1,6 @@
 {
   "name": "ofetch",
-  "version": "1.4.1",
+  "version": "2.0.0-rc.0",
   "description": "A better fetch API. Works on node, browser and workers.",
   "repository": "unjs/ofetch",
   "license": "MIT",
@@ -66,7 +66,7 @@
     "lint:fix": "eslint --fix . && prettier -w src test playground examples",
     "prepack": "pnpm build",
     "play": "jiti playground/index.ts",
-    "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
+    "release": "pnpm test && pnpm build && changelogen --release --prerelease --publish --publishTag alpha --push",
     "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {

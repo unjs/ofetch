@@ -1,5 +1,4 @@
 import type { Readable } from "node:stream";
-import destr from "destr";
 import { withBase, withQuery } from "./utils.url.ts";
 import { createFetchError } from "./error.ts";
 import {

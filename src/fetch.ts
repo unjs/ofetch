@@ -35,11 +35,7 @@ const retryStatusCodes = new Set([
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
-  const {
-    fetch = globalThis.fetch,
-    Headers = globalThis.Headers,
-    AbortController = globalThis.AbortController,
-  } = globalOptions;
+  const { fetch = globalThis.fetch } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort

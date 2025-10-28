@@ -7,13 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      destr:
-        specifier: ^2.0.5
-        version: 2.0.5
-      ufo:
-        specifier: ^1.6.1
-        version: 1.6.1
     devDependencies:
       '@types/node':
         specifier: ^24.9.1

@@ -33,7 +33,7 @@ import { ofetch } from "ofetch";
 
 ## ✔️ Parsing Response
 
-`ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to the text if it fails to parse.
+`ofetch` smartly parse JSON responses.
 
 ```js
 const { users } = await ofetch("/api/users");
@@ -41,7 +41,7 @@ const { users } = await ofetch("/api/users");
 
 For binary content types, `ofetch` will instead return a `Blob` object.
 
-You can optionally provide a different parser than `destr`, or specify `blob`, `arrayBuffer`, `text` or `stream` to force parsing the body with the respective `FetchResponse` method.
+You can optionally provide a different parser than `JSON.parse`, or specify `blob`, `arrayBuffer`, `text` or `stream` to force parsing the body with the respective `FetchResponse` method.
 
 ```js
 // Use JSON.parse
@@ -398,9 +398,9 @@ myFetch("/foo", { requiresAuth: true });
 
 ## 📦 Bundler Notes
 
-- All targets are exported with Module and CommonJS format and named exports
+- All targets are exported with ESM format and named exports
 - No export is transpiled for the sake of modern syntax
-  - You probably need to transpile `ofetch`, `destr`, and `ufo` packages with Babel for ES5 support
+  - You probably need to transpile `ofetch` for ES5 support
 - You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
 
 ## ❓ FAQ

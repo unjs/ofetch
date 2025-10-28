@@ -33,7 +33,7 @@ import { ofetch } from "ofetch";
 
 ## ✔️ Parsing Response
 
-`ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to the text if it fails to parse.
+`ofetch` smartly parse JSON responses.
 
 ```js
 const { users } = await ofetch("/api/users");

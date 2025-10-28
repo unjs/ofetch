@@ -213,12 +213,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           : context.options.responseType) ||
         detectResponseType(context.response.headers.get("content-type") || "");
 
-      // We override the `.json()` method to parse the body more securely with `destr`
       switch (responseType) {
         case "json": {
           const data = await context.response.text();
-          const parseFunction = context.options.parseResponse || destr;
-          context.response._data = parseFunction(data);
+          if (data) {
+            const parseFunction = context.options.parseResponse || JSON.parse;
+            context.response._data = parseFunction(data);
+          }
           break;
         }
         case "stream": {

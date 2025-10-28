@@ -252,7 +252,7 @@ describe("ofetch", () => {
 
   it("204 no content", async () => {
     const res = await $fetch(getURL("204"));
-    expect(res).toBe("");
+    expect(res).toBe(undefined);
   });
 
   it("HEAD no content", async () => {

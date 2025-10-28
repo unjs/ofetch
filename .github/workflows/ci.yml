@@ -6,11 +6,11 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     strategy:
-      matrix: { node: [18, 20, 22, 24] }
+      matrix: { node: [20, 22, 24] }
     steps:
       - uses: actions/checkout@v5
       - run: corepack enable
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: "${{ matrix.node }}", cache: "pnpm" }
       - run: pnpm install
       - run: pnpm lint

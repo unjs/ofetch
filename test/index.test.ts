@@ -9,7 +9,6 @@ import {
 } from "vitest";
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
-import { nodeMajorVersion } from "std-env";
 import { $fetch } from "../src/index.ts";
 
 describe("ofetch", () => {
@@ -179,27 +178,24 @@ describe("ofetch", () => {
     expect(body).to.deep.eq(message);
   });
 
-  it.skipIf(Number(nodeMajorVersion) < 18)(
-    "Handle ReadableStream body",
-    async () => {
-      const message = "Hallo von Pascal";
-      const { body } = await $fetch(getURL("echo"), {
-        method: "POST",
-        headers: {
-          "content-length": "16",
+  it("Handle ReadableStream body", async () => {
+    const message = "Hallo von Pascal";
+    const { body } = await $fetch(getURL("echo"), {
+      method: "POST",
+      headers: {
+        "content-length": "16",
+      },
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(message));
+          controller.close();
         },
-        body: new ReadableStream({
-          start(controller) {
-            controller.enqueue(new TextEncoder().encode(message));
-            controller.close();
-          },
-        }),
-      });
-      expect(body).to.deep.eq(message);
-    }
-  );
+      }),
+    });
+    expect(body).to.deep.eq(message);
+  });
 
-  it.skipIf(Number(nodeMajorVersion) < 18)("Handle Readable body", async () => {
+  it("Handle Readable body", async () => {
     const message = "Hallo von Pascal";
     const { body } = await $fetch(getURL("echo"), {
       method: "POST",

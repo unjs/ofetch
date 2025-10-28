@@ -22,21 +22,13 @@ A better fetch API. Works on node, browser, and workers.
 Install:
 
 ```bash
-# npm
-npm i ofetch
-
-# yarn
-yarn add ofetch
+npx nypm i ofetch
 ```
 
 Import:
 
 ```js
-// ESM / Typescript
 import { ofetch } from "ofetch";
-
-// CommonJS
-const { ofetch } = require("ofetch");
 ```
 
 ## ✔️ Parsing Response

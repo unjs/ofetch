@@ -8,48 +8,7 @@
   "type": "module",
   "exports": {
     "./package.json": "./package.json",
-    ".": {
-      "browser": "./dist/index.mjs",
-      "bun": "./dist/index.mjs",
-      "deno": "./dist/index.mjs",
-      "edge-light": "./dist/index.mjs",
-      "edge-routine": "./dist/index.mjs",
-      "netlify": "./dist/index.mjs",
-      "react-native": "./dist/index.mjs",
-      "wintercg": "./dist/index.mjs",
-      "worker": "./dist/index.mjs",
-      "workerd": "./dist/index.mjs",
-      "node": {
-        "import": {
-          "types": "./dist/node.d.mts",
-          "default": "./dist/node.mjs"
-        },
-        "require": {
-          "types": "./dist/node.d.cts",
-          "default": "./dist/node.cjs"
-        }
-      },
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/node.d.cts",
-        "default": "./dist/node.cjs"
-      },
-      "types": "./dist/index.d.mts",
-      "default": "./dist/index.mjs"
-    },
-    "./node": {
-      "import": {
-        "types": "./dist/node.d.mts",
-        "default": "./dist/node.mjs"
-      },
-      "require": {
-        "types": "./dist/node.d.cts",
-        "default": "./dist/node.cjs"
-      }
-    }
+    "./dist/index.mjs": "./dist/index.mjs"
   },
   "main": "./dist/node.cjs",
   "module": "./dist/index.mjs",
@@ -71,7 +30,6 @@
   },
   "dependencies": {
     "destr": "^2.0.5",
-    "node-fetch-native": "^1.6.7",
     "ufo": "^1.6.1"
   },
   "devDependencies": {

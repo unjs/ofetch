@@ -11,9 +11,6 @@ importers:
       destr:
         specifier: ^2.0.5
         version: 2.0.5
-      node-fetch-native:
-        specifier: ^1.6.7
-        version: 1.6.7
       ufo:
         specifier: ^1.6.1
         version: 1.6.1

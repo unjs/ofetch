@@ -39,11 +39,6 @@ import { ofetch } from "ofetch";
 const { ofetch } = require("ofetch");
 ```
 
-## ✔️ Works with Node.js
-
-We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
-and automatically use [unjs/node-fetch-native](https://github.com/unjs/node-fetch-native). If `globalThis.fetch` is available, will be used instead. To leverage Node.js 17.5.0 experimental native fetch API use [`--experimental-fetch` flag](https://nodejs.org/dist/latest-v17.x/docs/api/cli.html#--experimental-fetch).
-
 ## ✔️ Parsing Response
 
 `ofetch` will smartly parse JSON and native values using [destr](https://github.com/unjs/destr), falling back to the text if it fails to parse.
@@ -378,22 +373,6 @@ const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
 
 const data = await unsecureFetch("https://www.squid-cache.org/");
 ```
-
-On older Node.js version (<18), you might also use use `agent`:
-
-```ts
-import { HttpsProxyAgent } from "https-proxy-agent";
-
-await ofetch("/api", {
-  agent: new HttpsProxyAgent("http://example.com"),
-});
-```
-
-### `keepAlive` support (only works for Node < 18)
-
-By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an HTTP/HTTPS agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to re-establish a TCP connection.
-
-**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
 
 ### 💪 Augment `FetchOptions` interface
 

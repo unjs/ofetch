@@ -1,14 +1,14 @@
 import type { Readable } from "node:stream";
 import destr from "destr";
 import { withBase, withQuery } from "ufo";
-import { createFetchError } from "./error";
+import { createFetchError } from "./error.ts";
 import {
   isPayloadMethod,
   isJSONSerializable,
   detectResponseType,
   resolveFetchOptions,
   callHooks,
-} from "./utils";
+} from "./utils.ts";
 import type {
   CreateFetchOptions,
   FetchResponse,
@@ -17,7 +17,7 @@ import type {
   $Fetch,
   FetchRequest,
   FetchOptions,
-} from "./types";
+} from "./types.ts";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 const retryStatusCodes = new Set([
@@ -35,11 +35,7 @@ const retryStatusCodes = new Set([
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
-  const {
-    fetch = globalThis.fetch,
-    Headers = globalThis.Headers,
-    AbortController = globalThis.AbortController,
-  } = globalOptions;
+  const { fetch = globalThis.fetch } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
@@ -134,18 +130,23 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.body && isPayloadMethod(context.options.method)) {
       if (isJSONSerializable(context.options.body)) {
-        // JSON Body
-        // Automatically JSON stringify request bodies, when not already a string.
-        context.options.body =
-          typeof context.options.body === "string"
-            ? context.options.body
-            : JSON.stringify(context.options.body);
+        const contentType = context.options.headers.get("content-type");
+
+        // Automatically stringify request bodies, when not already a string.
+        if (typeof context.options.body !== "string") {
+          context.options.body =
+            contentType === "application/x-www-form-urlencoded"
+              ? new URLSearchParams(
+                  context.options.body as Record<string, any>
+                ).toString()
+              : JSON.stringify(context.options.body);
+        }
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
         // Pass empty object as older browsers don't support undefined.
         context.options.headers = new Headers(context.options.headers || {});
-        if (!context.options.headers.has("content-type")) {
+        if (!contentType) {
           context.options.headers.set("content-type", "application/json");
         }
         if (!context.options.headers.has("accept")) {

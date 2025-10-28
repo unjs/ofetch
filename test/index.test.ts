@@ -1,14 +1,3 @@
-import { Readable } from "node:stream";
-import { listen } from "listhen";
-import { getQuery, joinURL } from "ufo";
-import {
-  createApp,
-  createError,
-  eventHandler,
-  readBody,
-  readRawBody,
-  toNodeListener,
-} from "h3";
 import {
   describe,
   beforeEach,
@@ -18,81 +7,64 @@ import {
   expect,
   vi,
 } from "vitest";
-import { Headers, FormData, Blob } from "node-fetch-native";
-import { nodeMajorVersion } from "std-env";
-import { $fetch } from "../src/node";
+import { Readable } from "node:stream";
+import { H3, HTTPError, readBody, serve } from "h3";
+import { $fetch } from "../src/index.ts";
 
 describe("ofetch", () => {
-  let listener;
-  const getURL = (url) => joinURL(listener.url, url);
+  let listener: ReturnType<typeof serve>;
+  const getURL = (url: string = "/") =>
+    listener.url! + (url.replace(/^\//, "") || "");
 
   const fetch = vi.spyOn(globalThis, "fetch");
 
   beforeAll(async () => {
-    const app = createApp()
-      .use(
-        "/ok",
-        eventHandler(() => "ok")
-      )
-      .use(
-        "/params",
-        eventHandler((event) => getQuery(event.node.req.url || ""))
-      )
-      .use(
-        "/url",
-        eventHandler((event) => event.node.req.url)
-      )
-      .use(
-        "/echo",
-        eventHandler(async (event) => ({
-          path: event.path,
-          body:
-            event.node.req.method === "POST"
-              ? await readRawBody(event)
-              : undefined,
-          headers: event.node.req.headers,
-        }))
-      )
-      .use(
-        "/post",
-        eventHandler(async (event) => ({
-          body: await readBody(event),
-          headers: event.node.req.headers,
-        }))
-      )
-      .use(
-        "/binary",
-        eventHandler((event) => {
-          event.node.res.setHeader("Content-Type", "application/octet-stream");
-          return new Blob(["binary"]);
-        })
-      )
-      .use(
+    const app = new H3({ debug: true })
+      // .use(async (event) => {
+      //   console.log({
+      //     body: await event.req.clone().text(),
+      //     url: event.url.href,
+      //     headers: event.req.headers,
+      //   });
+      // })
+      .all("/ok", () => "ok")
+      .all("/params", (event) => Object.fromEntries(event.url.searchParams))
+      .all("/url/**", (event) => event.url.pathname + event.url.search)
+      .all("/echo", async (event) => ({
+        path: event.url.pathname + event.url.search,
+        body: event.req.method === "POST" ? await event.req.text() : undefined,
+        headers: Object.fromEntries(event.req.headers),
+      }))
+      .all("/post", async (event) => ({
+        body: event.req.headers
+          .get("content-type")
+          ?.includes("multipart/form-data")
+          ? await event.req.text()
+          : await readBody(event),
+        headers: Object.fromEntries(event.req.headers),
+      }))
+      .all("/binary", (event) => {
+        event.res.headers.set("Content-Type", "application/octet-stream");
+        return new Blob(["binary"]);
+      })
+      .all(
         "/403",
-        eventHandler(() =>
-          createError({ status: 403, statusMessage: "Forbidden" })
-        )
+        () => new HTTPError({ status: 403, statusMessage: "Forbidden" })
       )
-      .use(
-        "/408",
-        eventHandler(() => createError({ status: 408 }))
-      )
-      .use(
+      .all("/408", () => new HTTPError({ status: 408 }))
+      .all(
         "/204",
-        eventHandler(() => null) // eslint-disable-line unicorn/no-null
+        () => null // eslint-disable-line unicorn/no-null
       )
-      .use(
-        "/timeout",
-        eventHandler(async () => {
-          await new Promise((resolve) => {
-            setTimeout(() => {
-              resolve(createError({ status: 408 }));
-            }, 1000 * 5);
-          });
-        })
-      );
+      .all("/timeout", async () => {
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(new HTTPError({ status: 408 }));
+          }, 1000 * 5);
+        });
+      });
 
-    listener = await listen(toNodeListener(app));
+    listener = await serve(app, { port: 0, hostname: "localhost" }).ready();
   });
 
   afterAll(() => {
@@ -109,7 +81,7 @@ describe("ofetch", () => {
 
   it("custom parseResponse", async () => {
     let called = 0;
-    const parser = (r) => {
+    const parser = (r: any) => {
       called++;
       return "C" + r;
     };
@@ -128,7 +100,7 @@ describe("ofetch", () => {
     ).to.be.instanceOf(Blob);
     expect(
       await $fetch(getURL("params?test=true"), { responseType: "text" })
-    ).to.equal('{"test":"true"}');
+    ).to.equal('{\n  "test": "true"\n}');
     expect(
       await $fetch(getURL("params?test=true"), { responseType: "arrayBuffer" })
     ).to.be.instanceOf(ArrayBuffer);
@@ -140,7 +112,7 @@ describe("ofetch", () => {
 
   it("baseURL", async () => {
     expect(await $fetch("/x?foo=123", { baseURL: getURL("url") })).to.equal(
-      "/x?foo=123"
+      "/url/x?foo=123"
     );
   });
 
@@ -158,6 +130,16 @@ describe("ofetch", () => {
       })
     ).body;
     expect(body2).to.deep.eq([{ num: 42 }, { num: 43 }]);
+
+    let body3;
+    await $fetch(getURL("post"), {
+      method: "POST",
+      body: { num: 42 },
+      onResponse(ctx) {
+        body3 = ctx.options.body;
+      },
+    });
+    expect(JSON.parse(body3! as string)).toMatchObject({ num: 42 });
 
     const headerFetches = [
       [["X-header", "1"]],
@@ -196,27 +178,24 @@ describe("ofetch", () => {
     expect(body).to.deep.eq(message);
   });
 
-  it.skipIf(Number(nodeMajorVersion) < 18)(
-    "Handle ReadableStream body",
-    async () => {
-      const message = "Hallo von Pascal";
-      const { body } = await $fetch(getURL("echo"), {
-        method: "POST",
-        headers: {
-          "content-length": "16",
+  it("Handle ReadableStream body", async () => {
+    const message = "Hallo von Pascal";
+    const { body } = await $fetch(getURL("echo"), {
+      method: "POST",
+      headers: {
+        "content-length": "16",
+      },
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(message));
+          controller.close();
         },
-        body: new ReadableStream({
-          start(controller) {
-            controller.enqueue(new TextEncoder().encode(message));
-            controller.close();
-          },
-        }),
-      });
-      expect(body).to.deep.eq(message);
-    }
-  );
+      }),
+    });
+    expect(body).to.deep.eq(message);
+  });
 
-  it.skipIf(Number(nodeMajorVersion) < 18)("Handle Readable body", async () => {
+  it("Handle Readable body", async () => {
     const message = "Hallo von Pascal";
     const { body } = await $fetch(getURL("echo"), {
       method: "POST",
@@ -253,12 +232,13 @@ describe("ofetch", () => {
   });
 
   it("404", async () => {
-    const error = await $fetch(getURL("404")).catch((error_) => error_);
-    expect(error.toString()).to.contain("Cannot find any path matching /404.");
-    expect(error.data).to.deep.eq({
-      stack: [],
-      statusCode: 404,
-      statusMessage: "Cannot find any path matching /404.",
+    const error = await $fetch(getURL("404")).catch((error_: any) => error_);
+    expect(error.toString()).toBe(
+      `FetchError: [GET] "${getURL("404")}": 404 Not Found`
+    );
+    expect(error.data).toMatchObject({
+      status: 404,
+      message: expect.stringContaining("Cannot find any route matching"),
     });
     expect(error.response?._data).to.deep.eq(error.data);
     expect(error.request).to.equal(getURL("404"));
@@ -266,13 +246,13 @@ describe("ofetch", () => {
 
   it("403 with ignoreResponseError", async () => {
     const res = await $fetch(getURL("403"), { ignoreResponseError: true });
-    expect(res?.statusCode).to.eq(403);
-    expect(res?.statusMessage).to.eq("Forbidden");
+    expect(res?.status).to.eq(403);
+    expect(res?.message).to.eq("Forbidden");
   });
 
   it("204 no content", async () => {
     const res = await $fetch(getURL("204"));
-    expect(res).toBeUndefined();
+    expect(res).toBe("");
   });
 
   it("HEAD no content", async () => {
@@ -282,7 +262,7 @@ describe("ofetch", () => {
 
   it("baseURL with retry", async () => {
     const error = await $fetch("", { baseURL: getURL("404"), retry: 3 }).catch(
-      (error_) => error_
+      (error_: any) => error_
     );
     expect(error.request).to.equal(getURL("404"));
   });
@@ -315,7 +295,7 @@ describe("ofetch", () => {
     expect(race).to.equal("fast");
   });
 
-  it("abort with retry", () => {
+  it("abort with retry", async () => {
     const controller = new AbortController();
     async function abortHandle() {
       controller.abort();
@@ -326,15 +306,15 @@ describe("ofetch", () => {
       });
       console.log("response", response);
     }
-    expect(abortHandle()).rejects.toThrow(/aborted/);
+    await expect(abortHandle()).rejects.toThrow(/aborted/);
   });
 
   it("passing request obj should return request obj in error", async () => {
     const error = await $fetch(getURL("/403"), { method: "post" }).catch(
-      (error) => error
+      (error: any) => error
     );
     expect(error.toString()).toBe(
-      'FetchError: [POST] "http://localhost:3000/403": 403 Forbidden'
+      `FetchError: [POST] "${getURL("403")}": 403 Forbidden`
     );
     expect(error.request).to.equal(getURL("403"));
     expect(error.options.method).to.equal("POST");
@@ -355,7 +335,7 @@ describe("ofetch", () => {
     await $fetch(getURL("timeout"), {
       timeout: 100,
       retry: 0,
-    }).catch((error) => {
+    }).catch((error: any) => {
       expect(error.cause.message).to.include(
         "The operation was aborted due to timeout"
       );
@@ -398,8 +378,8 @@ describe("ofetch", () => {
     });
 
     const parseParams = (str: string) =>
-      Object.fromEntries(new URLSearchParams(str).entries());
-    expect(parseParams(path)).toMatchObject(parseParams("?b=2&c=3&a=1"));
+      Object.fromEntries(new URL(str, "http://_").searchParams.entries());
+    expect(parseParams(path)).toMatchObject({ a: "1", b: "2", c: "3" });
   });
 
   it("uses request headers", async () => {
@@ -483,7 +463,7 @@ describe("ofetch", () => {
       onRequestError,
       onResponse,
       onResponseError,
-    }).catch((error) => error);
+    }).catch((error: any) => error);
 
     expect(onRequest).toHaveBeenCalledOnce();
     expect(onRequestError).not.toHaveBeenCalled();

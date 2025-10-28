@@ -1,6 +1,6 @@
 {
   "name": "ofetch",
-  "version": "1.4.1",
+  "version": "2.0.0-rc.0",
   "description": "A better fetch API. Works on node, browser and workers.",
   "repository": "unjs/ofetch",
   "license": "MIT",
@@ -8,89 +8,37 @@
   "type": "module",
   "exports": {
     "./package.json": "./package.json",
-    ".": {
-      "browser": "./dist/index.mjs",
-      "bun": "./dist/index.mjs",
-      "deno": "./dist/index.mjs",
-      "edge-light": "./dist/index.mjs",
-      "edge-routine": "./dist/index.mjs",
-      "netlify": "./dist/index.mjs",
-      "react-native": "./dist/index.mjs",
-      "wintercg": "./dist/index.mjs",
-      "worker": "./dist/index.mjs",
-      "workerd": "./dist/index.mjs",
-      "node": {
-        "import": {
-          "types": "./dist/node.d.mts",
-          "default": "./dist/node.mjs"
-        },
-        "require": {
-          "types": "./dist/node.d.cts",
-          "default": "./dist/node.cjs"
-        }
-      },
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/node.d.cts",
-        "default": "./dist/node.cjs"
-      },
-      "types": "./dist/index.d.mts",
-      "default": "./dist/index.mjs"
-    },
-    "./node": {
-      "import": {
-        "types": "./dist/node.d.mts",
-        "default": "./dist/node.mjs"
-      },
-      "require": {
-        "types": "./dist/node.d.cts",
-        "default": "./dist/node.cjs"
-      }
-    }
+    "./dist/index.mjs": "./dist/index.mjs"
   },
-  "main": "./dist/node.cjs",
-  "module": "./dist/index.mjs",
-  "react-native": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.mts",
   "files": [
-    "dist",
-    "node.d.ts"
+    "dist"
   ],
   "scripts": {
-    "build": "unbuild",
+    "build": "obuild src/index.ts",
     "dev": "vitest",
-    "lint": "eslint . && prettier -c src test playground examples",
-    "lint:fix": "eslint --fix . && prettier -w src test playground examples",
+    "lint": "eslint . && prettier -c src test examples",
+    "lint:fix": "eslint --fix . && prettier -w src test examples",
     "prepack": "pnpm build",
-    "play": "jiti playground/index.ts",
-    "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
+    "release": "pnpm test && pnpm build && changelogen --release --prerelease --publish --publishTag alpha --push",
     "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
-    "destr": "^2.0.3",
-    "node-fetch-native": "^1.6.5",
-    "ufo": "^1.5.4"
+    "destr": "^2.0.5",
+    "ufo": "^1.6.1"
   },
   "devDependencies": {
-    "@types/node": "^22.13.11",
-    "@vitest/coverage-v8": "^3.0.9",
-    "changelogen": "^0.6.1",
-    "eslint": "^9.23.0",
-    "eslint-config-unjs": "^0.4.2",
-    "fetch-blob": "^4.0.0",
-    "formdata-polyfill": "^4.0.10",
-    "h3": "^1.15.1",
-    "jiti": "^2.4.2",
-    "listhen": "^1.9.0",
-    "prettier": "^3.5.3",
-    "std-env": "^3.8.1",
-    "typescript": "^5.8.2",
-    "unbuild": "^3.5.0",
-    "undici": "^7.5.0",
-    "vitest": "^3.0.9"
+    "@types/node": "^24.9.1",
+    "@vitest/coverage-v8": "^4.0.4",
+    "changelogen": "^0.6.2",
+    "eslint": "^9.38.0",
+    "eslint-config-unjs": "^0.5.0",
+    "h3": "^2.0.1-rc.5",
+    "obuild": "^0.3.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "undici": "^7.16.0",
+    "vitest": "^4.0.4"
   },
-  "packageManager": "pnpm@9.15.9"
+  "packageManager": "pnpm@10.19.0"
 }

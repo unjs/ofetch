@@ -9,6 +9,9 @@
 
 A better fetch API. Works on node, browser, and workers.
 
+> [!IMPORTANT]
+> You are on v2 (alpha) development branch. See [v1](https://github.com/unjs/ofetch/tree/v1) for v1 docs.
+
 <details>
   <summary>Spoiler</summary>
   <img src="https://media.giphy.com/media/Dn1QRA9hqMcoMz9zVZ/giphy.gif">
@@ -19,27 +22,14 @@ A better fetch API. Works on node, browser, and workers.
 Install:
 
 ```bash
-# npm
-npm i ofetch
-
-# yarn
-yarn add ofetch
+npx nypm i ofetch
 ```
 
 Import:
 
 ```js
-// ESM / Typescript
 import { ofetch } from "ofetch";
-
-// CommonJS
-const { ofetch } = require("ofetch");
 ```
-
-## ✔️ Works with Node.js
-
-We use [conditional exports](https://nodejs.org/api/packages.html#packages_conditional_exports) to detect Node.js
-and automatically use [unjs/node-fetch-native](https://github.com/unjs/node-fetch-native). If `globalThis.fetch` is available, will be used instead. To leverage Node.js 17.5.0 experimental native fetch API use [`--experimental-fetch` flag](https://nodejs.org/dist/latest-v17.x/docs/api/cli.html#--experimental-fetch).
 
 ## ✔️ Parsing Response
 
@@ -51,7 +41,7 @@ const { users } = await ofetch("/api/users");
 
 For binary content types, `ofetch` will instead return a `Blob` object.
 
-You can optionally provide a different parser than `destr`, or specify `blob`, `arrayBuffer`, or `text` to force parsing the body with the respective `FetchResponse` method.
+You can optionally provide a different parser than `destr`, or specify `blob`, `arrayBuffer`, `text` or `stream` to force parsing the body with the respective `FetchResponse` method.
 
 ```js
 // Use JSON.parse
@@ -62,6 +52,9 @@ await ofetch("/movie?lang=en", { parseResponse: (txt) => txt });
 
 // Get the blob version of the response
 await ofetch("/api/generate-image", { responseType: "blob" });
+
+// Get the stream version of the response
+await ofetch("/api/generate-image", { responseType: "stream" });
 ```
 
 ## ✔️ JSON Body
@@ -70,9 +63,9 @@ If an object or a class with a `.toJSON()` method is passed to the `body` option
 
 `ofetch` utilizes `JSON.stringify()` to convert the passed object. Classes without a `.toJSON()` method have to be converted into a string value in advance before being passed to the `body` option.
 
-For `PUT`, `PATCH`, and `POST` request methods, when a string or object body is set, `ofetch` adds the default `content-type: "application/json"` and `accept: "application/json"` headers (which you can always override).
+For `PUT`, `PATCH`, and `POST` request methods, when a string or object body is set, `ofetch` adds the default `"content-type": "application/json"` and `accept: "application/json"` headers (which you can always override).
 
-Additionally, `ofetch` supports binary responses with `Buffer`, `ReadableStream`, `Stream`, and [compatible body types](https://developer.mozilla.org/en-US/docs/Web/API/fetch#body). ofetch will automatically set the `duplex: "half"` option for streaming support!
+Additionally, `ofetch` supports binary responses with `Buffer`, `ReadableStream`, `Stream`, and [compatible body types](https://developer.mozilla.org/en-US/docs/Web/API/fetch#body). `ofetch` will automatically set the `duplex: "half"` option for streaming support!
 
 **Example:**
 
@@ -132,6 +125,7 @@ The default for `retryDelay` is `0` ms.
 await ofetch("http://google.com/404", {
   retry: 3,
   retryDelay: 500, // ms
+  retryStatusCodes: [404, 500], // response status codes to retry
 });
 ```
 
@@ -281,7 +275,7 @@ await ofetch("/movies", {
 
 ## 🍣 Access to Raw Response
 
-If you need to access raw response (for headers, etc), can use `ofetch.raw`:
+If you need to access raw response (for headers, etc), you can use `ofetch.raw`:
 
 ```js
 const response = await ofetch.raw("/sushi");
@@ -297,6 +291,22 @@ As a shortcut, you can use `ofetch.native` that provides native `fetch` API
 
 ```js
 const json = await ofetch.native("/sushi").then((r) => r.json());
+```
+
+## 📡 SSE
+
+**Example:** Handle SSE response:
+
+```js
+const stream = await ofetch("/sse");
+const reader = stream.getReader();
+const decoder = new TextDecoder();
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  // Here is the chunked text of the SSE response.
+  const text = decoder.decode(value);
+}
 ```
 
 ## 🕵️ Adding HTTP(S) Agent
@@ -349,28 +359,42 @@ const data = await ofetch("https://icanhazip.com");
 import { Agent } from "undici";
 import { ofetch } from "ofetch";
 
-// Note: This makes fetch unsecure against MITM attacks. USE AT YOUW OWN RISK!
+// Note: This makes fetch unsecure against MITM attacks. USE AT YOUR OWN RISK!
 const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
 
 const data = await unsecureFetch("https://www.squid-cache.org/");
 ```
 
-On older Node.js version (<18), you might also use use `agent`:
+### 💪 Augment `FetchOptions` interface
+
+You can augment the `FetchOptions` interface to add custom properties.
 
 ```ts
-import { HttpsProxyAgent } from "https-proxy-agent";
+// Place this in any `.ts` or `.d.ts` file.
+// Ensure it's included in the project's tsconfig.json "files".
+declare module "ofetch" {
+  interface FetchOptions {
+    // Custom properties
+    requiresAuth?: boolean;
+  }
+}
 
-await ofetch("/api", {
-  agent: new HttpsProxyAgent("http://example.com"),
-});
+export {};
 ```
 
-### `keepAlive` support (only works for Node < 18)
+This lets you pass and use those properties with full type safety throughout `ofetch` calls.
 
-By setting the `FETCH_KEEP_ALIVE` environment variable to `true`, an HTTP/HTTPS agent will be registered that keeps sockets around even when there are no outstanding requests, so they can be used for future requests without having to re-establish a TCP connection.
+```ts
+const myFetch = ofetch.create({
+  onRequest(context) {
+    //      ^? { ..., options: {..., requiresAuth?: boolean }}
+    console.log(context.options.requiresAuth);
+  },
+});
 
-**Note:** This option can potentially introduce memory leaks. Please check [node-fetch/node-fetch#1325](https://github.com/node-fetch/node-fetch/pull/1325).
+myFetch("/foo", { requiresAuth: true });
+```
 
 ## 📦 Bundler Notes
 

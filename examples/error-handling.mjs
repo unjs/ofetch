@@ -8,6 +8,6 @@ try {
   // Error will be pretty printed
   console.error(error);
 
-  // This allow us to access the error body
+  // This allows us to access the error body
   console.log(error.data);
 }

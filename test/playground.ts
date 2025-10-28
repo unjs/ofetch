@@ -1,4 +1,4 @@
-import { $fetch } from "../src/node";
+import { $fetch } from "../src/index.ts";
 
 async function main() {
   // const r = await $fetch<string>('http://google.com/404')

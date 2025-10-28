@@ -8,7 +8,7 @@ import {
   detectResponseType,
   resolveFetchOptions,
   callHooks,
-} from "./utils";
+} from "./utils.ts";
 import type {
   CreateFetchOptions,
   FetchResponse,
@@ -17,7 +17,7 @@ import type {
   $Fetch,
   FetchRequest,
   FetchOptions,
-} from "./types";
+} from "./types.ts";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 const retryStatusCodes = new Set([
@@ -35,11 +35,7 @@ const retryStatusCodes = new Set([
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
-  const {
-    fetch = globalThis.fetch,
-    Headers = globalThis.Headers,
-    AbortController = globalThis.AbortController,
-  } = globalOptions;
+  const { fetch = globalThis.fetch } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
@@ -108,7 +104,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     };
 
     // Uppercase method name
-    context.options.method = context.options.method?.toUpperCase();
+    if (context.options.method) {
+      context.options.method = context.options.method.toUpperCase();
+    }
 
     if (context.options.onRequest) {
       await callHooks(context, context.options.onRequest);
@@ -120,23 +118,35 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
       if (context.options.query) {
         context.request = withQuery(context.request, context.options.query);
+        delete context.options.query;
+      }
+      if ("query" in context.options) {
+        delete context.options.query;
+      }
+      if ("params" in context.options) {
+        delete context.options.params;
       }
     }
 
     if (context.options.body && isPayloadMethod(context.options.method)) {
       if (isJSONSerializable(context.options.body)) {
-        // JSON Body
-        // Automatically JSON stringify request bodies, when not already a string.
-        context.options.body =
-          typeof context.options.body === "string"
-            ? context.options.body
-            : JSON.stringify(context.options.body);
+        const contentType = context.options.headers.get("content-type");
+
+        // Automatically stringify request bodies, when not already a string.
+        if (typeof context.options.body !== "string") {
+          context.options.body =
+            contentType === "application/x-www-form-urlencoded"
+              ? new URLSearchParams(
+                  context.options.body as Record<string, any>
+                ).toString()
+              : JSON.stringify(context.options.body);
+        }
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
         // Pass empty object as older browsers don't support undefined.
         context.options.headers = new Headers(context.options.headers || {});
-        if (!context.options.headers.has("content-type")) {
+        if (!contentType) {
           context.options.headers.set("content-type", "application/json");
         }
         if (!context.options.headers.has("accept")) {
@@ -159,18 +169,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     let abortTimeout: NodeJS.Timeout | undefined;
 
-    // TODO: Can we merge signals?
-    if (!context.options.signal && context.options.timeout) {
-      const controller = new AbortController();
-      abortTimeout = setTimeout(() => {
-        const error = new Error(
-          "[TimeoutError]: The operation was aborted due to timeout"
-        );
-        error.name = "TimeoutError";
-        (error as any).code = 23; // DOMException.TIMEOUT_ERR
-        controller.abort(error);
-      }, context.options.timeout);
-      context.options.signal = controller.signal;
+    if (context.options.timeout) {
+      context.options.signal = context.options.signal
+        ? AbortSignal.any([
+            AbortSignal.timeout(context.options.timeout),
+            context.options.signal,
+          ])
+        : AbortSignal.timeout(context.options.timeout);
     }
 
     try {
@@ -194,7 +199,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     const hasBody =
-      context.response.body &&
+      (context.response.body ||
+        // https://github.com/unjs/ofetch/issues/324
+        // https://github.com/unjs/ofetch/issues/294
+        // https://github.com/JakeChampion/fetch/issues/1454
+        (context.response as any)._bodyInit) &&
       !nullBodyResponses.has(context.response.status) &&
       context.options.method !== "HEAD";
     if (hasBody) {
@@ -213,7 +222,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           break;
         }
         case "stream": {
-          context.response._data = context.response.body;
+          context.response._data =
+            context.response.body || (context.response as any)._bodyInit; // (see refs above)
           break;
         }
         default: {

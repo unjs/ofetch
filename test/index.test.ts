@@ -11,7 +11,7 @@ import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { Headers, FormData, Blob } from "node-fetch-native";
 import { nodeMajorVersion } from "std-env";
-import { $fetch } from "../src/node";
+import { $fetch } from "../src/node.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -237,7 +237,7 @@ describe("ofetch", () => {
   });
 
   it("404", async () => {
-    const error = await $fetch(getURL("404")).catch((error_) => error_);
+    const error = await $fetch(getURL("404")).catch((error_: any) => error_);
     expect(error.toString()).toBe(
       `FetchError: [GET] "${getURL("404")}": 404 Not Found`
     );
@@ -267,7 +267,7 @@ describe("ofetch", () => {
 
   it("baseURL with retry", async () => {
     const error = await $fetch("", { baseURL: getURL("404"), retry: 3 }).catch(
-      (error_) => error_
+      (error_: any) => error_
     );
     expect(error.request).to.equal(getURL("404"));
   });
@@ -316,7 +316,7 @@ describe("ofetch", () => {
 
   it("passing request obj should return request obj in error", async () => {
     const error = await $fetch(getURL("/403"), { method: "post" }).catch(
-      (error) => error
+      (error: any) => error
     );
     expect(error.toString()).toBe(
       `FetchError: [POST] "${getURL("403")}": 403 Forbidden`
@@ -340,7 +340,7 @@ describe("ofetch", () => {
     await $fetch(getURL("timeout"), {
       timeout: 100,
       retry: 0,
-    }).catch((error) => {
+    }).catch((error: any) => {
       expect(error.cause.message).to.include(
         "The operation was aborted due to timeout"
       );
@@ -468,7 +468,7 @@ describe("ofetch", () => {
       onRequestError,
       onResponse,
       onResponseError,
-    }).catch((error) => error);
+    }).catch((error: any) => error);
 
     expect(onRequest).toHaveBeenCalledOnce();
     expect(onRequestError).not.toHaveBeenCalled();

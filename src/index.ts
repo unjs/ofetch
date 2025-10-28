@@ -1,8 +1,9 @@
-import { createFetch } from "./base";
+import { createFetch } from "./base.ts";
+import type { $Fetch } from "./types.ts";
 
-export * from "./base";
+export * from "./base.ts";
 
-export type * from "./types";
+export type * from "./types.ts";
 
 // ref: https://github.com/tc39/proposal-global
 const _globalThis = (function () {
@@ -24,12 +25,13 @@ const _globalThis = (function () {
 })();
 
 // ref: https://github.com/unjs/ofetch/issues/295
-export const fetch = _globalThis.fetch
+export const fetch: typeof globalThis.fetch = _globalThis.fetch
   ? (...args: Parameters<typeof globalThis.fetch>) => _globalThis.fetch(...args)
   : () => Promise.reject(new Error("[ofetch] global.fetch is not supported!"));
 
-export const Headers = _globalThis.Headers;
-export const AbortController = _globalThis.AbortController;
+export const Headers: typeof globalThis.Headers = _globalThis.Headers;
+export const AbortController: typeof globalThis.AbortController =
+  _globalThis.AbortController;
 
-export const ofetch = createFetch({ fetch, Headers, AbortController });
-export const $fetch = ofetch;
+export const ofetch: $Fetch = createFetch({ fetch, Headers, AbortController });
+export const $fetch: $Fetch = ofetch;

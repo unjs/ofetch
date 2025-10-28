@@ -1,14 +1,14 @@
 import type { Readable } from "node:stream";
 import destr from "destr";
 import { withBase, withQuery } from "ufo";
-import { createFetchError } from "./error";
+import { createFetchError } from "./error.ts";
 import {
   isPayloadMethod,
   isJSONSerializable,
   detectResponseType,
   resolveFetchOptions,
   callHooks,
-} from "./utils";
+} from "./utils.ts";
 import type {
   CreateFetchOptions,
   FetchResponse,
@@ -17,7 +17,7 @@ import type {
   $Fetch,
   FetchRequest,
   FetchOptions,
-} from "./types";
+} from "./types.ts";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 const retryStatusCodes = new Set([

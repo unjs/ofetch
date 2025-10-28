@@ -6,3 +6,4 @@ coverage
 dist
 types
 .conf*
+tsconfig.tsbuildinfo

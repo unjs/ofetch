@@ -5,16 +5,16 @@ import type {
   FetchRequest,
   ResolvedFetchOptions,
   ResponseType,
-} from "./types";
+} from "./types.ts";
 
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
 );
-export function isPayloadMethod(method = "GET") {
+export function isPayloadMethod(method = "GET"): boolean {
   return payloadMethods.has(method.toUpperCase());
 }
 
-export function isJSONSerializable(value: any) {
+export function isJSONSerializable(value: any): boolean {
   if (value === undefined) {
     return false;
   }

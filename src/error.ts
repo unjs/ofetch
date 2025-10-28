@@ -1,4 +1,4 @@
-import type { FetchContext, IFetchError } from "./types";
+import type { FetchContext, IFetchError } from "./types.ts";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class FetchError<T = any> extends Error implements IFetchError<T> {

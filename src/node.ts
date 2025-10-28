@@ -1,16 +1,17 @@
 import http from "node:http";
-import https, { AgentOptions } from "node:https";
+import https, { type AgentOptions } from "node:https";
 import nodeFetch, {
   Headers as _Headers,
   AbortController as _AbortController,
 } from "node-fetch-native";
 
-import { createFetch } from "./base";
+import { createFetch } from "./base.ts";
+import type { $Fetch } from "./types.ts";
 
-export * from "./base";
-export type * from "./types";
+export * from "./base.ts";
+export type * from "./types.ts";
 
-export function createNodeFetch() {
+export function createNodeFetch(): typeof globalThis.fetch {
   const useKeepAlive = JSON.parse(process.env.FETCH_KEEP_ALIVE || "false");
   if (!useKeepAlive) {
     return nodeFetch;
@@ -31,15 +32,17 @@ export function createNodeFetch() {
     init?: RequestInit
   ) {
     return (nodeFetch as any)(input, { ...nodeFetchOptions, ...init });
-  };
+  } as any;
 }
 
-export const fetch = globalThis.fetch
+export const fetch: typeof globalThis.fetch = globalThis.fetch
   ? (...args: Parameters<typeof globalThis.fetch>) => globalThis.fetch(...args)
   : (createNodeFetch() as typeof globalThis.fetch);
 
-export const Headers = globalThis.Headers || _Headers;
-export const AbortController = globalThis.AbortController || _AbortController;
+export const Headers: typeof globalThis.Headers =
+  globalThis.Headers || _Headers;
+export const AbortController: typeof globalThis.AbortController =
+  globalThis.AbortController || _AbortController;
 
-export const ofetch = createFetch({ fetch, Headers, AbortController });
-export const $fetch = ofetch;
+export const ofetch: $Fetch = createFetch({ fetch, Headers, AbortController });
+export const $fetch: $Fetch = ofetch;

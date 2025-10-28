@@ -1,6 +1,6 @@
 {
   "name": "ofetch",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "description": "A better fetch API. Works on node, browser and workers.",
   "repository": "unjs/ofetch",
   "license": "MIT",

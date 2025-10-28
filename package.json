@@ -26,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^24.9.1",
     "@vitest/coverage-v8": "^4.0.4",
+    "automd": "^0.4.2",
     "changelogen": "^0.6.2",
     "eslint": "^9.38.0",
     "eslint-config-unjs": "^0.5.0",

@@ -1,11 +1,11 @@
 # ofetch
 
-[![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
-[![bundle][bundle-src]][bundle-href]
-[![Codecov][codecov-src]][codecov-href]
-[![License][license-src]][license-href]
-[![JSDocs][jsdocs-src]][jsdocs-href]
+<!-- automd:badges -->
+
+[![npm version](https://img.shields.io/npm/v/ofetch)](https://npmjs.com/package/ofetch)
+[![npm downloads](https://img.shields.io/npm/dm/ofetch)](https://npm.chart.dev/ofetch)
+
+<!-- /automd -->
 
 A better fetch API. Works on node, browser, and workers.
 
@@ -44,9 +44,6 @@ For binary content types, `ofetch` will instead return a `Blob` object.
 You can optionally provide a different parser than `JSON.parse`, or specify `blob`, `arrayBuffer`, `text` or `stream` to force parsing the body with the respective `FetchResponse` method.
 
 ```js
-// Use JSON.parse
-await ofetch("/movie?lang=en", { parseResponse: JSON.parse });
-
 // Return text as is
 await ofetch("/movie?lang=en", { parseResponse: (txt) => txt });
 
@@ -396,46 +393,6 @@ const myFetch = ofetch.create({
 myFetch("/foo", { requiresAuth: true });
 ```
 
-## 📦 Bundler Notes
-
-- All targets are exported with ESM format and named exports
-- No export is transpiled for the sake of modern syntax
-  - You probably need to transpile `ofetch` for ES5 support
-- You need to polyfill `fetch` global for supporting legacy browsers like using [unfetch](https://github.com/developit/unfetch)
-
-## ❓ FAQ
-
-**Why export is called `ofetch` instead of `fetch`?**
-
-Using the same name of `fetch` can be confusing since API is different but still, it is a fetch so using the closest possible alternative. You can, however, import `{ fetch }` from `ofetch` which is auto-polyfill for Node.js and using native otherwise.
-
-**Why not have default export?**
-
-Default exports are always risky to be mixed with CommonJS exports.
-
-This also guarantees we can introduce more utils without breaking the package and also encourage using `ofetch` name.
-
-**Why not transpiled?**
-
-By transpiling libraries, we push the web backward with legacy code which is unneeded for most of the users.
-
-If you need to support legacy users, you can optionally transpile the library in your build pipeline.
-
 ## License
 
-MIT. Made with 💖
-
-<!-- Badges -->
-
-[npm-version-src]: https://img.shields.io/npm/v/ofetch?style=flat&colorA=18181B&colorB=F0DB4F
-[npm-version-href]: https://npmjs.com/package/ofetch
-[npm-downloads-src]: https://img.shields.io/npm/dm/ofetch?style=flat&colorA=18181B&colorB=F0DB4F
-[npm-downloads-href]: https://npmjs.com/package/ofetch
-[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ofetch/main?style=flat&colorA=18181B&colorB=F0DB4F
-[codecov-href]: https://codecov.io/gh/unjs/ofetch
-[bundle-src]: https://img.shields.io/bundlephobia/minzip/ofetch?style=flat&colorA=18181B&colorB=F0DB4F
-[bundle-href]: https://bundlephobia.com/result?p=ofetch
-[license-src]: https://img.shields.io/github/license/unjs/ofetch.svg?style=flat&colorA=18181B&colorB=F0DB4F
-[license-href]: https://github.com/unjs/ofetch/blob/main/LICENSE
-[jsdocs-src]: https://img.shields.io/badge/jsDocs.io-reference-18181B?style=flat&colorA=18181B&colorB=F0DB4F
-[jsdocs-href]: https://www.jsdocs.io/package/ofetch
+💛 Published under the [MIT](https://github.com/h3js/rou3/blob/main/LICENSE) license.

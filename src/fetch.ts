@@ -170,24 +170,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     let abortTimeout: NodeJS.Timeout | undefined;
 
     if (context.options.timeout) {
-      if (context.options.signal) {
-        context.options.signal = AbortSignal.any([
-          AbortSignal.timeout(context.options.timeout),
-          context.options.signal,
-        ]);
-      } else {
-        // TODO: Use AbortSignal.timeout in next major
-        const controller = new AbortController();
-        abortTimeout = setTimeout(() => {
-          const error = new Error(
-            "[TimeoutError]: The operation was aborted due to timeout"
-          );
-          error.name = "TimeoutError";
-          (error as any).code = 23; // DOMException.TIMEOUT_ERR
-          controller.abort(error);
-        }, context.options.timeout);
-        context.options.signal = controller.signal;
-      }
+      context.options.signal = context.options.signal
+        ? AbortSignal.any([
+            AbortSignal.timeout(context.options.timeout),
+            context.options.signal,
+          ])
+        : AbortSignal.timeout(context.options.timeout);
     }
 
     try {

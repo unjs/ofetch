@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v2.0.0-alpha.3
+
+[compare changes](https://github.com/unjs/ofetch/compare/v2.0.0-alpha.2...v2.0.0-alpha.3)
+
+### 📦 Build
+
+- Fix exports field ([07403b3](https://github.com/unjs/ofetch/commit/07403b3))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v2.0.0-alpha.2
 
 [compare changes](https://github.com/unjs/ofetch/compare/v2.0.0-alpha.1...v2.0.0-alpha.2)

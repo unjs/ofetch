@@ -10,28 +10,6 @@ export type QueryValue =
 export type QueryObject = Record<string, QueryValue | QueryValue[]>;
 
 /**
- * Removes the leading slash from the given path if it has one.
- */
-export function withoutLeadingSlash(path?: string): string {
-  if (!path || path === "/") {
-    return "/";
-  }
-
-  return path[0] === "/" ? path.slice(1) : path;
-}
-
-/**
- * Removes the trailing slash from the given path if it has one.
- */
-export function withoutTrailingSlash(path?: string): string {
-  if (!path || path === "/") {
-    return "/";
-  }
-
-  return path[path.length - 1] === "/" ? path.slice(0, -1) : path;
-}
-
-/**
  * Joins the given base URL and path, ensuring that there is only one slash between them.
  */
 export function joinURL(base?: string, path?: string): string {
@@ -70,6 +48,14 @@ export function withBase(input = "", base = ""): string {
   }
 
   return joinURL(_base, input);
+}
+
+function withoutTrailingSlash(path?: string): string {
+  if (!path || path === "/") {
+    return "/";
+  }
+
+  return path[path.length - 1] === "/" ? path.slice(0, -1) : path;
 }
 
 /**

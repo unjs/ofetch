@@ -9,9 +9,8 @@ import {
 } from "vitest";
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
-import { Headers, FormData, Blob } from "node-fetch-native";
 import { nodeMajorVersion } from "std-env";
-import { $fetch } from "../src/node.ts";
+import { $fetch } from "../src/index.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;

@@ -80,8 +80,6 @@ export interface ResolvedFetchOptions<
 export interface CreateFetchOptions {
   defaults?: FetchOptions;
   fetch?: Fetch;
-  Headers?: typeof Headers;
-  AbortController?: typeof AbortController;
 }
 
 export type GlobalOptions = Pick<

@@ -134,6 +134,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.body && isPayloadMethod(context.options.method)) {
       if (isJSONSerializable(context.options.body)) {
+        if (!(context.options.headers instanceof Headers)) {
+          // Pass empty object as older browsers don't support undefined.
+          context.options.headers = new Headers(context.options.headers || {});
+        }
+
         const contentType = context.options.headers.get("content-type");
 
         // Automatically stringify request bodies, when not already a string.
@@ -148,8 +153,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
-        // Pass empty object as older browsers don't support undefined.
-        context.options.headers = new Headers(context.options.headers || {});
         if (!contentType) {
           context.options.headers.set("content-type", "application/json");
         }

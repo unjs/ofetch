@@ -22,18 +22,18 @@
     "test": "pnpm lint && vitest run --coverage"
   },
   "devDependencies": {
-    "@types/node": "^24.9.1",
-    "@vitest/coverage-v8": "^4.0.4",
+    "@types/node": "^24.9.2",
+    "@vitest/coverage-v8": "^4.0.5",
     "automd": "^0.4.2",
     "changelogen": "^0.6.2",
     "eslint": "^9.38.0",
     "eslint-config-unjs": "^0.5.0",
     "h3": "^2.0.1-rc.5",
-    "obuild": "^0.3.0",
+    "obuild": "^0.3.2",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
     "undici": "^7.16.0",
-    "vitest": "^4.0.4"
+    "vitest": "^4.0.5"
   },
-  "packageManager": "pnpm@10.19.0"
+  "packageManager": "pnpm@10.20.0"
 }

@@ -114,6 +114,19 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.onRequest) {
       await callHooks(context, context.options.onRequest);
+
+      if (!(context.options.headers instanceof Headers)) {
+        const receivedType =
+          (context.options.headers as unknown)?.constructor?.name ||
+          typeof context.options.headers;
+        console.warn(
+          "[ofetch]: Invalid type for `options.headers`. " +
+            `Expected \`Headers\`, got ${receivedType}: ${JSON.stringify(context.options.headers)}`
+        );
+
+        // Pass empty object as older browsers don't support undefined.
+        context.options.headers = new Headers(context.options.headers || {});
+      }
     }
 
     if (typeof context.request === "string") {
@@ -134,11 +147,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.body && isPayloadMethod(context.options.method)) {
       if (isJSONSerializable(context.options.body)) {
-        if (!(context.options.headers instanceof Headers)) {
-          // Pass empty object as older browsers don't support undefined.
-          context.options.headers = new Headers(context.options.headers || {});
-        }
-
         const contentType = context.options.headers.get("content-type");
 
         // Automatically stringify request bodies, when not already a string.

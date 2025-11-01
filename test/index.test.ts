@@ -475,11 +475,18 @@ describe("ofetch", () => {
         method: "POST",
         body: { num: 42 },
         onRequest(ctx) {
-          ctx.options.headers = {
-            ...ctx.options.headers,
-            // @ts-expect-error ignore
-            "x-foo": "bar",
-          };
+          ctx.options.headers = new Headers({ "x-foo": "bar" });
+        },
+      }).then((r) => r.headers)
+    ).toMatchObject({ "x-foo": "bar" });
+
+    expect(
+      await $fetch(getURL("/echo"), {
+        method: "POST",
+        body: { num: 42 },
+        onRequest(ctx) {
+          // @ts-expect-error backwards compatibility (with warnings) for object headers
+          ctx.options.headers = { "x-foo": "bar" };
         },
       }).then((r) => r.headers)
     ).toMatchObject({ "x-foo": "bar" });

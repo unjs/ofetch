@@ -114,18 +114,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.onRequest) {
       await callHooks(context, context.options.onRequest);
-
       if (!(context.options.headers instanceof Headers)) {
-        const receivedType =
-          (context.options.headers as unknown)?.constructor?.name ||
-          typeof context.options.headers;
-        console.warn(
-          "[ofetch]: Invalid type for `options.headers`. " +
-            `Expected \`Headers\`, got ${receivedType}: ${JSON.stringify(context.options.headers)}`
+        context.options.headers = new Headers(
+          context.options.headers || {} /* compat */
         );
-
-        // Pass empty object as older browsers don't support undefined.
-        context.options.headers = new Headers(context.options.headers || {});
       }
     }
 

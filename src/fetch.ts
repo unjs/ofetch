@@ -114,6 +114,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.onRequest) {
       await callHooks(context, context.options.onRequest);
+      if (!(context.options.headers instanceof Headers)) {
+        context.options.headers = new Headers(
+          context.options.headers || {} /* compat */
+        );
+      }
     }
 
     if (typeof context.request === "string") {
@@ -148,8 +153,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
-        // Pass empty object as older browsers don't support undefined.
-        context.options.headers = new Headers(context.options.headers || {});
         if (!contentType) {
           context.options.headers.set("content-type", "application/json");
         }

@@ -468,6 +468,30 @@ describe("ofetch", () => {
     ).rejects.toThrow("error in onResponseError");
   });
 
+  it("hook modifications", async () => {
+    // onRequest
+    expect(
+      await $fetch(getURL("/echo"), {
+        method: "POST",
+        body: { num: 42 },
+        onRequest(ctx) {
+          ctx.options.headers = new Headers({ "x-foo": "bar" });
+        },
+      }).then((r) => r.headers)
+    ).toMatchObject({ "x-foo": "bar" });
+
+    expect(
+      await $fetch(getURL("/echo"), {
+        method: "POST",
+        body: { num: 42 },
+        onRequest(ctx) {
+          // @ts-expect-error backwards compatibility (with warnings) for object headers
+          ctx.options.headers = { "x-foo": "bar" };
+        },
+      }).then((r) => r.headers)
+    ).toMatchObject({ "x-foo": "bar" });
+  });
+
   it("calls hooks", async () => {
     const onRequest = vi.fn();
     const onRequestError = vi.fn();

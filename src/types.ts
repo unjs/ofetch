@@ -68,6 +68,9 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
+
+  /** Enable request deduplication for concurrent identical requests */
+  dedupe?: boolean;
 }
 
 export interface ResolvedFetchOptions<

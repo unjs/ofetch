@@ -16,6 +16,8 @@ import type {
   $Fetch,
   FetchRequest,
   FetchOptions,
+  MappedResponseType,
+  ResolvedFetchOptions,
 } from "./types.ts";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -33,10 +35,122 @@ const retryStatusCodes = new Set([
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
+// Request deduplication: Generate a unique key for a request based on URL, method, body, headers, and query
+function generateRequestKey(
+  request: FetchRequest,
+  options: ResolvedFetchOptions
+): string {
+  // Get the final URL (after baseURL and query are applied)
+  const url =
+    typeof request === "string" ? request : request.url;
+
+  // Method (uppercase, default GET)
+  const method = (options.method || "GET").toUpperCase();
+
+  // Body key (stringified for consistency)
+  let bodyKey = "";
+  if (options.body) {
+    if (typeof options.body === "string") {
+      bodyKey = options.body;
+    } else if (options.body instanceof FormData || options.body instanceof URLSearchParams) {
+      // For FormData and URLSearchParams, we need to serialize them
+      // Since they're not easily serializable, we'll use a hash-like approach
+      // For deduplication purposes, we'll stringify what we can
+      bodyKey = options.body.toString();
+    } else if (options.body instanceof ArrayBuffer || options.body instanceof Blob) {
+      // For binary data, we can't easily compare, so we'll skip body for these
+      // This is a limitation, but most deduplication use cases are for JSON APIs
+      bodyKey = "";
+    } else {
+      // For objects and arrays, use JSON.stringify
+      try {
+        bodyKey = JSON.stringify(options.body);
+      } catch {
+        // If stringification fails, skip body key
+        bodyKey = "";
+      }
+    }
+  }
+
+  // Headers key (normalized: lowercase keys, sorted)
+  let headersKey = "";
+  if (options.headers && options.headers instanceof Headers) {
+    const headerEntries: Array<[string, string]> = [];
+    options.headers.forEach((value, key) => {
+      headerEntries.push([key.toLowerCase(), value]);
+    });
+    headerEntries.sort(([a], [b]) => a.localeCompare(b));
+    headersKey = JSON.stringify(headerEntries);
+  } else if (options.headers) {
+    // Handle HeadersInit (object, array, etc.)
+    const headers = new Headers(options.headers);
+    const headerEntries: Array<[string, string]> = [];
+    headers.forEach((value, key) => {
+      headerEntries.push([key.toLowerCase(), value]);
+    });
+    headerEntries.sort(([a], [b]) => a.localeCompare(b));
+    headersKey = JSON.stringify(headerEntries);
+  }
+
+  // Query key (from URL search params, sorted)
+  let queryKey = "";
+  try {
+    const urlObj = new URL(url, "http://localhost");
+    const searchParams = urlObj.searchParams;
+    if (searchParams.toString()) {
+      const queryEntries: Array<[string, string]> = [];
+      searchParams.forEach((value, key) => {
+        queryEntries.push([key, value]);
+      });
+      queryEntries.sort(([a], [b]) => a.localeCompare(b));
+      queryKey = JSON.stringify(queryEntries);
+    }
+  } catch {
+    // If URL parsing fails, use the full URL as-is
+    queryKey = url.split("?")[1] || "";
+  }
+
+  // Combine all components into a key
+  return `${method}:${url.split("?")[0]}:${bodyKey}:${headersKey}:${queryKey}`;
+}
+
+// Deduplication entry interface
+interface DedupeEntry {
+  promise: Promise<FetchResponse<any>>;
+  signals: AbortSignal[];
+  controller: AbortController; // Controller for underlying request
+  cleanup: () => void;
+  callers: Set<{
+    signal?: AbortSignal;
+    resolve: (value: FetchResponse<any>) => void;
+    reject: (error: Error) => void;
+    aborted?: boolean; // Track if this caller has been aborted
+  }>;
+  settled?: {
+    type: "resolve" | "reject";
+    value?: FetchResponse<any>;
+    error?: Error;
+  };
+}
+
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
 
-  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  // Deduplication map: tracks in-flight requests by key
+  const dedupeMap = new Map<string, DedupeEntry>();
+
+  async function onError(
+    context: FetchContext,
+    onRetryCallback?: () => {
+      callers: Set<{
+        signal?: AbortSignal;
+        resolve: (value: FetchResponse<any>) => void;
+        reject: (error: Error) => void;
+      }>;
+      cleanup: () => void;
+      updatePromise?: (promise: Promise<FetchResponse<any>>) => void;
+    }
+  ): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
@@ -45,13 +159,29 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         context.error.name === "AbortError" &&
         !context.options.timeout) ||
       false;
+    
+    // When deduplication is enabled (onRetryCallback is provided), disable retries by default
+    // to ensure errors are shared immediately with all waiting requests.
+    // However, if retries are explicitly configured (retry is a number), allow them and
+    // deduplicate retry attempts across concurrent requests.
+    const isDeduplicationEnabled = onRetryCallback !== undefined;
+    const isRetryExplicitlyConfigured = typeof context.options.retry === "number";
+    
     // Retry
     if (context.options.retry !== false && !isAbort) {
       let retries;
       if (typeof context.options.retry === "number") {
         retries = context.options.retry;
       } else {
+        // Default retry behavior
         retries = isPayloadMethod(context.options.method) ? 0 : 1;
+        
+        // When deduplication is enabled and retries are not explicitly configured,
+        // disable retries to ensure errors are shared immediately with all waiting requests
+        // without making additional network requests
+        if (isDeduplicationEnabled && !isRetryExplicitlyConfigured) {
+          retries = 0;
+        }
       }
 
       const responseCode = (context.response && context.response.status) || 500;
@@ -68,7 +198,96 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
-        // Timeout
+        
+        // Retry: if we have a retry callback (from deduplicated request), we need to
+        // handle the retry specially to avoid deadlock:
+        // 1. Call the callback to get the callers and cleanup function
+        // 2. Remove the entry from the map (so retry doesn't find it and create deadlock)
+        // 3. Create the retry promise (which will create a new entry or find a different one)
+        // 4. Set up handlers on the retry promise to resolve/reject all callers
+        if (onRetryCallback) {
+          // Get callers and cleanup function from callback
+          const { callers: retryCallers, cleanup: retryCleanup, updatePromise } = onRetryCallback();
+          
+          // Create a recursive retry callback for nested retries
+          // This allows the retry to handle its own retries if needed
+          const nestedRetryCallback = retries - 1 > 0 ? () => {
+            return {
+              callers: retryCallers,
+              cleanup: retryCleanup,
+              updatePromise,
+            };
+          } : undefined;
+          
+          // DON'T remove entry from map - keep it so concurrent requests can still find it
+          // Instead, call $fetchRawInternal directly to bypass deduplication for the retry
+          // This prevents the retry from finding the same entry and creating a deadlock
+          // Skip interceptors since they were already called for the original request
+          const retryPromise = $fetchRawInternal(context.request, {
+            ...context.options,
+            retry: retries - 1,
+          }, true, nestedRetryCallback); // skipInterceptors = true, pass nested retry callback
+          
+          // Update the entry's promise to the retry promise so concurrent requests
+          // that join after the retry starts will wait on the retry promise
+          if (updatePromise) {
+            updatePromise(retryPromise);
+          }
+          
+          // Set up handlers on retry promise to process all callers
+          // Clean up the entry AFTER processing all callers to ensure concurrent requests
+          // that are checking the map can still find it
+          retryPromise
+            .then((response) => {
+              // Process all callers with the retry response
+              retryCallers.forEach((caller) => {
+                if (caller.signal?.aborted) {
+                  const abortError = new Error("Aborted");
+                  abortError.name = "AbortError";
+                  try {
+                    caller.reject(abortError);
+                  } catch {
+                    // Promise already settled
+                  }
+                } else {
+                  try {
+                    caller.resolve(response);
+                  } catch {
+                    // Promise already settled
+                  }
+                }
+              });
+              // Clean up entry after processing all callers
+              retryCleanup();
+            })
+            .catch((error) => {
+              // Process all callers with the retry error
+              retryCallers.forEach((caller) => {
+                if (caller.signal?.aborted) {
+                  const abortError = new Error("Aborted");
+                  abortError.name = "AbortError";
+                  try {
+                    caller.reject(abortError);
+                  } catch {
+                    // Promise already settled
+                  }
+                } else {
+                  try {
+                    caller.reject(error);
+                  } catch {
+                    // Promise already settled
+                  }
+                }
+              });
+              // Clean up entry after processing all callers
+              retryCleanup();
+            });
+          
+          return retryPromise;
+        }
+        
+        // Normal retry (not from deduplicated request): call $fetchRaw which will
+        // handle deduplication for the retry
         return $fetchRaw(context.request, {
           ...context.options,
           retry: retries - 1,
@@ -86,10 +305,23 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     throw error;
   }
 
-  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
+  // Internal fetch function (without deduplication)
+  async function $fetchRawInternal<
     T = any,
     R extends ResponseType = "json",
-  >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
+  >(
+    _request: FetchRequest,
+    _options: FetchOptions<R> = {},
+    skipInterceptors = false,
+    onRetryCallback?: () => {
+      callers: Set<{
+        signal?: AbortSignal;
+        resolve: (value: FetchResponse<any>) => void;
+        reject: (error: Error) => void;
+      }>;
+      cleanup: () => void;
+    }
+  ): Promise<FetchResponse<MappedResponseType<R, T>>> {
     const context: FetchContext = {
       request: _request,
       options: resolveFetchOptions<R, T>(
@@ -107,7 +339,8 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.options.method = context.options.method.toUpperCase();
     }
 
-    if (context.options.onRequest) {
+    // Call interceptors only once per unique request (skip for deduplicated requests)
+    if (!skipInterceptors && context.options.onRequest) {
       await callHooks(context, context.options.onRequest);
     }
 
@@ -184,13 +417,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       );
     } catch (error) {
       context.error = error as Error;
-      if (context.options.onRequestError) {
+      if (!skipInterceptors && context.options.onRequestError) {
         await callHooks(
           context as FetchContext & { error: Error },
           context.options.onRequestError
         );
       }
-      return await onError(context);
+      return await onError(context, onRetryCallback);
     } finally {
       if (abortTimeout) {
         clearTimeout(abortTimeout);
@@ -232,7 +465,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    if (context.options.onResponse) {
+    if (!skipInterceptors && context.options.onResponse) {
       await callHooks(
         context as FetchContext & { response: FetchResponse<any> },
         context.options.onResponse
@@ -244,16 +477,546 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.response.status >= 400 &&
       context.response.status < 600
     ) {
-      if (context.options.onResponseError) {
+      if (!skipInterceptors && context.options.onResponseError) {
         await callHooks(
           context as FetchContext & { response: FetchResponse<any> },
           context.options.onResponseError
         );
       }
-      return await onError(context);
+      return await onError(context, onRetryCallback);
     }
 
     return context.response;
+  }
+
+  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
+    T = any,
+    R extends ResponseType = "json",
+  >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
+    // Check if deduplication is enabled
+    // IMPORTANT: Check per-request option first, then global defaults
+    // This ensures that omitted option (undefined) defaults to false (opt-in behavior)
+    // Only enable deduplication if explicitly set to true (either per-request or globally)
+    
+    // CRITICAL: Check the raw input options BEFORE any resolution/merging
+    // This ensures we're checking the actual user-provided value, not a merged value
+    // We must check _options.dedupe directly, not after resolveFetchOptions
+    const rawDedupeOption = _options?.dedupe;
+    const rawGlobalDedupeDefault = globalOptions?.defaults?.dedupe;
+    
+    // Explicitly check for true - default to false for opt-in behavior
+    let dedupeEnabled = false;
+    
+    // Check per-request option first (highest priority)
+    // Use strict equality (===) to ensure we're checking the actual value
+    // undefined === true is false, so omitted option will not enable deduplication
+    if (rawDedupeOption === true) {
+      // Explicitly enabled per-request
+      dedupeEnabled = true;
+    } else if (rawDedupeOption === false) {
+      // Explicitly disabled per-request - don't check global defaults
+      dedupeEnabled = false;
+    } else {
+      // rawDedupeOption is undefined or not set - check global defaults
+      // Only enable if global default is explicitly true (strict equality check)
+      if (rawGlobalDedupeDefault === true) {
+        dedupeEnabled = true;
+      } else {
+        // Explicitly set to false to ensure opt-in behavior
+        // This handles cases where rawGlobalDedupeDefault is undefined, false, or any other value
+        dedupeEnabled = false;
+      }
+    }
+
+    // If deduplication is disabled, proceed normally without checking deduplication map
+    if (!dedupeEnabled) {
+      return $fetchRawInternal<T, R>(_request, _options, false);
+    }
+
+    // Resolve options for key generation (after dedupe check)
+    const resolvedOptions = resolveFetchOptions<R, T>(
+      _request,
+      _options,
+      globalOptions.defaults as unknown as FetchOptions<R, T>,
+      Headers
+    );
+
+    // Create a context to process the request for key generation
+    // We need to process it the same way as the internal function
+    const context: FetchContext = {
+      request: _request,
+      options: resolvedOptions,
+      response: undefined,
+      error: undefined,
+    };
+
+    // Uppercase method name
+    if (context.options.method) {
+      context.options.method = context.options.method.toUpperCase();
+    }
+
+    // Process URL resolution (same as internal function)
+    if (typeof context.request === "string") {
+      if (context.options.baseURL) {
+        context.request = withBase(context.request, context.options.baseURL);
+      }
+      if (context.options.query) {
+        context.request = withQuery(context.request, context.options.query);
+        delete context.options.query;
+      }
+      if ("query" in context.options) {
+        delete context.options.query;
+      }
+      if ("params" in context.options) {
+        delete context.options.params;
+      }
+    }
+
+    // Process body for key generation (same as internal function)
+    if (context.options.body && isPayloadMethod(context.options.method)) {
+      if (isJSONSerializable(context.options.body)) {
+        const contentType = context.options.headers.get("content-type");
+
+        if (typeof context.options.body !== "string") {
+          context.options.body =
+            contentType === "application/x-www-form-urlencoded"
+              ? new URLSearchParams(
+                  context.options.body as Record<string, any>
+                ).toString()
+              : JSON.stringify(context.options.body);
+        }
+
+        context.options.headers = new Headers(
+          context.options.headers || {}
+        );
+        if (!contentType) {
+          context.options.headers.set("content-type", "application/json");
+        }
+        if (!context.options.headers.has("accept")) {
+          context.options.headers.set("accept", "application/json");
+        }
+      } else if (
+        // ReadableStream Body
+        ("pipeTo" in (context.options.body as ReadableStream) &&
+          typeof (context.options.body as ReadableStream).pipeTo ===
+            "function") ||
+        // Node.js Stream Body
+        typeof (context.options.body as Readable).pipe === "function"
+      ) {
+        if (!("duplex" in context.options)) {
+          context.options.duplex = "half";
+        }
+      }
+    }
+
+    // Generate request key (before interceptors - key is based on request parameters)
+    // Note: Interceptors are called only once per unique request, after deduplication check
+    const requestKey = generateRequestKey(context.request, context.options);
+
+    // Check for in-flight request with same key
+    const existingEntry = dedupeMap.get(requestKey);
+
+    if (existingEntry) {
+      // Check if entry is settled
+      if (existingEntry.settled) {
+        // Entry is settled - check if there are still active callers
+        // If there are callers, this is a concurrent request that should get the settled result
+        // If there are no callers, all callers have been processed, so remove the entry
+        // and create a new one (this handles the case where a new request comes in after
+        // the previous one completed and was cleaned up)
+        if (existingEntry.callers.size > 0) {
+          // There are still callers - this is a concurrent request, return settled result
+          if (existingEntry.settled.type === "resolve") {
+            return Promise.resolve(existingEntry.settled.value! as FetchResponse<MappedResponseType<R, T>>);
+          } else {
+            return Promise.reject(existingEntry.settled.error!);
+          }
+        } else {
+          // No callers - all callers have been processed, remove the entry and create a new one
+          // This ensures that new requests (not concurrent) create fresh entries
+          dedupeMap.delete(requestKey);
+          // Continue to create a new entry below
+        }
+      } else {
+        // In-flight request exists: wait for it and handle AbortSignal
+        // Interceptors were already called for the first request, so skip them
+        const callerSignal = _options.signal;
+
+        // If caller's signal is already aborted, reject immediately
+        if (callerSignal?.aborted) {
+          const abortError = new Error("Aborted");
+          abortError.name = "AbortError";
+          throw abortError;
+        }
+
+        // Create a promise for this caller that will resolve/reject with the shared request
+        return new Promise<FetchResponse<MappedResponseType<R, T>>>(
+          (resolve, reject) => {
+            // Track if this caller's promise has been settled to prevent double resolution/rejection
+            let settled = false;
+            const safeResolve = (value: FetchResponse<MappedResponseType<R, T>>) => {
+              if (!settled) {
+                settled = true;
+                resolve(value);
+              }
+            };
+            const safeReject = (error: Error) => {
+              if (!settled) {
+                settled = true;
+                reject(error);
+              }
+            };
+
+            // Add this caller to the entry
+            const caller = {
+              signal: callerSignal,
+              resolve: safeResolve,
+              reject: safeReject,
+            };
+            existingEntry.callers.add(caller);
+
+            // Double-check if the promise has already settled AFTER adding the caller
+            // This handles the race condition where the promise settles between
+            // the initial check and adding the caller
+            if (existingEntry.settled) {
+              // Remove caller from set since we'll process it immediately
+              existingEntry.callers.delete(caller);
+              // Process immediately
+              if (existingEntry.settled.type === "resolve") {
+                safeResolve(existingEntry.settled.value! as FetchResponse<MappedResponseType<R, T>>);
+              } else {
+                safeReject(existingEntry.settled.error!);
+              }
+              return;
+            }
+
+            // Add caller's signal to the entry if present
+            if (callerSignal) {
+              existingEntry.signals.push(callerSignal);
+
+              // Set up abort listener for this caller
+              const abortHandler = () => {
+                // Only process if not already settled
+                if (settled) {
+                  return;
+                }
+
+                // Mark caller as aborted to prevent processCallers from processing it
+                caller.aborted = true;
+                
+                // Remove this caller from the entry to prevent handlers from processing it
+                existingEntry.callers.delete(caller);
+
+                // Reject this caller's promise
+                // Use process.nextTick (or setTimeout) to defer rejection, allowing the caller's
+                // promise chain to be set up before the rejection happens.
+                // This prevents unhandled rejections by ensuring the rejection happens after
+                // the promise chain is established.
+                const abortError = new Error("Aborted");
+                abortError.name = "AbortError";
+                // Use setImmediate or setTimeout to defer to the next event loop tick
+                // This gives the caller's promise chain time to set up error handling
+                if (typeof setImmediate !== "undefined") {
+                  setImmediate(() => {
+                    if (!settled) {
+                      try {
+                        safeReject(abortError);
+                      } catch {
+                        // Promise already settled - ignore
+                      }
+                    }
+                  });
+                } else {
+                  setTimeout(() => {
+                    if (!settled) {
+                      try {
+                        safeReject(abortError);
+                      } catch {
+                        // Promise already settled - ignore
+                      }
+                    }
+                  }, 0);
+                }
+
+                // Remove this signal from the list
+                const index = existingEntry.signals.indexOf(callerSignal);
+                if (index > -1) {
+                  existingEntry.signals.splice(index, 1);
+                }
+
+                // Check if all callers have aborted their signals or been removed
+                // If no callers remain, cancel the request
+                if (existingEntry.callers.size === 0) {
+                  // All callers have been removed: cancel the underlying request
+                  existingEntry.controller.abort();
+                } else {
+                  // Check if all remaining callers have aborted signals
+                  const allRemainingAborted = Array.from(
+                    existingEntry.callers
+                  ).every((c) => c.signal?.aborted);
+                  if (allRemainingAborted) {
+                    // All remaining callers have aborted: cancel the underlying request
+                    existingEntry.controller.abort();
+                  }
+                }
+              };
+
+              callerSignal.addEventListener("abort", abortHandler, { once: true });
+            }
+
+            // The caller has been added to existingEntry.callers.
+            // processCallers (set up when the entry was created) will process all callers
+            // when the entry's promise resolves/rejects. Since we check existingEntry.settled
+            // immediately after adding the caller, we've already handled the case where the
+            // promise has already settled. For pending promises, processCallers will handle
+            // all callers when the promise resolves/rejects.
+          }
+        );
+      }
+    }
+
+    // No in-flight request: create new request and track it
+    const callerSignal = _options.signal;
+    const signals: AbortSignal[] = callerSignal ? [callerSignal] : [];
+
+    // Create AbortController for underlying request
+    const controller = new AbortController();
+    const callers = new Set<{
+      signal?: AbortSignal;
+      resolve: (value: FetchResponse<any>) => void;
+      reject: (error: Error) => void;
+    }>();
+
+    // Add this caller to the entry
+    let callerResolve: ((value: FetchResponse<any>) => void) | undefined;
+    let callerReject: ((error: Error) => void) | undefined;
+
+    const callerPromise = new Promise<FetchResponse<MappedResponseType<R, T>>>(
+      (resolve, reject) => {
+        callerResolve = resolve;
+        callerReject = reject;
+        callers.add({
+          signal: callerSignal,
+          resolve,
+          reject,
+        });
+      }
+    );
+
+    // Set up abort listeners for all signals
+    const abortHandlers: Array<() => void> = [];
+    signals.forEach((signal) => {
+      const abortHandler = () => {
+        // Remove this signal from the list
+        const index = signals.indexOf(signal);
+        if (index > -1) {
+          signals.splice(index, 1);
+        }
+
+        // Reject the caller's promise if this is their signal
+        const caller = Array.from(callers).find((c) => c.signal === signal);
+        if (caller) {
+          // Mark caller as aborted to prevent processCallers from processing it
+          caller.aborted = true;
+          callers.delete(caller);
+          
+          // Reject this caller's promise
+          // Use setImmediate or setTimeout to defer rejection, allowing the caller's
+          // promise chain to be set up before the rejection happens.
+          // This prevents unhandled rejections by ensuring the rejection happens after
+          // the promise chain is established.
+          const abortError = new Error("Aborted");
+          abortError.name = "AbortError";
+          // Use setImmediate or setTimeout to defer to the next event loop tick
+          // This gives the caller's promise chain time to set up error handling
+          if (typeof setImmediate !== "undefined") {
+            setImmediate(() => {
+              try {
+                caller.reject(abortError);
+              } catch {
+                // Promise already settled - ignore
+              }
+            });
+          } else {
+            setTimeout(() => {
+              try {
+                caller.reject(abortError);
+              } catch {
+                // Promise already settled - ignore
+              }
+            }, 0);
+          }
+        }
+
+        // Check if all signals are aborted
+        const allAborted = signals.every((sig) => sig.aborted);
+        if (allAborted && signals.length > 0) {
+          // All callers have aborted: cancel the underlying request
+          controller.abort();
+        }
+      };
+
+      signal.addEventListener("abort", abortHandler, { once: true });
+      abortHandlers.push(abortHandler);
+    });
+
+    // Create combined signal for underlying request
+    // Combine controller signal with timeout if present
+    let combinedSignal: AbortSignal = controller.signal;
+    if (_options.timeout) {
+      const timeoutSignal = AbortSignal.timeout(_options.timeout);
+      combinedSignal = AbortSignal.any([controller.signal, timeoutSignal]);
+    }
+
+    // Create options with combined signal
+    const optionsWithSignal: FetchOptions<R> = {
+      ..._options,
+      signal: combinedSignal,
+    };
+
+    // Cleanup function
+    const cleanup = () => {
+      dedupeMap.delete(requestKey);
+    };
+
+    // Track the request (promise will be set after we create requestPromise)
+    const entry: DedupeEntry = {
+      promise: Promise.resolve() as Promise<FetchResponse<any>>, // Temporary, will be updated
+      signals,
+      controller,
+      cleanup,
+      callers,
+    };
+
+    dedupeMap.set(requestKey, entry);
+
+    // Helper function to process all callers
+    const processCallers = (
+      type: "resolve" | "reject",
+      value?: FetchResponse<any>,
+      error?: Error
+    ) => {
+      // Mark as settled first so new callers can check this immediately
+      // This must happen BEFORE we process callers to handle race conditions
+      if (type === "resolve") {
+        entry.settled = { type: "resolve", value: value! };
+      } else {
+        entry.settled = { type: "reject", error: error! };
+      }
+
+      // Get a snapshot of all callers that are currently waiting
+      // This ensures we process all callers that were waiting at the time of settlement
+      const allCallers = Array.from(callers);
+
+      // Process all callers from the snapshot synchronously
+      // We process synchronously to ensure errors are propagated immediately
+      allCallers.forEach((caller) => {
+        // Skip callers that have been aborted (they've already been rejected by abort handlers)
+        if (caller.aborted || caller.signal?.aborted) {
+          // Caller has been aborted - skip processing (already rejected by abort handler)
+          return;
+        }
+        
+        // Process the caller with the result
+        // Use try-catch to handle case where promise is already settled
+        // (e.g., by an abort handler that ran concurrently)
+        try {
+          if (type === "resolve") {
+            caller.resolve(value!);
+          } else {
+            caller.reject(error!);
+          }
+        } catch {
+          // Promise already settled - ignore (this can happen if abort handler already rejected it)
+        }
+      });
+
+      // Clear the callers set after processing all callers
+      // This allows us to distinguish between "concurrent requests still waiting" and
+      // "all callers processed, entry can be cleaned up"
+      // New requests that check the map after this will find a settled entry with no callers,
+      // which indicates the entry is stale and should be removed
+      callers.clear();
+
+      // Clean up the entry immediately after processing all callers
+      // Use a microtask to defer cleanup slightly, ensuring any concurrent requests
+      // that are in the process of checking the map can still find the entry
+      // This is a balance: we want to clean up quickly to avoid stale entries,
+      // but we also want concurrent requests (started in the same tick) to be able to find the settled entry
+      Promise.resolve().then(() => {
+        // Only clean up if this entry is still in the map and still settled
+        // (it might have been replaced by a new request, which is fine)
+        const currentEntry = dedupeMap.get(requestKey);
+        if (currentEntry === entry && entry.settled) {
+          // Clean up the entry - all callers have been processed
+          // Any new requests after this cleanup will create a new entry
+          cleanup();
+        }
+      });
+    };
+
+    // Track whether a retry has happened to prevent double processing of callers
+    let retryHandled = false;
+
+    // Set up callback to provide callers and cleanup function when retry happens
+    // When onError retries, it will call this callback to get the callers and cleanup function.
+    // This allows onError to:
+    // 1. Keep the entry in the map so concurrent requests can still find it
+    // 2. Call $fetchRawInternal directly (bypassing deduplication) to avoid deadlock
+    // 3. Update the entry's promise to the retry promise so concurrent requests wait on it
+    // 4. Set up handlers on the retry promise to resolve/reject all callers
+    // 5. Clean up the entry after processing all callers
+    // This ensures all waiting callers get the retry result without deadlock
+    const onRetryCallback = () => {
+      // Mark that retry is being handled
+      retryHandled = true;
+      
+      // Function to update the entry's promise when a retry happens
+      // This allows concurrent requests that join after the retry starts to wait on the retry promise
+      const updatePromise = (newPromise: Promise<FetchResponse<any>>) => {
+        entry.promise = newPromise;
+      };
+      
+      // Return callers, cleanup function, and updatePromise function
+      // Note: We return the callers Set directly (not a snapshot) because we want
+      // to process all callers that are waiting at the time the retry promise resolves/rejects.
+      // The cleanup function will remove the entry from the map.
+      return {
+        callers,
+        cleanup,
+        updatePromise,
+      };
+    };
+
+    // Call $fetchRawInternal with the retry callback
+    // When onError retries, it will call onRetryCallback to remove this entry,
+    // preventing the recursive $fetchRaw call from finding it and creating a deadlock
+    const requestPromise = $fetchRawInternal<T, R>(
+      _request,
+      optionsWithSignal,
+      false,
+      onRetryCallback
+    );
+
+    // Update entry.promise to the actual request promise
+    entry.promise = requestPromise;
+
+    // Set up cleanup and resolve/reject all callers on completion
+    // Only process callers if retry hasn't been handled (retry handles its own callers)
+    requestPromise
+      .then((response) => {
+        if (!retryHandled) {
+          processCallers("resolve", response);
+        }
+      })
+      .catch((error) => {
+        if (!retryHandled) {
+          processCallers("reject", undefined, error);
+        }
+      });
+
+    // Wait for the request to complete
+    return callerPromise;
   };
 
   const $fetch = async function $fetch(request, options) {

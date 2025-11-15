@@ -506,6 +506,14 @@ describe("ofetch", () => {
   });
 
   it("default fetch options", async () => {
+    // Mock fetch to avoid real network calls in restricted environments
+    fetch.mockImplementation(async (..._args: any[]) =>
+      new Response(JSON.stringify({ id: 1 }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }) as any
+    );
+
     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {});
     expect(fetch).toHaveBeenCalledOnce();
     const options = fetch.mock.calls[0][1];
@@ -513,6 +521,15 @@ describe("ofetch", () => {
       headers: expect.any(Headers),
     });
     fetch.mockReset();
+
+    // Re-apply mock after reset for the second call
+    fetch.mockImplementation(async (..._args: any[]) =>
+      new Response(JSON.stringify({ id: 1 }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }) as any
+    );
+
     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {
       timeout: 10_000,
     });

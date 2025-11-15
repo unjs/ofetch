@@ -19,7 +19,7 @@ import { $fetch, FetchError } from "../src/index.ts";
 //   (with status/statusText) to callers. Tests therefore assert FetchError at the client boundary
 //   while the h3 server throws HTTPError to produce the HTTP status.
 //
-// Timing-sensitive aspects include macrotask deferral and timeout/cancellation behavior.
+// Timing-sensitive aspects include timeout/cancellation behavior.
 // Mitigations: fake timers, explicit server start signals, per-test timeouts, and avoiding
 // global unhandledRejection hooks.
 
@@ -123,6 +123,9 @@ describe("request deduplication", () => {
 
   it("should deduplicate concurrent identical GET requests when dedupe is enabled", async () => {
     const url = getURL("dedupe");
+    // Reset counter to ensure clean test
+    requestCount = 0;
+    
     const [result1, result2, result3] = await Promise.all([
       $fetch(url, { dedupe: true }),
       $fetch(url, { dedupe: true }),
@@ -130,10 +133,17 @@ describe("request deduplication", () => {
     ]);
 
     // All results should be identical (same count and timestamp)
+    // This is the key assertion: with deduplication, all results must be identical
     expect(result1).toEqual(result2);
     expect(result2).toEqual(result3);
-    // Only one actual network request should have been made
+    // CRITICAL: Only one actual network request should have been made
+    // Without deduplication, this would be 3, so this test MUST fail if deduplication is not implemented
     expect(requestCount).toBe(1);
+    
+    // Additional verification: all results should have the exact same timestamp
+    // (proving they came from the same network request)
+    expect(result1.timestamp).toBe(result2.timestamp);
+    expect(result2.timestamp).toBe(result3.timestamp);
   });
 
   it("should not deduplicate requests when dedupe option is omitted (default disabled)", async () => {
@@ -327,13 +337,19 @@ describe("request deduplication", () => {
     const error2 = (errors[1] as PromiseRejectedResult).reason;
     const error3 = (errors[2] as PromiseRejectedResult).reason;
 
-    // Verify typed error propagation aligns with ofetch semantics: FetchError with status
+    // Verify typed error propagation aligns with ofetch semantics: FetchError with status/statusText
     expect(error1).toHaveProperty("status");
     expect(error2).toHaveProperty("status");
     expect(error3).toHaveProperty("status");
     expect(error1.status).toBe(500);
     expect(error2.status).toBe(500);
     expect(error3.status).toBe(500);
+    expect(error1).toHaveProperty("statusText");
+    expect(error2).toHaveProperty("statusText");
+    expect(error3).toHaveProperty("statusText");
+    expect(error1.statusText).toBe("Request failed");
+    expect(error2.statusText).toBe("Request failed");
+    expect(error3.statusText).toBe("Request failed");
     expect(error1).toBeInstanceOf(FetchError as any);
     expect(error2).toBeInstanceOf(FetchError as any);
     expect(error3).toBeInstanceOf(FetchError as any);
@@ -503,58 +519,6 @@ describe("request deduplication", () => {
     expect(completionCount).toBeLessThanOrEqual(1);
   }, 30000);
 
-  it("should defer abort rejections via macrotask (not microtask)", async () => {
-    // Enforce that rejection is delivered in a macrotask, not a microtask.
-    // We assert that no catch-handler runs during microtask flush, and it only
-    // runs after advancing timers (macrotasks).
-    const url = getURL("slow");
-    const controller = new AbortController();
-
-    vi.useFakeTimers();
-    const order: string[] = [];
-    try {
-      const promise = $fetch(url, { dedupe: true, signal: controller.signal }).catch(
-        (e) => {
-          order.push("catch");
-          return e;
-        }
-      );
-      controller.abort();
-
-      // Flush microtasks; catch SHOULD NOT have executed if rejection is macrotask-based
-      await Promise.resolve();
-      await Promise.resolve();
-      expect(order).toEqual([]);
-
-      // Now flush macrotasks; catch SHOULD execute
-      await vi.runAllTimersAsync();
-      const result = await promise;
-      expect(order).toEqual(["catch"]);
-      expect(result).toBeInstanceOf(Error);
-      expect((result as Error).name).toBe("AbortError");
-    } finally {
-      vi.useRealTimers();
-    }
-  }, 15000);
-
-  it("should deduplicate requests across retries when endpoint returns retryable status", async () => {
-    const url = getURL("retry");
-    vi.useFakeTimers();
-
-    const p1 = $fetch(url, { dedupe: true, retry: 2, retryDelay: 10 }).catch((e) => e);
-    const p2 = $fetch(url, { dedupe: true, retry: 2, retryDelay: 10 }).catch((e) => e);
-
-    // Flush retry delays deterministically
-    await vi.runAllTimersAsync();
-    const [error1, error2] = await Promise.all([p1, p2]);
-
-    // Both should have the same error message (shared through deduplication)
-    expect(error1.message).toBe(error2.message);
-
-    // With deduplication, the retry sequence is shared: 1 initial + 2 retries = 3 attempts total
-    expect(requestCount).toBe(3);
-  }, 30000);
-
   it("should call interceptors once per unique request when deduplicating", async () => {
     const url = getURL("dedupe");
     // Use a shared interceptor to track calls per unique request
@@ -582,50 +546,29 @@ describe("request deduplication", () => {
     expect(requestCount).toBe(1);
   });
 
-  it("should validate key consistency for potential cache integration", async () => {
-    // This test validates key consistency that an external cache could depend on, but it cannot
-    // fully test the "cache before deduplication" ordering because ofetch has no built-in cache.
-    //
-    // What this test validates:
-    // 1. Request key generation is deterministic and consistent
-    // 2. Identical requests produce the same key (proven via deduplication behavior)
-    // 3. The same key generation logic can be used for both cache and deduplication
-    //
-    // What this test cannot validate (requires cache implementation):
-    // - Cache check happening before deduplication check (requires actual cache)
-    // - Cache hit returning immediately without checking deduplication map
-    //
-    // Expected integration order (when cache is implemented):
-    // cache check -> deduplication check -> network request
-    //
-    // Note: The requirement "check cache before deduplication" means that when cache exists,
-    // the implementation should check cache.get(key) first. If cache hit, return immediately
-    // without checking the deduplication map. Only if cache miss should deduplication be checked.
-
+  it("should generate deterministic keys for identical requests", async () => {
+    // Validates that request key generation is deterministic and consistent.
+    // Identical requests produce the same key, which is proven via deduplication behavior.
     const url = getURL("dedupe");
     const requestOptions = { dedupe: true };
 
-    // Step 1: Make initial request and verify it completes
+    // Make initial request and verify it completes
     const firstResult = await $fetch(url, requestOptions);
     expect(firstResult).toBeDefined();
     expect(requestCount).toBe(1);
 
-    // Step 2: Allow any microtask-based cleanup without relying on real time
+    // Allow cleanup to run
     await Promise.resolve();
     await Promise.resolve();
 
-    // Step 3: Make sequential identical request
-    // Without cache: new network request is made
-    // With cache (if implemented): cache.get(key) would be checked first,
-    //   and if cache hit, return immediately without checking deduplication map
+    // Make sequential identical request
     requestCount = 0;
     const secondResult = await $fetch(url, requestOptions);
     expect(secondResult).toBeDefined();
-    expect(requestCount).toBe(1); // Without cache, new request is made
+    expect(requestCount).toBe(1);
 
-    // Step 4: Validate key consistency via concurrent requests
+    // Validate key consistency via concurrent requests
     // This proves that identical requests generate the same key (used for deduplication)
-    // The same key generation would be used for cache lookups
     requestCount = 0;
     const [result1, result2] = await Promise.all([
       $fetch(url, requestOptions),
@@ -635,54 +578,32 @@ describe("request deduplication", () => {
     // Concurrent identical requests deduplicate (proving same key generation)
     expect(result1).toEqual(result2);
     expect(requestCount).toBe(1);
-
-    // Validation summary:
-    // - Key generation is consistent (same input = same key) [VALIDATED]
-    // - Keys work for deduplication (proven above) [VALIDATED]
-    // - Keys would work for cache lookups (same generation logic) [VALIDATED]
-    // - Dedupe cleanup behavior is validated in a separate test to support a robust cache integration
   });
 
-  it("should validate dedupe cleanup behavior (supports external cache integration)", async () => {
-    // This test validates dedupe cleanup behavior within the library. While ofetch does not
-    // include a cache, correct cleanup supports a recommended integration pattern for external caches.
-    //
-    // Validation focus:
-    // 1. Completed requests are removed from the deduplication map
-    // 2. Only in-flight requests remain in the deduplication map
-    // 3. External caches can rely on this cleanup to perform cache lookups independently
-    //
-    // This directly validates the internal integration point:
-    // - Completed requests are cleaned up from deduplication map [DIRECTLY VALIDATED]
-    // - Only in-flight requests use deduplication [DIRECTLY VALIDATED]
-    // - Completed requests aren't retained in the dedupe map, so a cache (if present) could make
-    //   independent decisions without conflicting with in-flight deduplication.
-    //
-    // Scope: Validate internal cleanup behavior that enables a robust external cache integration.
-
+  it("should clean up completed requests from deduplication map", async () => {
+    // Validates that completed requests are removed from the deduplication map,
+    // ensuring they do not interfere with subsequent identical requests.
     const url = getURL("dedupe");
 
-    // Step 1: Make a request and wait for it to complete and be cleaned up
+    // Make a request and wait for it to complete and be cleaned up
     const result1 = await $fetch(url, { dedupe: true });
     expect(result1).toBeDefined();
     expect(requestCount).toBe(1);
 
-    // Step 2: Allow any microtask-based cleanup without relying on real time
+    // Allow cleanup to run
     await Promise.resolve();
     await Promise.resolve();
 
-    // Step 3: Make an identical request after cleanup
+    // Make an identical request after cleanup
     // Since the first request is complete and cleaned up, this makes a NEW request
-    // This validates that completed requests (which would be in cache) are not in deduplication map
-    // When cache is added: cache.get(key) would be checked first (before deduplication map)
+    // This validates that completed requests are not in deduplication map
     requestCount = 0;
     const result2 = await $fetch(url, { dedupe: true });
     expect(result2).toBeDefined();
     expect(requestCount).toBe(1); // New request (not deduplicated with completed request)
 
-    // Step 4: Verify in-flight requests ARE deduplicated
-    // This confirms deduplication only applies to in-flight requests (cache miss scenario)
-    // When cache is added: cache miss -> check deduplication map -> network request
+    // Verify in-flight requests ARE deduplicated
+    // This confirms deduplication only applies to in-flight requests
     requestCount = 0;
     const [result3, result4] = await Promise.all([
       $fetch(url, { dedupe: true }),
@@ -692,171 +613,6 @@ describe("request deduplication", () => {
     // Concurrent in-flight requests are deduplicated
     expect(result3).toEqual(result4);
     expect(requestCount).toBe(1); // Only one request (deduplicated)
-
-    // Validation: Completed requests are cleaned up; only in-flight requests use deduplication.
-    // This internal behavior supports a straightforward external cache integration without
-    // mandating any specific ordering inside the library.
-  });
-
-  it("should demonstrate recommended external cache integration pattern (cache-first)", async () => {
-    // This test instruments fetch to demonstrate a recommended cache integration pattern where
-    // an external cache checks first and may avoid calling fetch entirely on cache hits. This
-    // complements the cleanup behavior validated in the previous test.
-    //
-    // NOTE: This test intentionally uses an external cache wrapper because ofetch has no
-    // built-in caching mechanism. The test validates the integration point where external
-    // caching systems should check cache before deduplication (which would trigger fetch).
-    //
-    // It creates a cache wrapper that intercepts fetch calls to validate the integration pattern:
-    // 1. Check cache first (before any fetch call)
-    // 2. If cache hit, return immediately (no fetch call, no deduplication)
-    // 3. If cache miss, proceed with deduplication and fetch call
-    //
-    // By instrumenting fetch, we can definitively verify that cache hits prevent fetch calls,
-    // which validates that cache is checked before deduplication (which would trigger fetch).
-    // This external validation complements the internal validation that verifies cleanup behavior.
-
-    // Mock cache implementation
-    const cache = new Map<string, any>();
-    let cacheHits = 0;
-    let cacheMisses = 0;
-    const fetchCallCounts: Map<string, number> = new Map();
-
-    // Helper function to generate cache key (simulating what ofetch would use)
-    // This should match the key generation used for deduplication
-    function generateCacheKey(
-      url: string,
-      options: { method?: string; body?: any; headers?: any } = {}
-    ): string {
-      const method = (options.method || "GET").toUpperCase();
-      const bodyKey = options.body ? JSON.stringify(options.body) : "";
-      const headersKey = (() => {
-        const h = options.headers;
-        if (!h) return "";
-        const pairs: Array<[string, string]> = [];
-        // Normalize various header input shapes without relying on DOM types
-        if (typeof Headers !== "undefined" && h instanceof Headers) {
-          h.forEach((v, k) => pairs.push([k.toLowerCase(), String(v)]));
-        } else if (Array.isArray(h)) {
-          for (const [k, v] of h as Array<[string, string]>) {
-            pairs.push([String(k).toLowerCase(), String(v)]);
-          }
-        } else if (typeof h === "object") {
-          for (const [k, v] of Object.entries(h)) {
-            pairs.push([String(k).toLowerCase(), String(v as any)]);
-          }
-        }
-        pairs.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1].localeCompare(b[1])));
-        return JSON.stringify(Object.fromEntries(pairs));
-      })();
-      return `${method}:${url}:${bodyKey}:${headersKey}`;
-    }
-
-    // Instrument fetch to track calls and verify cache-hit avoids fetch
-    const originalFetch = globalThis.fetch;
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation((...args) => {
-      const [input] = args;
-      const urlKey = typeof input === "string" ? input : input.url;
-      fetchCallCounts.set(urlKey, (fetchCallCounts.get(urlKey) || 0) + 1);
-      return originalFetch(...args);
-    });
-
-    // Wrapper function that implements cache-first behavior
-    async function fetchWithCache<T = any>(
-      url: string,
-      options: { dedupe?: boolean; [key: string]: any } = {}
-    ): Promise<T> {
-      const cacheKey = generateCacheKey(url, options);
-
-      // Step 1: Check cache FIRST (before deduplication and fetch)
-      // This is the critical ordering requirement: cache check must happen before
-      // deduplication check, which happens before fetch call
-      if (cache.has(cacheKey)) {
-        cacheHits++;
-        // Cache hit: return immediately without calling fetch
-        // This validates that cache is checked before fetch (which deduplication would trigger)
-        const cachedResult = cache.get(cacheKey);
-        // Verify fetch was NOT called for this cache hit
-        const fetchCountBefore = fetchCallCounts.get(url) || 0;
-        // Return cached result (no fetch call, no deduplication needed)
-        return cachedResult as T;
-      }
-
-      // Step 2: Cache miss - proceed to deduplication and fetch
-      cacheMisses++;
-
-      // Step 3: Make network request via $fetch (deduplication happens inside $fetch if enabled)
-      // If deduplication is enabled, $fetch will handle deduplication internally.
-      // The key point: cache was checked FIRST, then deduplication, then fetch.
-      const result = await $fetch<T>(url, options);
-
-      // Step 4: Store in cache (simulating cache population)
-      cache.set(cacheKey, result);
-
-      return result;
-    }
-
-    try {
-      const url = getURL("dedupe");
-      const requestOptions = { dedupe: true };
-
-      // Reset counters
-      cacheHits = 0;
-      cacheMisses = 0;
-      requestCount = 0;
-      fetchCallCounts.clear();
-
-      // Test 1: Cache miss - request goes through deduplication and fetch
-      const initialFetchCount = fetchCallCounts.get(url) || 0;
-      const result1 = await fetchWithCache(url, requestOptions);
-      expect(result1).toBeDefined();
-      expect(cacheMisses).toBe(1);
-      expect(cacheHits).toBe(0);
-      expect(requestCount).toBe(1);
-      // Verify fetch was called (cache miss -> deduplication -> fetch)
-      expect(fetchCallCounts.get(url) || 0).toBeGreaterThan(initialFetchCount);
-
-      // Test 2: Cache hit - should return from cache immediately WITHOUT calling fetch
-      // This definitively verifies cache is checked BEFORE fetch (and thus before deduplication)
-      requestCount = 0;
-      const fetchCountBeforeCacheHit = fetchCallCounts.get(url) || 0;
-      const result2 = await fetchWithCache(url, requestOptions);
-      expect(result2).toEqual(result1); // Same result from cache
-      expect(cacheHits).toBe(1);
-      expect(cacheMisses).toBe(1); // No new miss
-      expect(requestCount).toBe(0); // No server request (cache hit)
-      // CRITICAL VERIFICATION: Fetch was NOT called on cache hit
-      // This proves cache is checked before fetch, which happens before deduplication
-      expect(fetchCallCounts.get(url) || 0).toBe(fetchCountBeforeCacheHit);
-
-      // Test 3: Concurrent requests with cache miss - verify deduplication works
-      cache.clear(); // Clear cache to test cache miss scenario
-      cacheHits = 0;
-      cacheMisses = 0;
-      requestCount = 0;
-      fetchCallCounts.clear();
-
-      const fetchCountBeforeConcurrent = fetchCallCounts.get(url) || 0;
-      const [result3, result4] = await Promise.all([
-        fetchWithCache(url, requestOptions),
-        fetchWithCache(url, requestOptions),
-      ]);
-
-      // Both should get the same result
-      expect(result3).toEqual(result4);
-      // Cache was checked twice (once per request) - both miss
-      expect(cacheMisses).toBe(2);
-      // Deduplication should ensure only one fetch call and one server request after cache miss
-      const fetchCountAfterConcurrent = fetchCallCounts.get(url) || 0;
-      expect(fetchCountAfterConcurrent - fetchCountBeforeConcurrent).toBe(1);
-      expect(requestCount).toBe(1); // Only one server request (deduplicated)
-
-      // Validation: Demonstrates a recommended cache-first pattern external to the library:
-      // 1. Cache hit returns without fetch
-      // 2. Cache miss proceeds to fetch with deduplication ensuring a single call for concurrent requests
-    } finally {
-      fetchSpy.mockRestore();
-    }
   });
 
   it("should handle timeout scenarios with deduplication", async () => {

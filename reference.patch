@@ -1,0 +1,600 @@
+diff --git a/new.patch b/new.patch
+index 88555a5..0f21d67 100644
+--- a/new.patch
++++ b/new.patch
+@@ -1176,3 +1176,38 @@ index 0000000..7ecb73d
+ +    // using the TypeScript compiler. This test only validates runtime behavior.
+ +  });
+ +});
++diff --git a/test/index.test.ts b/test/index.test.ts
++index 5ac20b0..15070ee 100644
++--- a/test/index.test.ts
+++++ b/test/index.test.ts
++@@ -506,6 +506,14 @@ describe("ofetch", () => {
++   });
++
++   it("default fetch options", async () => {
+++    // Mock fetch to avoid real network calls in restricted environments
+++    fetch.mockImplementation(async (..._args: any[]) =>
+++      new Response(JSON.stringify({ id: 1 }), {
+++        status: 200,
+++        headers: { "content-type": "application/json" },
+++      }) as any
+++    );
+++
++     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {});
++     expect(fetch).toHaveBeenCalledOnce();
++     const options = fetch.mock.calls[0][1];
++@@ -513,6 +521,15 @@ describe("ofetch", () => {
++       headers: expect.any(Headers),
++     });
++     fetch.mockReset();
+++
+++    // Re-apply mock after reset for the second call
+++    fetch.mockImplementation(async (..._args: any[]) =>
+++      new Response(JSON.stringify({ id: 1 }), {
+++        status: 200,
+++        headers: { "content-type": "application/json" },
+++      }) as any
+++    );
+++
++     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {
++       timeout: 10_000,
++     });
+diff --git a/src/fetch.ts b/src/fetch.ts
+index 10c9158..c0f89cc 100644
+--- a/src/fetch.ts
++++ b/src/fetch.ts
+@@ -33,10 +33,231 @@ const retryStatusCodes = new Set([
+ // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
+ const nullBodyResponses = new Set([101, 204, 205, 304]);
+ 
++type DedupeSubscriber = {
++  signal?: AbortSignal;
++  timeout?: number;
++  aborted: boolean;
++  cleanup: Array<() => void>;
++};
++
++type DedupeEntry = {
++  key: string;
++  controller: AbortController;
++  subscribers: Set<DedupeSubscriber>;
++  promise: Promise<FetchResponse<any>>;
++};
++
++const DEDUPE_META = Symbol("ofetch:dedupe-meta");
++const DEBUG_DEDUPE = process.env.OFETCH_DEBUG_RETRY === "1";
++
++function debugDedupe(...args: any[]) {
++  if (DEBUG_DEDUPE) {
++    console.log("[dedupe]", ...args);
++  }
++}
++
++interface DedupeMeta {
++  key: string;
++  controller: AbortController;
++}
++
++const MACROTASK_DELAY_MS = 0;
++
++function scheduleMacrotask(fn: () => void): void {
++  if (typeof setImmediate === "function") {
++    setImmediate(fn);
++    return;
++  }
++  setTimeout(fn, MACROTASK_DELAY_MS);
++}
++
++function createAbortError(reason?: unknown): Error {
++  if (reason instanceof Error) {
++    return reason;
++  }
++  if (
++    typeof DOMException !== "undefined" &&
++    (reason === undefined || typeof reason === "string")
++  ) {
++    return new DOMException(
++      reason || "The operation was aborted",
++      "AbortError"
++    );
++  }
++  const error = new Error(
++    typeof reason === "string" ? reason : "The operation was aborted"
++  );
++  error.name = "AbortError";
++  return error;
++}
++
++function normalizeURLForKey(url: string): string {
++  if (!url) {
++    return "";
++  }
++  const hashIndex = url.indexOf("#");
++  const withoutHash = hashIndex === -1 ? url : url.slice(0, hashIndex);
++  const queryIndex = withoutHash.indexOf("?");
++  if (queryIndex === -1) {
++    return withoutHash;
++  }
++  const base = withoutHash.slice(0, queryIndex);
++  const queryString = withoutHash.slice(queryIndex + 1);
++  const params = new URLSearchParams(queryString);
++  const entries = [...params.entries()];
++  if (entries.length === 0) {
++    return base;
++  }
++  entries.sort((a, b) => {
++    if (a[0] === b[0]) {
++      if (a[1] === b[1]) {
++        return 0;
++      }
++      return a[1] < b[1] ? -1 : 1;
++    }
++    return a[0] < b[0] ? -1 : 1;
++  });
++  const normalized = new URLSearchParams();
++  for (const [key, value] of entries) {
++    normalized.append(key, value);
++  }
++  const serialized = normalized.toString();
++  return serialized ? `${base}?${serialized}` : base;
++}
++
++function headersToKey(headers?: Headers): string {
++  if (!headers) {
++    return "";
++  }
++  const pairs: string[] = [];
++  headers.forEach((value, key) => {
++    pairs.push(`${key.toLowerCase()}:${value}`);
++  });
++  pairs.sort();
++  return pairs.join("&");
++}
++
++function serializeBodyForKey(
++  body: any,
++  getObjectId: (value: object) => number
++): string {
++  if (body === undefined || body === null) {
++    return "";
++  }
++  const type = typeof body;
++  if (type === "string") {
++    return `string:${body}`;
++  }
++  if (type === "number" || type === "boolean" || type === "bigint") {
++    return `primitive:${body}`;
++  }
++  if (body instanceof URLSearchParams) {
++    return `urlsearch:${body.toString()}`;
++  }
++  if (typeof FormData !== "undefined" && body instanceof FormData) {
++    const parts: string[] = [];
++    body.forEach((value, key) => {
++      parts.push(
++        `${key}=${
++          typeof value === "string"
++            ? value
++            : "name" in value && value.name
++            ? value.name
++            : ""
++        }`
++      );
++    });
++    return `form:${parts.join("&")}`;
++  }
++  if (typeof Blob !== "undefined" && body instanceof Blob) {
++    return `blob:${body.type}:${body.size}`;
++  }
++  if (isJSONSerializable(body)) {
++    try {
++      return `json:${JSON.stringify(body)}`;
++    } catch {
++      // Fallback to object identity below
++    }
++  }
++  if (type === "object") {
++    return `object:${getObjectId(body)}`;
++  }
++  return `value:${String(body)}`;
++}
++
+ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+   const { fetch = globalThis.fetch } = globalOptions;
+ 
++  const inflightDedupe = new Map<string, DedupeEntry>();
++  const bodyIdentityMap = new WeakMap<object, number>();
++  let bodyIdentityCursor = 0;
++
++  const getBodyObjectId = (value: object): number => {
++    let id = bodyIdentityMap.get(value);
++    if (!id) {
++      id = ++bodyIdentityCursor;
++      bodyIdentityMap.set(value, id);
++    }
++    return id;
++  };
++
++  const serializeRequestBody = (body: any) =>
++    serializeBodyForKey(body, getBodyObjectId);
++
++  function resolveRequestURL(context: FetchContext): string | null {
++    if (typeof context.request === "string") {
++      let url = context.request;
++      if (context.options.baseURL) {
++        url = withBase(url, context.options.baseURL);
++      }
++      if (context.options.query) {
++        url = withQuery(url, context.options.query);
++      }
++      return url;
++    }
++    if (typeof URL !== "undefined" && context.request instanceof URL) {
++      return context.request.toString();
++    }
++    if (typeof Request !== "undefined" && context.request instanceof Request) {
++      return context.request.url;
++    }
++    if (
++      typeof context.request === "object" &&
++      context.request &&
++      "url" in context.request &&
++      typeof (context.request as any).url === "string"
++    ) {
++      return (context.request as any).url;
++    }
++    return null;
++  }
++
++  function buildDedupeKey(context: FetchContext): string | null {
++    const url = resolveRequestURL(context);
++    if (!url) {
++      return null;
++    }
++    const method = (context.options.method || "GET").toUpperCase();
++    const normalizedURL = normalizeURLForKey(url);
++    const headersKey = headersToKey(context.options.headers);
++    const bodyKey = serializeRequestBody(context.options.body);
++    return `${method}::${normalizedURL}::${headersKey}::${bodyKey}`;
++  }
++
+   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
++    const dedupeMeta = (context.options as any)[DEDUPE_META] as
++      | DedupeMeta
++      | undefined;
++    if (dedupeMeta) {
++      debugDedupe(
++        "onError",
++        dedupeMeta.key,
++        "status",
++        context.response?.status,
++        "retry",
++        context.options.retry
++      );
++    }
+     // Is Abort
+     // If it is an active abort, it will not retry automatically.
+     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
+@@ -66,13 +287,37 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+             ? context.options.retryDelay(context)
+             : context.options.retryDelay || 0;
+         if (retryDelay > 0) {
+-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
++          const isFakeTimer = typeof (setTimeout as any).clock === "object";
++          debugDedupe(
++            "retry delay",
++            dedupeMeta?.key,
++            "ms",
++            retryDelay,
++            "remaining",
++            retries - 1,
++            "fake",
++            isFakeTimer
++          );
++          if (isFakeTimer) {
++            // With fake timers, use setTimeout and let vi.runAllTimersAsync() advance it
++            // This works correctly with Vitest's fake timer system
++            await new Promise((resolve) => setTimeout(resolve, retryDelay));
++          } else {
++            await new Promise((resolve) => setTimeout(resolve, retryDelay));
++          }
+         }
+         // Timeout
+-        return $fetchRaw(context.request, {
++        const nextOptions: FetchOptions = {
+           ...context.options,
+           retry: retries - 1,
+-        });
++        };
++        if (dedupeMeta) {
++          // Preserve the in-flight dedupe entry so internal retries do not
++          // resubscribe to the same promise (which would deadlock).
++          (nextOptions as any)[DEDUPE_META] = dedupeMeta;
++          nextOptions.dedupe = false;
++        }
++        return $fetchRaw(context.request, nextOptions);
+       }
+     }
+ 
+@@ -86,27 +346,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+     throw error;
+   }
+ 
+-  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
+-    T = any,
+-    R extends ResponseType = "json",
+-  >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
+-    const context: FetchContext = {
+-      request: _request,
+-      options: resolveFetchOptions<R, T>(
+-        _request,
+-        _options,
+-        globalOptions.defaults as unknown as FetchOptions<R, T>,
+-        Headers
+-      ),
+-      response: undefined,
+-      error: undefined,
+-    };
+-
+-    // Uppercase method name
+-    if (context.options.method) {
+-      context.options.method = context.options.method.toUpperCase();
+-    }
+-
++  async function runFetch(
++    context: FetchContext,
++    sharedAbortController?: AbortController
++  ): Promise<FetchResponse<any>> {
+     if (context.options.onRequest) {
+       await callHooks(context, context.options.onRequest);
+     }
+@@ -168,7 +411,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+ 
+     let abortTimeout: NodeJS.Timeout | undefined;
+ 
+-    if (context.options.timeout) {
++    if (context.options.timeout && !sharedAbortController) {
+       context.options.signal = context.options.signal
+         ? AbortSignal.any([
+             AbortSignal.timeout(context.options.timeout),
+@@ -177,6 +420,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+         : AbortSignal.timeout(context.options.timeout);
+     }
+ 
++    if (sharedAbortController) {
++      context.options.signal = sharedAbortController.signal;
++    }
++
+     try {
+       context.response = await fetch(
+         context.request,
+@@ -254,6 +501,178 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+     }
+ 
+     return context.response;
++  }
++
++  function attachSubscriber(
++    entry: DedupeEntry,
++    controls: { signal?: AbortSignal; timeout?: number }
++  ): Promise<FetchResponse<any>> {
++    return new Promise((resolve, reject) => {
++      const subscriber: DedupeSubscriber = {
++        signal: controls.signal,
++        timeout: controls.timeout,
++        aborted: false,
++        cleanup: [],
++      };
++      entry.subscribers.add(subscriber);
++      debugDedupe("attach subscriber", entry.key, "count", entry.subscribers.size);
++
++      const cleanup = () => {
++        for (const fn of subscriber.cleanup.splice(0)) {
++          try {
++            fn();
++          } catch {
++            // ignore cleanup failures
++          }
++        }
++        entry.subscribers.delete(subscriber);
++      };
++
++      const maybeAbortShared = (reason?: unknown) => {
++        if (entry.subscribers.size === 0) {
++          entry.controller.abort(reason);
++          return;
++        }
++        let allAborted = true;
++        for (const sub of entry.subscribers) {
++          if (!sub.aborted) {
++            allAborted = false;
++            break;
++          }
++        }
++        if (allAborted) {
++          entry.controller.abort(reason);
++        }
++      };
++
++      const abortSubscriber = (reason?: unknown, defer = true) => {
++        if (subscriber.aborted) {
++          return;
++        }
++        subscriber.aborted = true;
++        maybeAbortShared(reason);
++        cleanup();
++        const error = createAbortError(reason);
++        if (defer) {
++          scheduleMacrotask(() => reject(error));
++        } else {
++          reject(error);
++        }
++      };
++
++      if (subscriber.signal) {
++        if (subscriber.signal.aborted) {
++          abortSubscriber(subscriber.signal.reason);
++        } else {
++          const abortHandler = () => abortSubscriber(subscriber.signal?.reason);
++          subscriber.signal.addEventListener("abort", abortHandler, {
++            once: true,
++          });
++          subscriber.cleanup.push(() => {
++            subscriber.signal?.removeEventListener("abort", abortHandler);
++          });
++        }
++      }
++
++      if (typeof subscriber.timeout === "number" && subscriber.timeout > 0) {
++        const timeoutId = setTimeout(() => {
++          abortSubscriber("The operation was aborted due to timeout", false);
++        }, subscriber.timeout);
++        subscriber.cleanup.push(() => clearTimeout(timeoutId));
++      }
++
++      entry.promise
++        .then((response) => {
++          if (subscriber.aborted) {
++            return;
++          }
++          cleanup();
++          scheduleMacrotask(() => resolve(response));
++        })
++        .catch((error) => {
++          if (subscriber.aborted) {
++            return;
++          }
++          cleanup();
++          scheduleMacrotask(() => reject(error));
++        });
++    });
++  }
++
++  async function subscribeWithDedupe(
++    key: string,
++    context: FetchContext,
++    controls: { signal?: AbortSignal; timeout?: number }
++  ): Promise<FetchResponse<any>> {
++    let entry = inflightDedupe.get(key);
++    if (!entry) {
++      entry = {
++        key,
++        controller: new AbortController(),
++        subscribers: new Set(),
++        promise: undefined as unknown as Promise<FetchResponse<any>>,
++      };
++      debugDedupe("create entry", key);
++      inflightDedupe.set(key, entry);
++
++      // When deduplication is enabled we disable implicit retries (the
++      // default `retry = 1` for idempotent methods) so identical callers
++      // observe exactly one network attempt unless they explicitly opt in.
++      if (context.options.retry === undefined) {
++        context.options.retry = 0;
++      }
++
++      (context.options as any)[DEDUPE_META] = {
++        key,
++        controller: entry.controller,
++      } as DedupeMeta;
++      entry.promise = runFetch(context, entry.controller).finally(() => {
++        debugDedupe("settled entry", key);
++        inflightDedupe.delete(key);
++      });
++    }
++    return attachSubscriber(entry, controls);
++  }
++
++  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
++    T = any,
++    R extends ResponseType = "json",
++  >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
++    const context: FetchContext = {
++      request: _request,
++      options: resolveFetchOptions<R, T>(
++        _request,
++        _options,
++        globalOptions.defaults as unknown as FetchOptions<R, T>,
++        Headers
++      ),
++      response: undefined,
++      error: undefined,
++    };
++
++    if (context.options.method) {
++      context.options.method = context.options.method.toUpperCase();
++    }
++
++    const dedupeMeta = (context.options as any)[DEDUPE_META] as
++      | DedupeMeta
++      | undefined;
++
++    if (context.options.dedupe && !dedupeMeta) {
++      const key = buildDedupeKey(context);
++      if (key) {
++        return await subscribeWithDedupe(key, context, {
++          signal: context.options.signal,
++          timeout: context.options.timeout,
++        });
++      }
++    }
++
++    if (dedupeMeta) {
++      return await runFetch(context, dedupeMeta.controller);
++    }
++
++    return await runFetch(context);
+   };
+ 
+   const $fetch = async function $fetch(request, options) {
+diff --git a/src/types.ts b/src/types.ts
+index 66a84fa..477d7f0 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -68,6 +68,9 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
+ 
+   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
+   retryStatusCodes?: number[];
++
++  /** Enable in-flight request deduplication */
++  dedupe?: boolean;
+ }
+ 
+ export interface ResolvedFetchOptions<
+diff --git a/test/index.test.ts b/test/index.test.ts
+index 5ac20b0..15070ee 100644
+--- a/test/index.test.ts
++++ b/test/index.test.ts
+@@ -506,6 +506,14 @@ describe("ofetch", () => {
+   });
+ 
+   it("default fetch options", async () => {
++    // Mock fetch to avoid real network calls in restricted environments
++    fetch.mockImplementation(async (..._args: any[]) =>
++      new Response(JSON.stringify({ id: 1 }), {
++        status: 200,
++        headers: { "content-type": "application/json" },
++      }) as any
++    );
++
+     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {});
+     expect(fetch).toHaveBeenCalledOnce();
+     const options = fetch.mock.calls[0][1];
+@@ -513,6 +521,15 @@ describe("ofetch", () => {
+       headers: expect.any(Headers),
+     });
+     fetch.mockReset();
++
++    // Re-apply mock after reset for the second call
++    fetch.mockImplementation(async (..._args: any[]) =>
++      new Response(JSON.stringify({ id: 1 }), {
++        status: 200,
++        headers: { "content-type": "application/json" },
++      }) as any
++    );
++
+     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {
+       timeout: 10_000,
+     });

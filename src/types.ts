@@ -68,6 +68,12 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
+
+  /**
+   * Condition to retry the request.
+   * @default false
+   */
+  retryIf?: (context: FetchContext<T, R>) => boolean | Promise<boolean>;
 }
 
 export interface ResolvedFetchOptions<

@@ -30,9 +30,11 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   params?: Record<string, any>;
 
-  query?: Record<string, any>;
-
-  urlSearchParams?: URLSearchParams;
+  /**
+   * The query parameters to be sent with the request.
+   * This can be an object or a URLSearchParams object.
+   */
+  query?: Record<string, any> | URLSearchParams;
 
   parseResponse?: (responseText: string) => any;
 

@@ -21,6 +21,33 @@ import {
 import { Headers, FormData, Blob } from "node-fetch-native";
 import { nodeMajorVersion } from "std-env";
 import { $fetch } from "../src/node";
+import { normalizeQuery } from "../src/utils";
+
+describe("normalizeQuery", () => {
+  it("should convert URLSearchParams to an object", () => {
+    const searchParams = new URLSearchParams({ a: "1", b: "2" });
+    expect(normalizeQuery(searchParams)).toEqual({ a: "1", b: "2" });
+  });
+
+  it("should return the same object if it's not a URLSearchParams", () => {
+    const query = { a: "1", b: "2" };
+    expect(normalizeQuery(query)).toBe(query);
+  });
+
+  it("should return undefined for undefined input", () => {
+    expect(normalizeQuery(undefined)).toBeUndefined();
+  });
+
+  it("should return an empty object for an empty URLSearchParams", () => {
+    const searchParams = new URLSearchParams();
+    expect(normalizeQuery(searchParams)).toEqual({});
+  });
+
+  it("should return an empty object for an empty object", () => {
+    const query = {};
+    expect(normalizeQuery(query)).toBe(query);
+  });
+});
 
 describe("ofetch", () => {
   let listener;
@@ -371,18 +398,20 @@ describe("ofetch", () => {
     const _customFetch = $fetch.create({
       query: {
         a: 0,
+        ...Object.fromEntries(urlSearchParams.entries()),
       },
       params: {
         b: 1,
       },
-      urlSearchParams,
       onRequest: ({ options }) => {
-        options.urlSearchParams ||= new URLSearchParams();
-        options.urlSearchParams.set("token", "token");
-        options.query = {
-          ...options.query,
-          ...Object.fromEntries(options.urlSearchParams.entries()),
-        };
+        const searchParams = new URLSearchParams(
+          Object.entries(options.query || {}).map(([key, value]) => [
+            key,
+            String(value),
+          ])
+        );
+        searchParams.set("token", "token");
+        options.query = Object.fromEntries(searchParams.entries());
       },
     });
     const customURLSearchParams = new URLSearchParams({
@@ -391,11 +420,11 @@ describe("ofetch", () => {
     const { path } = await _customFetch(getURL("echo"), {
       query: {
         c: 2,
+        ...Object.fromEntries(customURLSearchParams.entries()),
       },
       params: {
         d: 3,
       },
-      urlSearchParams: customURLSearchParams,
     });
 
     const parseParams = (str: string) =>

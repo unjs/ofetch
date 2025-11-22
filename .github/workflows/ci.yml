@@ -1,26 +1,17 @@
 name: ci
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: { push: { branches: [main] }, pull_request: { branches: [main] } }
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        node: [18, 20, 22]
+      matrix: { node: [20, 22, 24] }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: corepack enable
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: "pnpm"
+      - uses: actions/setup-node@v6
+        with: { node-version: "${{ matrix.node }}", cache: "pnpm" }
       - run: pnpm install
       - run: pnpm lint
       - run: pnpm build

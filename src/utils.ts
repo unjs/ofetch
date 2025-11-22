@@ -5,16 +5,16 @@ import type {
   FetchRequest,
   ResolvedFetchOptions,
   ResponseType,
-} from "./types";
+} from "./types.ts";
 
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
 );
-export function isPayloadMethod(method = "GET") {
+export function isPayloadMethod(method = "GET"): boolean {
   return payloadMethods.has(method.toUpperCase());
 }
 
-export function isJSONSerializable(value: any) {
+export function isJSONSerializable(value: any): boolean {
   if (value === undefined) {
     return false;
   }
@@ -29,6 +29,11 @@ export function isJSONSerializable(value: any) {
     return true;
   }
   if (value.buffer) {
+    return false;
+  }
+  // `FormData` and `URLSearchParams` should't have a `toJSON` method,
+  // but Bun adds it, which is non-standard.
+  if (value instanceof FormData || value instanceof URLSearchParams) {
     return false;
   }
   return (
@@ -63,6 +68,12 @@ export function detectResponseType(_contentType = ""): ResponseType {
   // if (contentType === 'application/octet-stream') {
   //   return 'stream'
   // }
+
+  // SSE
+  // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#sending_events_from_the_server
+  if (contentType === "text/event-stream") {
+    return "stream";
+  }
 
   if (textTypes.has(contentType) || contentType.startsWith("text/")) {
     return "text";

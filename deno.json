@@ -1,0 +1,7 @@
+{
+  "name": "@unjs/ofetch",
+  "version": "2.0.0-alpha.3",
+  "description": "A better fetch API. Works on node, browser and workers.",
+  "license": "MIT",
+  "exports": "./src/index.ts"
+}

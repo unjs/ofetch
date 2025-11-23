@@ -7,13 +7,10 @@ import {
   expect,
   vi,
 } from "vitest";
-import { Headers, FormData, Blob } from "node-fetch-native";
-import { nodeMajorVersion } from "std-env";
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
-import { $fetch } from "../src/node";
-import { normalizeQuery } from "../src/utils";
+import { normalizeQuery } from "../src/utils.ts";
 
 describe("normalizeQuery", () => {
   it("should convert URLSearchParams to an object", () => {
@@ -411,7 +408,9 @@ describe("ofetch", () => {
     });
 
     const parseParams = (str: string) =>
-      Object.fromEntries(new URLSearchParams(str).entries());
+      Object.fromEntries(
+        new URLSearchParams(str.split("?")[1] || "").entries()
+      );
     expect(parseParams(path)).toMatchObject(
       parseParams("?a=0&b=1&foo=foo&c=2&d=3&bar=bar&token=token")
     );

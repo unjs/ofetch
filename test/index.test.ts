@@ -116,6 +116,16 @@ describe("ofetch", () => {
     );
   });
 
+  it("baseURL with trailing CR", async () => {
+    expect(
+      await $fetch("/x?foo=123", { baseURL: getURL("url") + "\r" })
+    ).to.equal("/url/x?foo=123");
+
+    expect(await $fetch("/x", { baseURL: getURL("url") + "\r" })).to.equal(
+      "/url/x"
+    );
+  });
+
   it("stringifies posts body automatically", async () => {
     const { body } = await $fetch(getURL("post"), {
       method: "POST",

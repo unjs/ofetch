@@ -257,6 +257,33 @@ const apiFetch = ofetch.create({ baseURL: "/api" });
 apiFetch("/test"); // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
+## ✔️ Using a Custom `fetch` Implementation
+
+The default `ofetch` instance uses `globalThis.fetch` but is designed to allow patching. You can override `globalThis.fetch` before or after importing ofetch:
+
+```js
+import { ofetch } from "ofetch";
+
+globalThis.fetch = myCustomFetchImplementation;
+
+await ofetch("/api/users"); // Uses your custom implementation
+```
+
+Alternatively, you can create a new ofetch instance with a custom fetch using `createFetch`:
+
+```js
+import { createFetch } from "ofetch";
+
+const myFetch = createFetch({
+  fetch: myCustomFetchImplementation,
+  defaults: {
+    baseURL: "/api",
+  },
+});
+
+await myFetch("/users");
+```
+
 ## 💡 Adding headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:

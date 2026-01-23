@@ -306,8 +306,7 @@ describe("ofetch", () => {
     expect(retryDelay).toHaveBeenCalledWith(
       expect.objectContaining({
         retry: expect.objectContaining({
-          currentAttempt: 2,
-          totalAttempts: 3,
+          attempt: 1,
         }),
       })
     );
@@ -315,8 +314,7 @@ describe("ofetch", () => {
     expect(retryDelay).toHaveBeenCalledWith(
       expect.objectContaining({
         retry: expect.objectContaining({
-          currentAttempt: 3,
-          totalAttempts: 3,
+          attempt: 2
         }),
       })
     );

@@ -72,8 +72,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 }
 
 export interface FetchRetry {
-  currentAttempt: number;
-  totalAttempts: number;
+  attempt: number;
 }
 
 export interface ResolvedFetchOptions<

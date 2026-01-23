@@ -299,7 +299,7 @@ describe("ofetch", () => {
     const retryDelay = vi.fn(() => 1);
 
     await $fetch(getURL("408"), {
-      retry: 3,
+      retry: 2,
       retryDelay,
     }).catch(() => {});
 

@@ -55,7 +55,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         totalAttempts = isPayloadMethod(context.options.method) ? 0 : 1;
       }
 
-      const retries = totalAttempts - context.retry.attempt - 1;
+      const retries = totalAttempts - context.retry.attempt;
 
       const responseCode = (context.response && context.response.status) || 500;
       if (

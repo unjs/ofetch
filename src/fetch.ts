@@ -55,11 +55,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         totalAttempts = isPayloadMethod(context.options.method) ? 0 : 1;
       }
 
-      context.retry = {
-        attempt: (context.retry?.attempt ?? 0) + 1,
-      };
-
-      const retries = totalAttempts - context.retry.attempt;
+      const retries = totalAttempts - context.retry.attempt - 1;
 
       const responseCode = (context.response && context.response.status) || 500;
       if (
@@ -75,8 +71,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
-        // Timeout
-        return $fetchRaw(context.request, context.options, context.retry);
+
+        return $fetchRaw(context.request, context.options, {
+          attempt: context.retry.attempt + 1,
+        });
       }
     }
 
@@ -106,7 +104,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         globalOptions.defaults as unknown as FetchOptions<R, T>,
         Headers
       ),
-      retry: _retry,
+      retry: _retry ?? { attempt: 0 },
       response: undefined,
       error: undefined,
     };

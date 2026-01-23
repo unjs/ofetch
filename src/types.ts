@@ -99,9 +99,9 @@ export type GlobalOptions = Pick<
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest;
   options: ResolvedFetchOptions<R>;
+  retry: FetchRetry;
   response?: FetchResponse<T>;
   error?: Error;
-  retry?: FetchRetry;
 }
 
 type MaybePromise<T> = T | Promise<T>;

@@ -16,6 +16,7 @@ import type {
   $Fetch,
   FetchRequest,
   FetchOptions,
+  FetchRetry,
 } from "./types.ts";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -47,12 +48,21 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       false;
     // Retry
     if (context.options.retry !== false && !isAbort) {
-      let retries;
+      let totalAttempts;
       if (typeof context.options.retry === "number") {
-        retries = context.options.retry;
+        totalAttempts = context.options.retry;
       } else {
-        retries = isPayloadMethod(context.options.method) ? 0 : 1;
+        totalAttempts = isPayloadMethod(context.options.method) ? 0 : 1;
       }
+
+      context.retry = {
+        totalAttempts,
+        currentAttempt: (context.retry?.currentAttempt ?? 1),
+      };
+
+      const retries =
+        context.retry.totalAttempts - context.retry.currentAttempt;
+
 
       const responseCode = (context.response && context.response.status) || 500;
       if (
@@ -61,6 +71,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           ? context.options.retryStatusCodes.includes(responseCode)
           : retryStatusCodes.has(responseCode))
       ) {
+        context.retry.currentAttempt++
         const retryDelay =
           typeof context.options.retryDelay === "function"
             ? context.options.retryDelay(context)
@@ -69,10 +80,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
         // Timeout
-        return $fetchRaw(context.request, {
-          ...context.options,
-          retry: retries - 1,
-        });
+        return $fetchRaw(context.request, context.options, context.retry);
       }
     }
 
@@ -89,7 +97,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
     T = any,
     R extends ResponseType = "json",
-  >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
+  >(
+    _request: FetchRequest,
+    _options: FetchOptions<R> = {},
+    _retry?: FetchRetry
+  ) {
     const context: FetchContext = {
       request: _request,
       options: resolveFetchOptions<R, T>(
@@ -98,6 +110,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         globalOptions.defaults as unknown as FetchOptions<R, T>,
         Headers
       ),
+      retry: _retry,
       response: undefined,
       error: undefined,
     };

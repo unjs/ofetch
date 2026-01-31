@@ -308,32 +308,16 @@ while (true) {
 
 ## 🕵️ Proxy Support
 
-`ofetch` supports HTTP(S) proxies across different JavaScript runtimes. Each runtime has its own approach to proxy configuration.
-
 ### Node.js
 
 In Node.js (>= 18), you can use the `dispatcher` option with [undici](https://undici.nodejs.org/)'s `ProxyAgent`.
 
-**Example:** Use proxy for a single request:
-
 ```ts
 import { ProxyAgent } from "undici";
-import { ofetch } from "ofetch";
 
 const proxyAgent = new ProxyAgent("http://localhost:3128");
-const data = await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
-```
 
-**Example:** Create a fetch instance with proxy enabled:
-
-```ts
-import { ProxyAgent } from "undici";
-import { ofetch } from "ofetch";
-
-const proxyAgent = new ProxyAgent("http://localhost:3128");
-const fetchWithProxy = ofetch.create({ dispatcher: proxyAgent });
-
-const data = await fetchWithProxy("https://icanhazip.com");
+await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
 ```
 
 **Example:** Set proxy globally for all requests:
@@ -341,102 +325,30 @@ const data = await fetchWithProxy("https://icanhazip.com");
 ```ts
 import { ProxyAgent, setGlobalDispatcher } from "undici";
 
-const proxyAgent = new ProxyAgent("http://localhost:3128");
-setGlobalDispatcher(proxyAgent);
-
-// All ofetch requests will now use the proxy
-const data = await ofetch("https://icanhazip.com");
+setGlobalDispatcher(new ProxyAgent("http://localhost:3128"));
 ```
-
-### Bun
-
-Bun provides native proxy support through the `proxy` option in fetch requests.
-
-**Example:** Use proxy for a single request:
-
-```ts
-import { ofetch } from "ofetch";
-
-const data = await ofetch("https://icanhazip.com", {
-  proxy: "http://localhost:3128",
-});
-```
-
-**Example:** Use authenticated proxy:
-
-```ts
-import { ofetch } from "ofetch";
-
-const data = await ofetch("https://icanhazip.com", {
-  proxy: "http://username:[email protected]:3128",
-});
-```
-
-**Example:** Use proxy with custom headers:
-
-```ts
-import { ofetch } from "ofetch";
-
-const data = await ofetch("https://icanhazip.com", {
-  proxy: {
-    url: "http://localhost:3128",
-    headers: {
-      "Proxy-Authorization": "Bearer token",
-    },
-  },
-});
-```
-
-**Example:** Create a fetch instance with proxy enabled:
-
-```ts
-import { ofetch } from "ofetch";
-
-const fetchWithProxy = ofetch.create({
-  proxy: "http://localhost:3128",
-});
-
-const data = await fetchWithProxy("https://icanhazip.com");
-```
-
-Bun also respects `HTTP_PROXY` and `HTTPS_PROXY` environment variables. See [Bun proxy documentation](https://bun.sh/guides/http/proxy) for more details.
-
-### Deno
-
-Deno respects the standard `HTTP_PROXY` and `HTTPS_PROXY` environment variables:
-
-```bash
-HTTP_PROXY=http://localhost:3128 deno run --allow-net your-script.ts
-```
-
-For programmatic proxy configuration, you can use undici's `ProxyAgent` with npm specifiers:
-
-```ts
-import { ofetch } from "npm:ofetch";
-import { ProxyAgent } from "npm:undici";
-
-const proxyAgent = new ProxyAgent("http://localhost:3128");
-const data = await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
-```
-
-### Custom Agents and TLS
-
-You can also use undici agents for other features like allowing self-signed certificates:
 
 **Example:** Allow self-signed certificates (USE AT YOUR OWN RISK!)
 
 ```ts
 import { Agent } from "undici";
-import { ofetch } from "ofetch";
 
 // Note: This makes fetch unsecure against MITM attacks. USE AT YOUR OWN RISK!
 const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
-const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
-
-const data = await unsecureFetch("https://self-signed.example.com/");
+await ofetch("https://self-signed.example.com/", { dispatcher: unsecureAgent });
 ```
 
-For more information about undici agents, see the [undici Dispatcher API documentation](https://undici.nodejs.org/#/docs/api/Dispatcher).
+### Bun and Deno
+
+**Bun** supports the `proxy` option:
+
+```ts
+await ofetch("https://icanhazip.com", {
+  proxy: "http://localhost:3128",
+});
+```
+
+**Deno** and Bun respect `HTTP_PROXY` and `HTTPS_PROXY` environment variables. Deno can also use undici with npm specifiers for programmatic configuration.
 
 ### 💪 Augment `FetchOptions` interface
 

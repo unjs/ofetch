@@ -36,7 +36,7 @@
 // Deno (using environment variables or undici)
 // --------------------------------------------------------------
 // Option 1: Set HTTP_PROXY environment variable before running
-// HTTP_PROXY=http://localhost:3128 deno run --allow-net script.ts
+// HTTP_PROXY=http://localhost:3128 deno run --allow-net your-script.ts
 //
 // Option 2: Use undici with npm specifier (uncomment to test)
 // import { ofetch } from "npm:ofetch";

@@ -406,7 +406,7 @@ Bun also respects `HTTP_PROXY` and `HTTPS_PROXY` environment variables. See [Bun
 Deno respects the standard `HTTP_PROXY` and `HTTPS_PROXY` environment variables:
 
 ```bash
-HTTP_PROXY=http://localhost:3128 deno run --allow-net script.ts
+HTTP_PROXY=http://localhost:3128 deno run --allow-net your-script.ts
 ```
 
 For programmatic proxy configuration, you can use undici's `ProxyAgent` with npm specifiers:

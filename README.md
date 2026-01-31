@@ -306,17 +306,15 @@ while (true) {
 }
 ```
 
-## 🕵️ Adding HTTP(S) Agent
+## 🕵️ Proxy Support
 
-In Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy and self-signed certificates. This feature is enabled by [undici](https://undici.nodejs.org/) built-in Node.js. [read more](https://undici.nodejs.org/#/docs/api/Dispatcher) about the Dispatcher API.
+`ofetch` supports HTTP(S) proxies across different JavaScript runtimes. Each runtime has its own approach to proxy configuration.
 
-Some available agents:
+### Node.js
 
-- `ProxyAgent`: A Proxy Agent class that implements the Agent API. It allows the connection through a proxy in a simple way. ([docs](https://undici.nodejs.org/#/docs/api/ProxyAgent))
-- `MockAgent`: A mocked Agent class that implements the Agent API. It allows one to intercept HTTP requests made through undici and return mocked responses instead. ([docs](https://undici.nodejs.org/#/docs/api/MockAgent))
-- `Agent`: Agent allows dispatching requests against multiple different origins. ([docs](https://undici.nodejs.org/#/docs/api/Agent))
+In Node.js (>= 18), you can use the `dispatcher` option with [undici](https://undici.nodejs.org/)'s `ProxyAgent`.
 
-**Example:** Set a proxy agent for one request:
+**Example:** Use proxy for a single request:
 
 ```ts
 import { ProxyAgent } from "undici";
@@ -326,10 +324,10 @@ const proxyAgent = new ProxyAgent("http://localhost:3128");
 const data = await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
 ```
 
-**Example:** Create a custom fetch instance that has proxy enabled:
+**Example:** Create a fetch instance with proxy enabled:
 
 ```ts
-import { ProxyAgent, setGlobalDispatcher } from "undici";
+import { ProxyAgent } from "undici";
 import { ofetch } from "ofetch";
 
 const proxyAgent = new ProxyAgent("http://localhost:3128");
@@ -338,17 +336,92 @@ const fetchWithProxy = ofetch.create({ dispatcher: proxyAgent });
 const data = await fetchWithProxy("https://icanhazip.com");
 ```
 
-**Example:** Set a proxy agent for all requests:
+**Example:** Set proxy globally for all requests:
 
 ```ts
 import { ProxyAgent, setGlobalDispatcher } from "undici";
-import { ofetch } from "ofetch";
 
 const proxyAgent = new ProxyAgent("http://localhost:3128");
 setGlobalDispatcher(proxyAgent);
 
+// All ofetch requests will now use the proxy
 const data = await ofetch("https://icanhazip.com");
 ```
+
+### Bun
+
+Bun provides native proxy support through the `proxy` option in fetch requests.
+
+**Example:** Use proxy for a single request:
+
+```ts
+import { ofetch } from "ofetch";
+
+const data = await ofetch("https://icanhazip.com", {
+  proxy: "http://localhost:3128",
+});
+```
+
+**Example:** Use authenticated proxy:
+
+```ts
+import { ofetch } from "ofetch";
+
+const data = await ofetch("https://icanhazip.com", {
+  proxy: "http://username:[email protected]:3128",
+});
+```
+
+**Example:** Use proxy with custom headers:
+
+```ts
+import { ofetch } from "ofetch";
+
+const data = await ofetch("https://icanhazip.com", {
+  proxy: {
+    url: "http://localhost:3128",
+    headers: {
+      "Proxy-Authorization": "Bearer token",
+    },
+  },
+});
+```
+
+**Example:** Create a fetch instance with proxy enabled:
+
+```ts
+import { ofetch } from "ofetch";
+
+const fetchWithProxy = ofetch.create({
+  proxy: "http://localhost:3128",
+});
+
+const data = await fetchWithProxy("https://icanhazip.com");
+```
+
+Bun also respects `HTTP_PROXY` and `HTTPS_PROXY` environment variables. See [Bun proxy documentation](https://bun.sh/guides/http/proxy) for more details.
+
+### Deno
+
+Deno respects the standard `HTTP_PROXY` and `HTTPS_PROXY` environment variables:
+
+```bash
+HTTP_PROXY=http://localhost:3128 deno run --allow-net script.ts
+```
+
+For programmatic proxy configuration, you can use undici's `ProxyAgent` with npm specifiers:
+
+```ts
+import { ofetch } from "npm:ofetch";
+import { ProxyAgent } from "npm:undici";
+
+const proxyAgent = new ProxyAgent("http://localhost:3128");
+const data = await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
+```
+
+### Custom Agents and TLS
+
+You can also use undici agents for other features like allowing self-signed certificates:
 
 **Example:** Allow self-signed certificates (USE AT YOUR OWN RISK!)
 
@@ -360,8 +433,10 @@ import { ofetch } from "ofetch";
 const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
 
-const data = await unsecureFetch("https://www.squid-cache.org/");
+const data = await unsecureFetch("https://self-signed.example.com/");
 ```
+
+For more information about undici agents, see the [undici Dispatcher API documentation](https://undici.nodejs.org/#/docs/api/Dispatcher).
 
 ### 💪 Augment `FetchOptions` interface
 

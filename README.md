@@ -308,6 +308,9 @@ while (true) {
 
 ## 🕵️ Proxy Support
 
+> [!IMPORTANT]
+> **Environment Variables:** Bun and Deno respect `HTTP_PROXY` and `HTTPS_PROXY` environment variables. Node.js requires setting `NODE_USE_ENV_PROXY=1` to enable [built-in proxy support](https://nodejs.org/api/http.html#http_built_in_proxy_support).
+
 ### Node.js
 
 In Node.js (>= 18), you can use the `dispatcher` option with [undici](https://undici.nodejs.org/)'s `ProxyAgent`.
@@ -348,7 +351,7 @@ await ofetch("https://icanhazip.com", {
 });
 ```
 
-**Deno** and Bun respect `HTTP_PROXY` and `HTTPS_PROXY` environment variables. Deno can also use undici with npm specifiers for programmatic configuration.
+**Deno** can also use undici with npm specifiers for programmatic configuration.
 
 ### 💪 Augment `FetchOptions` interface
 

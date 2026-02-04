@@ -55,12 +55,19 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
 
       const responseCode = (context.response && context.response.status) || 500;
-      if (
-        retries > 0 &&
-        (Array.isArray(context.options.retryStatusCodes)
-          ? context.options.retryStatusCodes.includes(responseCode)
-          : retryStatusCodes.has(responseCode))
-      ) {
+
+      const isRetryableStatus = Array.isArray(context.options.retryStatusCodes)
+        ? context.options.retryStatusCodes.includes(responseCode)
+        : retryStatusCodes.has(responseCode);
+
+      const isConditionalRetry =
+        typeof context.options.retryIf === "function"
+          ? await context.options.retryIf(context)
+          : false;
+
+      const shouldRetry = isRetryableStatus || isConditionalRetry;
+
+      if (retries > 0 && shouldRetry) {
         const retryDelay =
           typeof context.options.retryDelay === "function"
             ? context.options.retryDelay(context)

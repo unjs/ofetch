@@ -306,62 +306,52 @@ while (true) {
 }
 ```
 
-## 🕵️ Adding HTTP(S) Agent
+## 🕵️ Proxy Support
 
-In Node.js (>= 18) environments, you can provide a custom dispatcher to intercept requests and support features such as Proxy and self-signed certificates. This feature is enabled by [undici](https://undici.nodejs.org/) built-in Node.js. [read more](https://undici.nodejs.org/#/docs/api/Dispatcher) about the Dispatcher API.
+> [!IMPORTANT]
+> **Environment Variables:** Bun and Deno respect `HTTP_PROXY` and `HTTPS_PROXY` environment variables. Node.js requires setting `NODE_USE_ENV_PROXY=1` to enable [built-in proxy support](https://nodejs.org/api/http.html#http_built_in_proxy_support).
 
-Some available agents:
+### Node.js
 
-- `ProxyAgent`: A Proxy Agent class that implements the Agent API. It allows the connection through a proxy in a simple way. ([docs](https://undici.nodejs.org/#/docs/api/ProxyAgent))
-- `MockAgent`: A mocked Agent class that implements the Agent API. It allows one to intercept HTTP requests made through undici and return mocked responses instead. ([docs](https://undici.nodejs.org/#/docs/api/MockAgent))
-- `Agent`: Agent allows dispatching requests against multiple different origins. ([docs](https://undici.nodejs.org/#/docs/api/Agent))
-
-**Example:** Set a proxy agent for one request:
+In Node.js (>= 18), you can use the `dispatcher` option with [undici](https://undici.nodejs.org/)'s `ProxyAgent`.
 
 ```ts
 import { ProxyAgent } from "undici";
-import { ofetch } from "ofetch";
 
 const proxyAgent = new ProxyAgent("http://localhost:3128");
-const data = await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
+
+await ofetch("https://icanhazip.com", { dispatcher: proxyAgent });
 ```
 
-**Example:** Create a custom fetch instance that has proxy enabled:
+**Example:** Set proxy globally for all requests:
 
 ```ts
 import { ProxyAgent, setGlobalDispatcher } from "undici";
-import { ofetch } from "ofetch";
 
-const proxyAgent = new ProxyAgent("http://localhost:3128");
-const fetchWithProxy = ofetch.create({ dispatcher: proxyAgent });
-
-const data = await fetchWithProxy("https://icanhazip.com");
-```
-
-**Example:** Set a proxy agent for all requests:
-
-```ts
-import { ProxyAgent, setGlobalDispatcher } from "undici";
-import { ofetch } from "ofetch";
-
-const proxyAgent = new ProxyAgent("http://localhost:3128");
-setGlobalDispatcher(proxyAgent);
-
-const data = await ofetch("https://icanhazip.com");
+setGlobalDispatcher(new ProxyAgent("http://localhost:3128"));
 ```
 
 **Example:** Allow self-signed certificates (USE AT YOUR OWN RISK!)
 
 ```ts
 import { Agent } from "undici";
-import { ofetch } from "ofetch";
 
 // Note: This makes fetch unsecure against MITM attacks. USE AT YOUR OWN RISK!
 const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
-const unsecureFetch = ofetch.create({ dispatcher: unsecureAgent });
-
-const data = await unsecureFetch("https://www.squid-cache.org/");
+await ofetch("https://self-signed.example.com/", { dispatcher: unsecureAgent });
 ```
+
+### Bun and Deno
+
+**Bun** supports the `proxy` option:
+
+```ts
+await ofetch("https://icanhazip.com", {
+  proxy: "http://localhost:3128",
+});
+```
+
+**Deno** can also use undici with npm specifiers for programmatic configuration.
 
 ### 💪 Augment `FetchOptions` interface
 

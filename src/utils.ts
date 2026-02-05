@@ -82,6 +82,15 @@ export function detectResponseType(_contentType = ""): ResponseType {
   return "blob";
 }
 
+export function normalizeQuery(
+  query: Record<string, any> | URLSearchParams | undefined
+) {
+  if (query instanceof URLSearchParams) {
+    return Object.fromEntries(query.entries());
+  }
+  return query;
+}
+
 export function resolveFetchOptions<
   R extends ResponseType = ResponseType,
   T = any,
@@ -103,9 +112,9 @@ export function resolveFetchOptions<
   if (defaults?.query || defaults?.params || input?.params || input?.query) {
     query = {
       ...defaults?.params,
-      ...defaults?.query,
+      ...normalizeQuery(defaults?.query),
       ...input?.params,
-      ...input?.query,
+      ...normalizeQuery(input?.query),
     };
   }
 

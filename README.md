@@ -9,6 +9,8 @@
 
 A better fetch API. Works on node, browser, and workers.
 
+![Demo](assets/demo.gif)
+
 > [!IMPORTANT]
 > You are on v2 (alpha) development branch. See [v1](https://github.com/unjs/ofetch/tree/v1) for v1 docs.
 

@@ -10,6 +10,7 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import type { FetchOptions } from "../src/index.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -503,6 +504,24 @@ describe("ofetch", () => {
     expect(onRequestError).not.toHaveBeenCalled();
     expect(onResponse).toHaveBeenCalledTimes(2);
     expect(onResponseError).toHaveBeenCalledTimes(2);
+  });
+
+  it("accepts explicitly typed FetchOptions<R> as create() defaults (issue #453)", () => {
+    // Passing FetchOptions<"json"> previously caused TS2345 because the `create`
+    // signature accepted bare `FetchOptions` (= FetchOptions<ResponseType>).
+    // Due to function-parameter contravariance, FetchContext<any,"json"> was not
+    // assignable to FetchContext<any, ResponseType>, producing a compile error.
+    const jsonOpts: FetchOptions<"json"> = {
+      baseURL: "https://api.example.com",
+      retryDelay: (_ctx) => 500,
+    };
+    expect(typeof $fetch.create(jsonOpts)).toBe("function");
+
+    const blobOpts: FetchOptions<"blob"> = {
+      baseURL: "https://api.example.com",
+      responseType: "blob",
+    };
+    expect(typeof $fetch.create(blobOpts)).toBe("function");
   });
 
   it("default fetch options", async () => {

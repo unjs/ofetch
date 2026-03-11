@@ -273,7 +273,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         ...globalOptions.defaults,
         ...customGlobalOptions.defaults,
         ...defaultOptions,
-      },
+      } as FetchOptions,
     });
 
   return $fetch;

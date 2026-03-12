@@ -295,6 +295,25 @@ describe("ofetch", () => {
     expect(race).to.equal("fast");
   });
 
+  it("retry callback with correct context", async () => {
+    const retryDelay = vi.fn(() => 1);
+
+    await $fetch(getURL("408"), {
+      retry: 2,
+      retryDelay,
+    }).catch(() => {});
+
+    expect(retryDelay).toHaveBeenCalledWith(
+      expect.objectContaining({
+        retry: expect.objectContaining({
+          attempt: 0,
+        }),
+      })
+    );
+
+    expect(retryDelay).toHaveBeenCalledTimes(2);
+  });
+
   it("abort with retry", async () => {
     const controller = new AbortController();
     async function abortHandle() {

@@ -9,7 +9,8 @@ export interface $Fetch {
   ): Promise<MappedResponseType<R, T>>;
   raw<T = any, R extends ResponseType = "json">(
     request: FetchRequest,
-    options?: FetchOptions<R>
+    options?: FetchOptions<R>,
+    retry?: FetchRetry
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
   create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
@@ -70,6 +71,10 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
   retryStatusCodes?: number[];
 }
 
+export interface FetchRetry {
+  attempt: number;
+}
+
 export interface ResolvedFetchOptions<
   R extends ResponseType = ResponseType,
   T = any,
@@ -94,6 +99,7 @@ export type GlobalOptions = Pick<
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest;
   options: ResolvedFetchOptions<R>;
+  retry: FetchRetry;
   response?: FetchResponse<T>;
   error?: Error;
 }

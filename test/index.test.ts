@@ -10,6 +10,33 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { normalizeQuery } from "../src/utils.ts";
+
+describe("normalizeQuery", () => {
+  it("should convert URLSearchParams to an object", () => {
+    const searchParams = new URLSearchParams({ a: "1", b: "2" });
+    expect(normalizeQuery(searchParams)).toEqual({ a: "1", b: "2" });
+  });
+
+  it("should return the same object if it's not a URLSearchParams", () => {
+    const query = { a: "1", b: "2" };
+    expect(normalizeQuery(query)).toBe(query);
+  });
+
+  it("should return undefined for undefined input", () => {
+    expect(normalizeQuery(undefined)).toBeUndefined();
+  });
+
+  it("should return an empty object for an empty URLSearchParams", () => {
+    const searchParams = new URLSearchParams();
+    expect(normalizeQuery(searchParams)).toEqual({});
+  });
+
+  it("should return an empty object for an empty object", () => {
+    const query = {};
+    expect(normalizeQuery(query)).toBe(query);
+  });
+});
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -342,6 +369,51 @@ describe("ofetch", () => {
       expect(error.cause.name).to.equal("TimeoutError");
       expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
+  });
+
+  it("URLSearchParams", async () => {
+    const urlSearchParams = new URLSearchParams({
+      foo: "foo",
+    });
+    const _customFetch = $fetch.create({
+      query: {
+        a: 0,
+        ...Object.fromEntries(urlSearchParams.entries()),
+      },
+      params: {
+        b: 1,
+      },
+      onRequest: ({ options }) => {
+        const searchParams = new URLSearchParams(
+          Object.entries(options.query || {}).map(([key, value]) => [
+            key,
+            String(value),
+          ])
+        );
+        searchParams.set("token", "token");
+        options.query = Object.fromEntries(searchParams.entries());
+      },
+    });
+    const customURLSearchParams = new URLSearchParams({
+      bar: "bar",
+    });
+    const { path } = await _customFetch(getURL("echo"), {
+      query: {
+        c: 2,
+        ...Object.fromEntries(customURLSearchParams.entries()),
+      },
+      params: {
+        d: 3,
+      },
+    });
+
+    const parseParams = (str: string) =>
+      Object.fromEntries(
+        new URLSearchParams(str.split("?")[1] || "").entries()
+      );
+    expect(parseParams(path)).toMatchObject(
+      parseParams("?a=0&b=1&foo=foo&c=2&d=3&bar=bar&token=token")
+    );
   });
 
   it("deep merges defaultOptions", async () => {

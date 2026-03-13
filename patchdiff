@@ -1,0 +1,191 @@
+--- solution copy.patch	2025-11-14 00:51:28
++++ solution.patch	2025-11-15 07:24:21
+@@ -11,10 +11,22 @@
+  } from "./types.ts";
+  
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+-@@ -33,10 +35,122 @@ const retryStatusCodes = new Set([
++@@ -33,10 +35,134 @@ const retryStatusCodes = new Set([
+  // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
+  const nullBodyResponses = new Set([101, 204, 205, 304]);
+  
+++// General deferral function: defers execution to allow promise chains to be set up
+++// Uses microtask (queueMicrotask or Promise.resolve) for better performance
+++// This ensures rejections are deferred (not synchronous) to prevent unhandled promise rejections
+++function deferExecution(fn: () => void): void {
+++  if (typeof queueMicrotask === "function") {
+++    queueMicrotask(fn);
+++    return;
+++  }
+++  // Fallback to Promise.resolve().then() for microtask deferral
+++  Promise.resolve().then(fn);
+++}
+++
+ +// Request deduplication: Generate a unique key for a request based on URL, method, body, headers, and query
+ +function generateRequestKey(
+ +  request: FetchRequest,
+@@ -324,7 +336,7 @@
+        await callHooks(
+          context as FetchContext & { response: FetchResponse<any> },
+          context.options.onResponse
+-@@ -244,16 +477,546 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
++@@ -244,16 +477,584 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+        context.response.status >= 400 &&
+        context.response.status < 600
+      ) {
+@@ -561,35 +573,22 @@
+ +                existingEntry.callers.delete(caller);
+ +
+ +                // Reject this caller's promise
+-+                // Use process.nextTick (or setTimeout) to defer rejection, allowing the caller's
+++                // Use deferExecution to defer rejection, allowing the caller's
+ +                // promise chain to be set up before the rejection happens.
+ +                // This prevents unhandled rejections by ensuring the rejection happens after
+ +                // the promise chain is established.
+ +                const abortError = new Error("Aborted");
+ +                abortError.name = "AbortError";
+-+                // Use setImmediate or setTimeout to defer to the next event loop tick
+-+                // This gives the caller's promise chain time to set up error handling
+-+                if (typeof setImmediate !== "undefined") {
+-+                  setImmediate(() => {
+-+                    if (!settled) {
+-+                      try {
+-+                        safeReject(abortError);
+-+                      } catch {
+-+                        // Promise already settled - ignore
+-+                      }
+++                // Defer execution to allow promise chain to be set up
+++                deferExecution(() => {
+++                  if (!settled) {
+++                    try {
+++                      safeReject(abortError);
+++                    } catch {
+++                      // Promise already settled - ignore
+ +                    }
+-+                  });
+-+                } else {
+-+                  setTimeout(() => {
+-+                    if (!settled) {
+-+                      try {
+-+                        safeReject(abortError);
+-+                      } catch {
+-+                        // Promise already settled - ignore
+-+                      }
+-+                    }
+-+                  }, 0);
+-+                }
+++                  }
+++                });
+ +
+ +                // Remove this signal from the list
+ +                const index = existingEntry.signals.indexOf(callerSignal);
+@@ -674,31 +673,20 @@
+ +          callers.delete(caller);
+ +          
+ +          // Reject this caller's promise
+-+          // Use setImmediate or setTimeout to defer rejection, allowing the caller's
+++          // Use deferExecution to defer rejection, allowing the caller's
+ +          // promise chain to be set up before the rejection happens.
+ +          // This prevents unhandled rejections by ensuring the rejection happens after
+ +          // the promise chain is established.
+ +          const abortError = new Error("Aborted");
+ +          abortError.name = "AbortError";
+-+          // Use setImmediate or setTimeout to defer to the next event loop tick
+-+          // This gives the caller's promise chain time to set up error handling
+-+          if (typeof setImmediate !== "undefined") {
+-+            setImmediate(() => {
+-+              try {
+-+                caller.reject(abortError);
+-+              } catch {
+-+                // Promise already settled - ignore
+-+              }
+-+            });
+-+          } else {
+-+            setTimeout(() => {
+-+              try {
+-+                caller.reject(abortError);
+-+              } catch {
+-+                // Promise already settled - ignore
+-+              }
+-+            }, 0);
+-+          }
+++          // Defer execution to allow promise chain to be set up
+++          deferExecution(() => {
+++            try {
+++              caller.reject(abortError);
+++            } catch {
+++              // Promise already settled - ignore
+++            }
+++          });
+ +        }
+ +
+ +        // Check if all signals are aborted
+@@ -741,6 +729,68 @@
+ +      callers,
+ +    };
+ +
+++    // CRITICAL: Check map again before adding to handle race condition
+++    // Another concurrent request might have added an entry between our initial check and now
+++    const raceCheckEntry = dedupeMap.get(requestKey);
+++    if (raceCheckEntry) {
+++      // Another request beat us - join it instead of creating a new entry
+++      const existingCaller = {
+++        signal: callerSignal,
+++        resolve: callerResolve!,
+++        reject: callerReject!,
+++      };
+++      raceCheckEntry.callers.add(existingCaller);
+++      
+++      // Add our signal to the existing entry
+++      if (callerSignal) {
+++        raceCheckEntry.signals.push(callerSignal);
+++        // Set up abort handler for this caller on the existing entry
+++        const abortHandler = () => {
+++          existingCaller.aborted = true;
+++          raceCheckEntry.callers.delete(existingCaller);
+++          const abortError = new Error("Aborted");
+++          abortError.name = "AbortError";
+++          // Defer execution to allow promise chain to be set up
+++          deferExecution(() => {
+++            try {
+++              existingCaller.reject(abortError);
+++            } catch {
+++              // Promise already settled
+++            }
+++          });
+++          // Check if all callers have aborted
+++          if (raceCheckEntry.callers.size === 0) {
+++            raceCheckEntry.controller.abort();
+++          }
+++        };
+++        callerSignal.addEventListener("abort", abortHandler, { once: true });
+++      }
+++      
+++      // Check if the existing entry is already settled
+++      if (raceCheckEntry.settled) {
+++        if (raceCheckEntry.settled.type === "resolve") {
+++          // Process this caller immediately with settled result
+++          try {
+++            existingCaller.resolve(raceCheckEntry.settled.value! as FetchResponse<MappedResponseType<R, T>>);
+++          } catch {
+++            // Promise already settled
+++          }
+++        } else {
+++          // Process this caller immediately with settled error
+++          try {
+++            existingCaller.reject(raceCheckEntry.settled.error!);
+++          } catch {
+++            // Promise already settled
+++          }
+++        }
+++      }
+++      // If not settled, the existing entry's processCallers will resolve/reject our caller
+++      // when its promise resolves/rejects
+++      
+++      // Return our callerPromise - it will be resolved by the existing entry's processCallers
+++      return callerPromise;
+++    }
+++
+ +    dedupeMap.set(requestKey, entry);
+ +
+ +    // Helper function to process all callers

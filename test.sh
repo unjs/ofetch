@@ -1,0 +1,56 @@
+#!/bin/bash
+
+set -e
+
+MODE="${1:-base}"
+
+# Detect package manager: prefer pnpm, fallback to npm/yarn
+# Check for pnpm first (preferred, as specified in package.json packageManager field)
+if command -v pnpm &> /dev/null; then
+  PKG_MGR="pnpm"
+  EXEC_CMD="pnpm exec"
+# Fallback to npm (widely available)
+elif command -v npm &> /dev/null; then
+  PKG_MGR="npm"
+  EXEC_CMD="npx"
+# Fallback to yarn
+elif command -v yarn &> /dev/null; then
+  PKG_MGR="yarn"
+  EXEC_CMD="yarn exec"
+else
+  echo "Error: No package manager found (pnpm, npm, or yarn required)" >&2
+  echo "Please install one of: pnpm (preferred), npm, or yarn" >&2
+  exit 1
+fi
+
+if [ "$MODE" = "base" ]; then
+  # Discover and run base tests (exclude the new dedupe tests)
+  if [ -d "test" ]; then
+    # Find all *.test.ts under test/ except dedupe.test.ts
+    # Using find for portability
+    mapfile -t BASE_TESTS < <(find test -type f -name "*.test.ts" ! -name "dedupe.test.ts" | sort)
+  else
+    BASE_TESTS=()
+  fi
+
+  if [ ${#BASE_TESTS[@]} -gt 0 ]; then
+    echo "Running base tests: ${BASE_TESTS[*]}" >&2
+    $EXEC_CMD vitest run "${BASE_TESTS[@]}"
+  else
+    echo "No explicit base tests found; skipping base mode (not running dedupe tests)" >&2
+    exit 0
+  fi
+elif [ "$MODE" = "new" ]; then
+  # Run only new deduplication tests
+  if [ ! -f "test/dedupe.test.ts" ]; then
+    echo "Error: test/dedupe.test.ts not found" >&2
+    exit 1
+  fi
+  $EXEC_CMD vitest run test/dedupe.test.ts
+elif [ "$MODE" = "all" ]; then
+  # Run the full test suite
+  $EXEC_CMD vitest run
+else
+  echo "Usage: $0 [base|new|all]" >&2
+  exit 1
+fi

@@ -20,8 +20,7 @@ export interface $Fetch {
 // --------------------------
 
 export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
-  extends Omit<RequestInit, "body">,
-    FetchHooks<T, R> {
+  extends Omit<RequestInit, "body">, FetchHooks<T, R> {
   baseURL?: string;
 
   body?: RequestInit["body"] | Record<string, any>;

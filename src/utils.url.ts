@@ -38,11 +38,15 @@ export function joinURL(base?: string, path?: string): string {
  * Adds the base path to the input path, if it is not already present.
  */
 export function withBase(input = "", base = ""): string {
-  if (!base || base === "/") {
+  if (!base) {
+    return input;
+  }
+  const cleanedBase = String(base).trim();
+  if (cleanedBase === "/") {
     return input;
   }
 
-  const _base = withoutTrailingSlash(base);
+  const _base = withoutTrailingSlash(cleanedBase);
   if (input.startsWith(_base)) {
     return input;
   }
@@ -51,11 +55,16 @@ export function withBase(input = "", base = ""): string {
 }
 
 function withoutTrailingSlash(path?: string): string {
-  if (!path || path === "/") {
+  if (!path) {
     return "/";
   }
 
-  return path[path.length - 1] === "/" ? path.slice(0, -1) : path;
+  const trimmed = path.trimEnd();
+  if (trimmed === "/") {
+    return "/";
+  }
+
+  return trimmed[trimmed.length - 1] === "/" ? trimmed.slice(0, -1) : trimmed;
 }
 
 /**

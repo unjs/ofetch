@@ -2,9 +2,170 @@
 // $fetch API
 // --------------------------
 
-export interface $Fetch {
-  <T = any, R extends ResponseType = "json">(
-    request: FetchRequest,
+type HttpMethod =
+  | "get"
+  | "post"
+  | "put"
+  | "patch"
+  | "delete"
+  | "head"
+  | "options"
+  | "trace";
+
+type _UntypedSchemaMarker = void;
+
+type PathsForSchema<TSchema> = Extract<keyof TSchema, string>;
+
+type PathsWithMethod<TSchema, TMethod extends HttpMethod> = {
+  [TPath in PathsForSchema<TSchema>]: TMethod extends MethodsForPath<
+    TSchema,
+    TPath
+  >
+    ? TPath
+    : never;
+}[PathsForSchema<TSchema>];
+
+type GetMethodForPath<TSchema, TPath extends PathsForSchema<TSchema>> = Extract<
+  "get",
+  MethodsForPath<TSchema, TPath>
+>;
+
+type MethodInputForPath<TSchema, TPath extends PathsForSchema<TSchema>> =
+  | MethodsForPath<TSchema, TPath>
+  | Uppercase<MethodsForPath<TSchema, TPath>>;
+
+type MethodFromInput<
+  TSchema,
+  TPath extends PathsForSchema<TSchema>,
+  TInput extends MethodInputForPath<TSchema, TPath>,
+> = Extract<Lowercase<TInput>, MethodsForPath<TSchema, TPath>>;
+
+type MethodsForPath<TSchema, TPath extends PathsForSchema<TSchema>> = Extract<
+  Extract<keyof TSchema[TPath], string>,
+  HttpMethod
+>;
+
+type OperationFor<
+  TSchema,
+  TPath extends PathsForSchema<TSchema>,
+  TMethod extends MethodsForPath<TSchema, TPath>,
+> = TSchema[TPath][TMethod];
+
+type UntypedRequest<TSchema, TRequest extends FetchRequest> = [
+  TSchema,
+] extends [_UntypedSchemaMarker]
+  ? TRequest
+  : TRequest extends string
+    ? never
+    : TRequest;
+
+type OperationRequestBody<T> = T extends { requestBody: infer TRequestBody }
+  ? TRequestBody extends { content: infer TContent }
+    ? TContent[keyof TContent]
+    : never
+  : never;
+
+type OperationHasRequiredBody<T> = T extends {
+  requestBody: { required: true };
+}
+  ? true
+  : false;
+
+type OperationResponses<T> = T extends { responses: infer TResponses }
+  ? TResponses
+  : never;
+
+type SuccessStatusCode = `${2}${number}${number}` | "2XX" | "default";
+
+type SuccessResponses<TResponses> =
+  TResponses extends Record<string, any>
+    ? {
+        [TStatus in keyof TResponses]: `${TStatus & (string | number)}` extends SuccessStatusCode
+          ? TResponses[TStatus]
+          : never;
+      }[keyof TResponses]
+    : never;
+
+type ResponseBodyFromResponse<T> = T extends { content: infer TContent }
+  ? TContent[keyof TContent]
+  : never;
+
+type OperationData<T> = ResponseBodyFromResponse<
+  SuccessResponses<OperationResponses<T>>
+>;
+
+type OperationQuery<T> = T extends { parameters: infer TParameters }
+  ? TParameters extends { query: infer TQuery }
+    ? TQuery
+    : never
+  : never;
+
+type QueryOption<T> = [OperationQuery<T>] extends [never]
+  ? {}
+  : {
+      query?: OperationQuery<T>;
+      /**
+       * @deprecated use query instead.
+       */
+      params?: OperationQuery<T>;
+    };
+
+type BodyOption<T> = [OperationRequestBody<T>] extends [never]
+  ? {}
+  : OperationHasRequiredBody<T> extends true
+    ? { body: OperationRequestBody<T> }
+    : { body?: OperationRequestBody<T> };
+
+type TypedFetchOptions<T, R extends ResponseType = "json"> = Omit<
+  FetchOptions<R, OperationData<T>>,
+  "query" | "params" | "body"
+> &
+  QueryOption<T> &
+  BodyOption<T>;
+
+export interface $Fetch<TSchema = _UntypedSchemaMarker> {
+  <
+    TPath extends PathsForSchema<TSchema>,
+    TMethodInput extends MethodInputForPath<TSchema, TPath>,
+    TMethod extends MethodsForPath<TSchema, TPath> = MethodFromInput<
+      TSchema,
+      TPath,
+      TMethodInput
+    >,
+    R extends ResponseType = "json",
+  >(
+    request: TPath,
+    options: TypedFetchOptions<OperationFor<TSchema, TPath, TMethod>, R> & {
+      method: TMethodInput;
+    }
+  ): Promise<
+    MappedResponseType<R, OperationData<OperationFor<TSchema, TPath, TMethod>>>
+  >;
+  <
+    TPath extends PathsWithMethod<TSchema, "get">,
+    R extends ResponseType = "json",
+  >(
+    request: TPath,
+    options?: TypedFetchOptions<
+      OperationFor<TSchema, TPath, GetMethodForPath<TSchema, TPath>>,
+      R
+    > & {
+      method?: "get" | "GET";
+    }
+  ): Promise<
+    MappedResponseType<
+      R,
+      OperationData<
+        OperationFor<TSchema, TPath, GetMethodForPath<TSchema, TPath>>
+      >
+    >
+  >;
+  <
+    T = any,
+    R extends ResponseType = "json",
+    TRequest extends FetchRequest = FetchRequest,
+  >(
+    request: UntypedRequest<TSchema, TRequest>,
     options?: FetchOptions<R>
   ): Promise<MappedResponseType<R, T>>;
   raw<T = any, R extends ResponseType = "json">(
@@ -12,7 +173,10 @@ export interface $Fetch {
     options?: FetchOptions<R>
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
-  create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
+  create<TNewSchema = TSchema>(
+    defaults: FetchOptions,
+    globalOptions?: CreateFetchOptions
+  ): $Fetch<TNewSchema>;
 }
 
 // --------------------------

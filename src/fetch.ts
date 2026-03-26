@@ -33,7 +33,9 @@ const retryStatusCodes = new Set([
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
-export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
+export function createFetch<TSchema = void>(
+  globalOptions: CreateFetchOptions = {}
+): $Fetch<TSchema> {
   const { fetch = globalThis.fetch } = globalOptions;
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
@@ -256,10 +258,13 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     return context.response;
   };
 
-  const $fetch = async function $fetch(request, options) {
+  const $fetch = async function $fetch(
+    request: FetchRequest,
+    options?: FetchOptions
+  ) {
     const r = await $fetchRaw(request, options);
     return r._data;
-  } as $Fetch;
+  } as $Fetch<TSchema>;
 
   $fetch.raw = $fetchRaw;
 

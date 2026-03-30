@@ -71,8 +71,8 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /**
    * Custom condition to determine whether to retry a request.
-   * Called after status code check. Retries if either `retryStatusCodes` match
-   * OR `retryCondition` returns `true`.
+   * When provided, replaces the default status code check entirely.
+   * When absent, falls back to matching against `retryStatusCodes`.
    */
   retryCondition?: (context: FetchContext<T, R>) => boolean | Promise<boolean>;
 }

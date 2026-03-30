@@ -59,21 +59,20 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       const currentAttempt = context.retry?.attempt ?? 0;
 
       if (retryLimit > 0 && currentAttempt < retryLimit) {
-        const responseCode = context.response?.status;
+        // Fallback to 500 for network errors (no response)
+        const responseCode = context.response?.status ?? 500;
 
-        // Check retry conditions: status code match OR custom retryCondition
-        let statusCodeMatch = false;
-        if (responseCode) {
-          statusCodeMatch = Array.isArray(context.options.retryStatusCodes)
+        // If retryCondition is provided, it decides. Otherwise fall back to status code check.
+        let shouldRetry: boolean;
+        if (context.options.retryCondition) {
+          shouldRetry = await context.options.retryCondition(context);
+        } else {
+          shouldRetry = Array.isArray(context.options.retryStatusCodes)
             ? context.options.retryStatusCodes.includes(responseCode)
             : retryStatusCodes.has(responseCode);
         }
 
-        const conditionMatch = context.options.retryCondition
-          ? await context.options.retryCondition(context)
-          : false;
-
-        if (statusCodeMatch || conditionMatch) {
+        if (shouldRetry) {
           const retryState: FetchRetryState = {
             attempt: currentAttempt + 1,
             limit: retryLimit,
@@ -125,17 +124,29 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       _retryState?: FetchRetryState;
     };
 
+    const resolvedOptions = resolveFetchOptions<R, T>(
+      _request,
+      userOptions as FetchOptions<R>,
+      globalOptions.defaults as unknown as FetchOptions<R, T>,
+      Headers
+    );
+
+    // Compute retry limit for initial context
+    let retryLimit = 0;
+    if (resolvedOptions.retry !== false) {
+      if (typeof resolvedOptions.retry === "number") {
+        retryLimit = resolvedOptions.retry;
+      } else {
+        retryLimit = isPayloadMethod(resolvedOptions.method) ? 0 : 1;
+      }
+    }
+
     const context: FetchContext = {
       request: _request,
-      options: resolveFetchOptions<R, T>(
-        _request,
-        userOptions as FetchOptions<R>,
-        globalOptions.defaults as unknown as FetchOptions<R, T>,
-        Headers
-      ),
+      options: resolvedOptions,
       response: undefined,
       error: undefined,
-      retry: _retryState ?? { attempt: 0, limit: 0 },
+      retry: _retryState ?? { attempt: 0, limit: retryLimit },
     };
 
     // Uppercase method name

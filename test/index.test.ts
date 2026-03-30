@@ -539,16 +539,23 @@ describe("ofetch", () => {
 
   describe("retry", () => {
     it("exposes retry state in context", async () => {
-      const attempts: number[] = [];
+      const states: Array<{ attempt: number; limit: number }> = [];
       await $fetch(getURL("408"), {
         retry: 2,
         retryDelay: 1,
         onResponseError(ctx) {
-          attempts.push(ctx.retry?.attempt ?? -1);
+          states.push({
+            attempt: ctx.retry?.attempt ?? -1,
+            limit: ctx.retry?.limit ?? -1,
+          });
         },
       }).catch(() => {});
-      // Initial request (attempt 0), retry 1 (attempt 1), retry 2 (attempt 2)
-      expect(attempts).toEqual([0, 1, 2]);
+      // limit is always correct, attempt increments
+      expect(states).toEqual([
+        { attempt: 0, limit: 2 },
+        { attempt: 1, limit: 2 },
+        { attempt: 2, limit: 2 },
+      ]);
     });
 
     it("exposes retry state in retryDelay callback", async () => {
@@ -576,8 +583,8 @@ describe("ofetch", () => {
       expect(result).toEqual({ count: 2 });
     });
 
-    it("retryCondition works alongside retryStatusCodes", async () => {
-      // Should retry on 408 (via retryStatusCodes) even without retryCondition
+    it("retryCondition replaces default status code check", async () => {
+      // retryCondition: () => false should prevent retry even for 408
       await $fetch(getURL("408"), {
         retry: 1,
         retryDelay: 1,
@@ -585,7 +592,27 @@ describe("ofetch", () => {
       }).catch((error: any) => {
         expect(error.status).toBe(408);
       });
-      // fetch called for initial + 1 retry = 2 times
+      // No retry — retryCondition returned false
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("falls back to retryStatusCodes when no retryCondition", async () => {
+      await $fetch(getURL("408"), {
+        retry: 1,
+        retryDelay: 1,
+      }).catch((error: any) => {
+        expect(error.status).toBe(408);
+      });
+      // 408 is in default retryStatusCodes, so 1 retry happens
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("retries network errors by default (no response)", async () => {
+      await $fetch("http://localhost:1", {
+        retry: 1,
+        retryDelay: 1,
+      }).catch(() => {});
+      // Network error falls back to 500 which is in retryStatusCodes
       expect(fetch).toHaveBeenCalledTimes(2);
     });
 

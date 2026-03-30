@@ -263,6 +263,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
   $fetch.raw = $fetchRaw;
 
+  $fetch.safe = async (request, options) => {
+    try {
+      const data = await $fetch(request, options);
+      return { data, error: undefined };
+    } catch (error) {
+      return { data: undefined, error: error as any };
+    }
+  };
+
   $fetch.native = (...args) => fetch(...args);
 
   $fetch.create = (defaultOptions = {}, customGlobalOptions = {}) =>

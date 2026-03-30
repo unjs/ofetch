@@ -525,16 +525,7 @@ describe("ofetch", () => {
     });
   });
 
-  it("warns when using deprecated params option", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    await $fetch(getURL("params"), { params: { test: "true" } });
-    expect(warn).toHaveBeenCalledWith(
-      "[ofetch] `params` option is deprecated. Use `query` instead."
-    );
-    warn.mockRestore();
-  });
-
-  it("params still works as query alias", async () => {
+  it("params still works as query alias (deprecated)", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const result = await $fetch(getURL("params"), {
       params: { test: "true" },

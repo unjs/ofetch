@@ -7,8 +7,14 @@ import type {
   ResponseType,
 } from "./types.ts";
 
+let _paramsDeprecationWarned = false;
 function warnDeprecatedParams() {
-  console.warn("[ofetch] `params` option is deprecated. Use `query` instead.");
+  if (!_paramsDeprecationWarned) {
+    _paramsDeprecationWarned = true;
+    console.warn(
+      "[ofetch] `params` option is deprecated. Use `query` instead."
+    );
+  }
 }
 
 const payloadMethods = new Set(
@@ -103,10 +109,7 @@ export function resolveFetchOptions<
   );
 
   // Warn about deprecated `params` usage
-  if (
-    process.env.NODE_ENV !== "production" &&
-    (input?.params || defaults?.params)
-  ) {
+  if (input?.params || defaults?.params) {
     warnDeprecatedParams();
   }
 

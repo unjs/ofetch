@@ -38,6 +38,10 @@ export function joinURL(base?: string, path?: string): string {
  * Adds the base path to the input path, if it is not already present.
  */
 export function withBase(input = "", base = ""): string {
+  // Trim control characters and whitespace from base URL
+  // (can happen from .env parsing mistakes)
+  base = base.trim();
+
   if (!base || base === "/") {
     return input;
   }

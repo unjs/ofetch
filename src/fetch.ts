@@ -115,9 +115,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (context.options.baseURL) {
         context.request = withBase(context.request, context.options.baseURL);
       }
+      // Merge params into query (params may be set in onRequest hook)
+      if (context.options.params) {
+        context.options.query = {
+          ...context.options.query,
+          ...context.options.params,
+        };
+      }
       if (context.options.query) {
         context.request = withQuery(context.request, context.options.query);
-        delete context.options.query;
       }
       if ("query" in context.options) {
         delete context.options.query;

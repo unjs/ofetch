@@ -26,10 +26,19 @@ type UpperMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD";
 type LowerMethod = Lowercase<UpperMethod>;
 type AnyMethod = UpperMethod | LowerMethod;
 
+// Find the actual key in Obj whose lowercase matches Lowercase<K>
+type CaseInsensitiveKey<Obj, K extends string> = {
+  [Key in string & keyof Obj]: Lowercase<Key> extends Lowercase<K>
+    ? Key
+    : never;
+}[string & keyof Obj];
+
 type ExtractMethod<S, P extends keyof S, M extends string> =
   S[P] extends Record<string, any>
-    ? Lowercase<M> extends Lowercase<string & keyof S[P]>
-      ? S[P][Lowercase<M> & keyof S[P]]
+    ? CaseInsensitiveKey<S[P], M> extends infer ActualKey
+      ? ActualKey extends keyof S[P]
+        ? S[P][ActualKey]
+        : never
       : never
     : never;
 
@@ -55,7 +64,10 @@ export interface TypedFetch<S> {
   ): Promise<FetchResponse<ResponseBody<ExtractMethod<S, P, M>>>>;
 
   native: Fetch;
-  create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
+  create(
+    defaults: FetchOptions,
+    globalOptions?: CreateFetchOptions
+  ): TypedFetch<S>;
 }
 
 // --------------------------

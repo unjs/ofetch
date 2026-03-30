@@ -91,4 +91,44 @@ describe("typed create", () => {
     const result = api("/users", { method: "post" });
     expectTypeOf(result).toEqualTypeOf<Promise<{ id: number; name: string }>>();
   });
+
+  it("rejects paths not in schema", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+
+    // @ts-expect-error — path not in schema
+    api("/nonexistent");
+  });
+
+  it("TypedFetch.create preserves schema type", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+    const api2 = api.create({ headers: { Authorization: "Bearer ..." } });
+
+    // api2 should still be TypedFetch<ApiPaths>
+    const result = api2("/users");
+    expectTypeOf(result).toEqualTypeOf<
+      Promise<{ id: number; name: string }[]>
+    >();
+  });
+
+  it("works with upper-case schema keys", () => {
+    interface UpperCasePaths {
+      "/health": {
+        GET: {
+          responses: {
+            200: { content: { "application/json": { status: string } } };
+          };
+        };
+      };
+    }
+    const $fetch = createFetch();
+    const api = $fetch.create<UpperCasePaths>({});
+
+    const result = api("/health");
+    expectTypeOf(result).toEqualTypeOf<Promise<{ status: string }>>();
+
+    const result2 = api("/health", { method: "GET" });
+    expectTypeOf(result2).toEqualTypeOf<Promise<{ status: string }>>();
+  });
 });

@@ -2,6 +2,11 @@
 // $fetch API
 // --------------------------
 
+type HttpMethodFn = <T = any, R extends ResponseType = "json">(
+  request: FetchRequest,
+  options?: Omit<FetchOptions<R>, "method">
+) => Promise<MappedResponseType<R, T>>;
+
 export interface $Fetch {
   <T = any, R extends ResponseType = "json">(
     request: FetchRequest,
@@ -13,6 +18,13 @@ export interface $Fetch {
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
   create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
+  get: HttpMethodFn;
+  post: HttpMethodFn;
+  put: HttpMethodFn;
+  delete: HttpMethodFn;
+  patch: HttpMethodFn;
+  head: HttpMethodFn;
+  options: HttpMethodFn;
 }
 
 // --------------------------

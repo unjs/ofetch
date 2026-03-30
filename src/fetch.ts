@@ -276,5 +276,18 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       },
     });
 
+  for (const method of [
+    "get",
+    "post",
+    "put",
+    "delete",
+    "patch",
+    "head",
+    "options",
+  ] as const) {
+    $fetch[method] = (request, options) =>
+      $fetch(request, { ...options, method } as any);
+  }
+
   return $fetch;
 }

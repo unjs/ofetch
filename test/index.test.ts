@@ -505,6 +505,51 @@ describe("ofetch", () => {
     expect(onResponseError).toHaveBeenCalledTimes(2);
   });
 
+  describe("method aliases", () => {
+    it("$fetch.get()", async () => {
+      const result = await $fetch.get(getURL("echo"));
+      expect(result.path).toBe("/echo");
+    });
+
+    it("$fetch.post()", async () => {
+      const { body, headers } = await $fetch.post(getURL("post"), {
+        body: { foo: "bar" },
+      });
+      expect(body).toEqual({ foo: "bar" });
+      expect(headers["content-type"]).toBe("application/json");
+    });
+
+    it("$fetch.put()", async () => {
+      const { body } = await $fetch.put(getURL("post"), {
+        body: { updated: true },
+      });
+      expect(body).toEqual({ updated: true });
+    });
+
+    it("$fetch.delete()", async () => {
+      const result = await $fetch.delete(getURL("echo"));
+      expect(result.path).toBe("/echo");
+    });
+
+    it("$fetch.patch()", async () => {
+      const { body } = await $fetch.patch(getURL("post"), {
+        body: { patched: true },
+      });
+      expect(body).toEqual({ patched: true });
+    });
+
+    it("$fetch.head()", async () => {
+      const result = await $fetch.head(getURL("ok"));
+      expect(result).toBeUndefined();
+    });
+
+    it("method aliases work with create()", async () => {
+      const api = $fetch.create({ baseURL: getURL("") });
+      const result = await api.get("echo");
+      expect(result.path).toBe("/echo");
+    });
+  });
+
   it("default fetch options", async () => {
     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {});
     expect(fetch).toHaveBeenCalledOnce();

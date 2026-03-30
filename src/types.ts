@@ -12,6 +12,49 @@ export interface $Fetch {
     options?: FetchOptions<R>
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
+  create<S = never>(
+    defaults: FetchOptions,
+    globalOptions?: CreateFetchOptions
+  ): [S] extends [never] ? $Fetch : TypedFetch<S>;
+}
+
+// --------------------------
+// Typed Fetch (OpenAPI support)
+// --------------------------
+
+type UpperMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD";
+type LowerMethod = Lowercase<UpperMethod>;
+type AnyMethod = UpperMethod | LowerMethod;
+
+type ExtractMethod<S, P extends keyof S, M extends string> =
+  S[P] extends Record<string, any>
+    ? Lowercase<M> extends Lowercase<string & keyof S[P]>
+      ? S[P][Lowercase<M> & keyof S[P]]
+      : never
+    : never;
+
+type ResponseBody<Op> = Op extends {
+  responses: { 200: { content: { "application/json": infer R } } };
+}
+  ? R
+  : Op extends { responses: { 200: { schema: infer R } } }
+    ? R
+    : Op extends { response: infer R }
+      ? R
+      : unknown;
+
+export interface TypedFetch<S> {
+  <P extends string & keyof S, M extends string & AnyMethod = "GET">(
+    request: P,
+    options?: FetchOptions & { method?: M }
+  ): Promise<ResponseBody<ExtractMethod<S, P, M>>>;
+
+  raw<P extends string & keyof S, M extends string & AnyMethod = "GET">(
+    request: P,
+    options?: FetchOptions & { method?: M }
+  ): Promise<FetchResponse<ResponseBody<ExtractMethod<S, P, M>>>>;
+
+  native: Fetch;
   create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
 }
 

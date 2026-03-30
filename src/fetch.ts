@@ -207,25 +207,42 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.options.method !== "HEAD";
     if (hasBody) {
       // Download progress tracking
-      if (context.options.onDownloadProgress && context.response.body) {
+      // Skip for stream responseType — progress tracking buffers the entire body
+      if (
+        context.options.onDownloadProgress &&
+        context.response.body &&
+        context.options.responseType !== "stream"
+      ) {
         const total =
           Number(context.response.headers.get("content-length")) || undefined;
         let transferred = 0;
         const reader = context.response.body.getReader();
         const chunks: Uint8Array[] = [];
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              break;
+            }
+            chunks.push(value);
+            transferred += value.byteLength;
+            context.options.onDownloadProgress({
+              transferred,
+              total,
+              percent: total ? Math.min(transferred / total, 1) : undefined,
+            });
           }
-          chunks.push(value);
-          transferred += value.byteLength;
-          context.options.onDownloadProgress({
-            transferred,
-            total,
-            percent: total ? transferred / total : undefined,
-          });
+        } catch (error) {
+          reader.cancel().catch(() => {});
+          context.error = error as Error;
+          if (context.options.onRequestError) {
+            await callHooks(
+              context as FetchContext & { error: Error },
+              context.options.onRequestError
+            );
+          }
+          return await onError(context);
         }
 
         // Reconstruct response from chunks

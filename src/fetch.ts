@@ -35,6 +35,7 @@ const nullBodyResponses = new Set([101, 204, 205, 304]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
+  const _pendingRequests = new Map<string, Promise<FetchResponse<any>>>();
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
@@ -257,6 +258,24 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   };
 
   const $fetch = async function $fetch(request, options) {
+    // Request deduplication for concurrent identical requests
+    if (options?.dedupe && !isPayloadMethod(options?.method)) {
+      const method = (options?.method || "GET").toUpperCase();
+      const key = `${method}:${typeof request === "string" ? request : (request as Request).url}`;
+      const pending = _pendingRequests.get(key);
+      if (pending) {
+        const r = await pending;
+        return r._data;
+      }
+      const promise = $fetchRaw(request, options);
+      _pendingRequests.set(key, promise);
+      try {
+        const r = await promise;
+        return r._data;
+      } finally {
+        _pendingRequests.delete(key);
+      }
+    }
     const r = await $fetchRaw(request, options);
     return r._data;
   } as $Fetch;

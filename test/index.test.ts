@@ -524,4 +524,54 @@ describe("ofetch", () => {
       timeout: 10_000,
     });
   });
+
+  describe("request deduplication", () => {
+    it("coalesces identical concurrent GET requests", async () => {
+      const url = getURL("ok");
+      const [r1, r2, r3] = await Promise.all([
+        $fetch(url, { dedupe: true }),
+        $fetch(url, { dedupe: true }),
+        $fetch(url, { dedupe: true }),
+      ]);
+      expect(r1).toBe("ok");
+      expect(r2).toBe("ok");
+      expect(r3).toBe("ok");
+      // Only one actual fetch call
+      expect(fetch).toHaveBeenCalledOnce();
+    });
+
+    it("does not dedupe without opt-in", async () => {
+      const url = getURL("ok");
+      await Promise.all([$fetch(url), $fetch(url), $fetch(url)]);
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it("does not dedupe POST requests", async () => {
+      const url = getURL("post");
+      await Promise.all([
+        $fetch(url, { method: "POST", body: { a: 1 }, dedupe: true }),
+        $fetch(url, { method: "POST", body: { a: 1 }, dedupe: true }),
+      ]);
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("dedupes different URLs separately", async () => {
+      const [r1, r2] = await Promise.all([
+        $fetch(getURL("ok"), { dedupe: true }),
+        $fetch(getURL("params?x=1"), { dedupe: true }),
+      ]);
+      expect(r1).toBe("ok");
+      expect(r2).toEqual({ x: "1" });
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("allows new request after previous completes", async () => {
+      const url = getURL("ok");
+      await $fetch(url, { dedupe: true });
+      expect(fetch).toHaveBeenCalledOnce();
+      fetch.mockClear();
+      await $fetch(url, { dedupe: true });
+      expect(fetch).toHaveBeenCalledOnce();
+    });
+  });
 });

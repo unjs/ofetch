@@ -68,6 +68,18 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
+
+  /** Called with download progress information. Requires response body to be a ReadableStream. */
+  onDownloadProgress?: (progress: FetchProgress) => void;
+}
+
+export interface FetchProgress {
+  /** Bytes transferred so far */
+  transferred: number;
+  /** Total bytes (from Content-Length header), undefined if unknown */
+  total?: number;
+  /** Progress ratio 0-1 (undefined if total is unknown) */
+  percent?: number;
 }
 
 export interface ResolvedFetchOptions<

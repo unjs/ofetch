@@ -573,5 +573,41 @@ describe("ofetch", () => {
       await $fetch(url, { dedupe: true });
       expect(fetch).toHaveBeenCalledOnce();
     });
+
+    it("different query params are NOT coalesced", async () => {
+      const [r1, r2] = await Promise.all([
+        $fetch(getURL("params"), { query: { a: "1" }, dedupe: true }),
+        $fetch(getURL("params"), { query: { a: "2" }, dedupe: true }),
+      ]);
+      expect(r1).toEqual({ a: "1" });
+      expect(r2).toEqual({ a: "2" });
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("propagates errors to all deduped callers", async () => {
+      const results = await Promise.all([
+        $fetch(getURL("403"), { retry: 0, dedupe: true }).catch(
+          (error_: any) => error_
+        ),
+        $fetch(getURL("403"), { retry: 0, dedupe: true }).catch(
+          (error_: any) => error_
+        ),
+      ]);
+      for (const r of results) {
+        expect(r.status).toBe(403);
+      }
+      expect(fetch).toHaveBeenCalledOnce();
+    });
+
+    it("works with $fetch.raw", async () => {
+      const url = getURL("ok");
+      const [r1, r2] = await Promise.all([
+        $fetch.raw(url, { dedupe: true }),
+        $fetch.raw(url, { dedupe: true }),
+      ]);
+      expect(r1._data).toBe("ok");
+      expect(r2._data).toBe("ok");
+      expect(fetch).toHaveBeenCalledOnce();
+    });
   });
 });

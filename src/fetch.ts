@@ -128,6 +128,36 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
+    // Request deduplication (after URL is resolved with baseURL/query)
+    if (context.options.dedupe && !isPayloadMethod(context.options.method)) {
+      const method = (context.options.method || "GET").toUpperCase();
+      const requestUrl =
+        typeof context.request === "string"
+          ? context.request
+          : (context.request as Request).url;
+      const dedupeKey = `${method}:${requestUrl}`;
+      const pending = _pendingRequests.get(dedupeKey);
+      if (pending) {
+        return pending;
+      }
+      const execute = async (): Promise<FetchResponse<any>> => {
+        try {
+          return await _executeFetch(context);
+        } finally {
+          _pendingRequests.delete(dedupeKey);
+        }
+      };
+      const promise = execute();
+      _pendingRequests.set(dedupeKey, promise);
+      return promise;
+    }
+
+    return _executeFetch(context);
+  };
+
+  async function _executeFetch(
+    context: FetchContext
+  ): Promise<FetchResponse<any>> {
     if (context.options.body && isPayloadMethod(context.options.method)) {
       if (isJSONSerializable(context.options.body)) {
         const contentType = context.options.headers.get("content-type");
@@ -255,27 +285,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     return context.response;
-  };
+  }
 
   const $fetch = async function $fetch(request, options) {
-    // Request deduplication for concurrent identical requests
-    if (options?.dedupe && !isPayloadMethod(options?.method)) {
-      const method = (options?.method || "GET").toUpperCase();
-      const key = `${method}:${typeof request === "string" ? request : (request as Request).url}`;
-      const pending = _pendingRequests.get(key);
-      if (pending) {
-        const r = await pending;
-        return r._data;
-      }
-      const promise = $fetchRaw(request, options);
-      _pendingRequests.set(key, promise);
-      try {
-        const r = await promise;
-        return r._data;
-      } finally {
-        _pendingRequests.delete(key);
-      }
-    }
     const r = await $fetchRaw(request, options);
     return r._data;
   } as $Fetch;

@@ -524,4 +524,22 @@ describe("ofetch", () => {
       timeout: 10_000,
     });
   });
+
+  it("warns when using deprecated params option", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await $fetch(getURL("params"), { params: { test: "true" } });
+    expect(warn).toHaveBeenCalledWith(
+      "[ofetch] `params` option is deprecated. Use `query` instead."
+    );
+    warn.mockRestore();
+  });
+
+  it("params still works as query alias", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const result = await $fetch(getURL("params"), {
+      params: { test: "true" },
+    });
+    expect(result).toEqual({ test: "true" });
+    warn.mockRestore();
+  });
 });

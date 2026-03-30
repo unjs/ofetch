@@ -1,6 +1,7 @@
 import type {
   FetchContext,
   FetchHook,
+  FetchHooks,
   FetchOptions,
   FetchRequest,
   ResolvedFetchOptions,
@@ -109,13 +110,49 @@ export function resolveFetchOptions<
     };
   }
 
+  // Merge hooks: concatenate defaults and input hooks (defaults run first)
+  const mergedHooks = mergeHooks(
+    defaults as FetchOptions | undefined,
+    input as FetchOptions | undefined
+  );
+
   return {
     ...defaults,
     ...input,
+    ...mergedHooks,
     query,
     params: query,
     headers,
   };
+}
+
+const hookNames: Array<keyof FetchHooks> = [
+  "onRequest",
+  "onRequestError",
+  "onResponse",
+  "onResponseError",
+];
+
+function toArray<T>(value: T | T[] | undefined): T[] {
+  if (!value) {
+    return [];
+  }
+  return Array.isArray(value) ? value : [value];
+}
+
+function mergeHooks(
+  defaults: FetchOptions | undefined,
+  input: FetchOptions | undefined
+): Partial<FetchHooks> {
+  const merged: Partial<FetchHooks> = {};
+  for (const name of hookNames) {
+    const defaultHooks = toArray((defaults as any)?.[name]);
+    const inputHooks = toArray((input as any)?.[name]);
+    if (defaultHooks.length > 0 || inputHooks.length > 0) {
+      (merged as any)[name] = [...defaultHooks, ...inputHooks];
+    }
+  }
+  return merged;
 }
 
 function mergeHeaders(

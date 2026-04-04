@@ -534,6 +534,22 @@ describe("ofetch", () => {
     expect(error.cause?.name).toBe("TimeoutError");
   });
 
+  it("timeout aborts request (manual setTimeout fallback)", async () => {
+    // Force the fallback path by temporarily hiding AbortSignal.timeout
+    const originalTimeout = AbortSignal.timeout;
+    // @ts-expect-error testing fallback path
+    AbortSignal.timeout = undefined;
+    try {
+      const error = await $fetch(getURL("/timeout"), { timeout: 100 }).catch(
+        (error_) => error_
+      );
+      expect(error.name).toBe("FetchError");
+      expect(error.cause?.name).toBe("TimeoutError");
+    } finally {
+      AbortSignal.timeout = originalTimeout;
+    }
+  });
+
   it("timeout does not abort fast requests", async () => {
     const result = await $fetch(getURL("/ok"), { timeout: 1e4 });
     expect(result).toBe("ok");

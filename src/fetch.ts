@@ -182,12 +182,35 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         // Fallback for older Node.js / server environments
         abortController = new AbortController();
         abortTimeout = setTimeout(() => {
-          abortController?.abort();
+          abortController?.abort(
+            new DOMException("signal timed out", "TimeoutError")
+          );
         }, context.options.timeout);
 
-        context.options.signal = context.options.signal
-          ? AbortSignal.any([abortController.signal, context.options.signal])
-          : abortController.signal;
+        if (context.options.signal) {
+          if (typeof AbortSignal.any === "function") {
+            // Node.js 18.17.0+ / 20.3.0+
+            context.options.signal = AbortSignal.any([
+              abortController.signal,
+              context.options.signal,
+            ]);
+          } else {
+            // No AbortSignal.any: forward existing signal into the controller
+            const existingSignal = context.options.signal;
+            if (existingSignal.aborted) {
+              abortController.abort(existingSignal.reason);
+            } else {
+              existingSignal.addEventListener(
+                "abort",
+                () => abortController?.abort(existingSignal.reason),
+                { once: true }
+              );
+            }
+            context.options.signal = abortController.signal;
+          }
+        } else {
+          context.options.signal = abortController.signal;
+        }
       }
     }
 

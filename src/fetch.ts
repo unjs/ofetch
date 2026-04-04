@@ -166,15 +166,29 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
+    let abortController: AbortController | undefined;
     let abortTimeout: NodeJS.Timeout | undefined;
 
     if (context.options.timeout) {
-      context.options.signal = context.options.signal
-        ? AbortSignal.any([
-            AbortSignal.timeout(context.options.timeout),
-            context.options.signal,
-          ])
-        : AbortSignal.timeout(context.options.timeout);
+      if (typeof AbortSignal.timeout === "function") {
+        // Modern Node.js 17.3.0+
+        context.options.signal = context.options.signal
+          ? AbortSignal.any([
+              AbortSignal.timeout(context.options.timeout),
+              context.options.signal,
+            ])
+          : AbortSignal.timeout(context.options.timeout);
+      } else {
+        // Fallback for older Node.js / server environments
+        abortController = new AbortController();
+        abortTimeout = setTimeout(() => {
+          abortController?.abort();
+        }, context.options.timeout);
+
+        context.options.signal = context.options.signal
+          ? AbortSignal.any([abortController.signal, context.options.signal])
+          : abortController.signal;
+      }
     }
 
     try {

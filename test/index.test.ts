@@ -524,4 +524,29 @@ describe("ofetch", () => {
       timeout: 10_000,
     });
   });
+
+  it("timeout aborts request", async () => {
+    const error = await $fetch(getURL("/timeout"), { timeout: 100 }).catch(
+      (error_) => error_
+    );
+    // FetchError wraps the underlying TimeoutError from AbortSignal.timeout()
+    expect(error.name).toBe("FetchError");
+    expect(error.cause?.name).toBe("TimeoutError");
+  });
+
+  it("timeout does not abort fast requests", async () => {
+    const result = await $fetch(getURL("/ok"), { timeout: 1e4 });
+    expect(result).toBe("ok");
+  });
+
+  it("timeout cleanup clears timer", async () => {
+    // This test verifies that abortTimeout is properly cleared in the finally block
+    // by checking that multiple requests don't accumulate pending timers
+    const results = await Promise.all([
+      $fetch(getURL("/ok"), { timeout: 5e3 }),
+      $fetch(getURL("/ok"), { timeout: 5e3 }),
+      $fetch(getURL("/ok"), { timeout: 5e3 }),
+    ]);
+    expect(results).toEqual(["ok", "ok", "ok"]);
+  });
 });

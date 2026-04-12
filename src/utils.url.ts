@@ -44,7 +44,13 @@ export function withBase(input = "", base = ""): string {
 
   const _base = withoutTrailingSlash(base);
   if (input.startsWith(_base)) {
-    return input;
+    // Ensure the match ends at a host/path boundary to prevent
+    // SSRF via prefix attacks (e.g. baseURL="http://api.internal"
+    // matching "http://api.internal.attacker.com/steal").
+    const nextChar = input[_base.length];
+    if (!nextChar || nextChar === "/" || nextChar === "?" || nextChar === "#") {
+      return input;
+    }
   }
 
   return joinURL(_base, input);

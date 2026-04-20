@@ -158,6 +158,15 @@ describe("ofetch", () => {
     }
   });
 
+  it("stringifies plain objects with a buffer property", async () => {
+    const { body } = await $fetch(getURL("post"), {
+      method: "POST",
+      body: { buffer: "text", nested: { ok: true } },
+    });
+
+    expect(body).to.deep.eq({ buffer: "text", nested: { ok: true } });
+  });
+
   it("does not stringify body when content type != application/json", async () => {
     const message = '"Hallo von Pascal"';
     const { body } = await $fetch(getURL("echo"), {

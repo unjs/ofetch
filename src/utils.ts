@@ -28,7 +28,7 @@ export function isJSONSerializable(value: any): boolean {
   if (Array.isArray(value)) {
     return true;
   }
-  if (value.buffer) {
+  if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer) {
     return false;
   }
   // `FormData` and `URLSearchParams` should't have a `toJSON` method,

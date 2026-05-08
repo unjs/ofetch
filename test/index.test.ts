@@ -525,3 +525,43 @@ describe("ofetch", () => {
     });
   });
 });
+
+describe("isJSONSerializable", () => {
+  let isJSONSerializable: any;
+
+  beforeAll(async () => {
+    const utils = await import("../src/utils.ts");
+    isJSONSerializable = utils.isJSONSerializable;
+  });
+
+  it("returns false for null", () => {
+    expect(isJSONSerializable(null)).toBe(false);
+  });
+
+  it("returns false for undefined", () => {
+    expect(isJSONSerializable(undefined)).toBe(false);
+  });
+
+  it("returns true for primitive types", () => {
+    expect(isJSONSerializable("string")).toBe(true);
+    expect(isJSONSerializable(123)).toBe(true);
+    expect(isJSONSerializable(true)).toBe(true);
+    expect(isJSONSerializable(false)).toBe(true);
+  });
+
+  it("returns true for plain objects and arrays", () => {
+    expect(isJSONSerializable({})).toBe(true);
+    expect(isJSONSerializable([])).toBe(true);
+    expect(isJSONSerializable({ a: 1 })).toBe(true);
+  });
+
+  it("returns false for objects with buffer property", () => {
+    const withBuffer = new ArrayBuffer(10);
+    expect(isJSONSerializable(withBuffer)).toBe(false);
+  });
+
+  it("returns false for FormData and URLSearchParams", () => {
+    expect(isJSONSerializable(new FormData())).toBe(false);
+    expect(isJSONSerializable(new URLSearchParams())).toBe(false);
+  });
+});

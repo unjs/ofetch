@@ -15,11 +15,11 @@ export function isPayloadMethod(method = "GET"): boolean {
 }
 
 export function isJSONSerializable(value: any): boolean {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return false;
   }
   const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === null) {
+  if (t === "string" || t === "number" || t === "boolean") {
     return true;
   }
   if (t !== "object") {

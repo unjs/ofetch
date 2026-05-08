@@ -535,7 +535,7 @@ describe("isJSONSerializable", () => {
   });
 
   it("returns false for null", () => {
-    expect(isJSONSerializable(null)).toBe(false);
+    expect(isJSONSerializable(null)).toBe(false); // eslint-disable-line unicorn/no-null
   });
 
   it("returns false for undefined", () => {
@@ -555,9 +555,12 @@ describe("isJSONSerializable", () => {
     expect(isJSONSerializable({ a: 1 })).toBe(true);
   });
 
-  it("returns false for objects with buffer property", () => {
-    const withBuffer = new ArrayBuffer(10);
-    expect(isJSONSerializable(withBuffer)).toBe(false);
+  it("returns false for TypedArray (has .buffer property)", () => {
+    expect(isJSONSerializable(new Uint8Array(10))).toBe(false);
+  });
+
+  it("returns false for ArrayBuffer", () => {
+    expect(isJSONSerializable(new ArrayBuffer(10))).toBe(false);
   });
 
   it("returns false for FormData and URLSearchParams", () => {

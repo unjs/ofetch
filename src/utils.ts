@@ -19,7 +19,7 @@ export function isJSONSerializable(value: any): boolean {
     return false;
   }
   const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === null) {
+  if (value === null || t === "string" || t === "number" || t === "boolean") {
     return true;
   }
   if (t !== "object") {

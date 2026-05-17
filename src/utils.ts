@@ -19,7 +19,7 @@ export function isJSONSerializable(value: any): boolean {
     return false;
   }
   const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === null) {
+  if (value === null || t === "string" || t === "number" || t === "boolean") {
     return true;
   }
   if (t !== "object") {
@@ -28,12 +28,14 @@ export function isJSONSerializable(value: any): boolean {
   if (Array.isArray(value)) {
     return true;
   }
-  if (value.buffer) {
-    return false;
-  }
   // `FormData` and `URLSearchParams` should't have a `toJSON` method,
   // but Bun adds it, which is non-standard.
+  // Check these first to avoid potential errors from `value.buffer` access
+  // on certain edge cases.
   if (value instanceof FormData || value instanceof URLSearchParams) {
+    return false;
+  }
+  if (value.buffer) {
     return false;
   }
   return (

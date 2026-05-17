@@ -321,6 +321,18 @@ describe("ofetch", () => {
     expect(error.response?._data).to.deep.eq(error.data);
   });
 
+  it("prefers options method over request method in error", async () => {
+    const error = await $fetch(
+      new Request(getURL("/403"), { method: "GET" }),
+      { method: "POST" }
+    ).catch((error: any) => error);
+    expect(error.toString()).toBe(
+      `FetchError: [POST] "${getURL("403")}": 403 Forbidden`
+    );
+    expect(error.request).toBeInstanceOf(Request);
+    expect(error.options.method).to.equal("POST");
+  });
+
   it("aborting on timeout", async () => {
     const noTimeout = $fetch(getURL("timeout")).catch(() => "no timeout");
     const timeout = $fetch(getURL("timeout"), {

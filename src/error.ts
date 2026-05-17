@@ -24,7 +24,7 @@ export function createFetchError<T = any>(
   const errorMessage = ctx.error?.message || ctx.error?.toString() || "";
 
   const method =
-    (ctx.request as Request)?.method || ctx.options?.method || "GET";
+    ctx.options?.method || (ctx.request as Request)?.method || "GET";
   const url = (ctx.request as Request)?.url || String(ctx.request) || "/";
   const requestStr = `[${method}] ${JSON.stringify(url)}`;
 

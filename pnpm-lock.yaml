@@ -9,40 +9,40 @@ importers:
   .:
     devDependencies:
       '@types/node':
-        specifier: ^24.9.2
+        specifier: 24.9.2
         version: 24.9.2
       '@vitest/coverage-v8':
-        specifier: ^4.0.5
+        specifier: 4.0.5
         version: 4.0.5(vitest@4.0.5(@types/node@24.9.2)(jiti@2.6.1))
       automd:
-        specifier: ^0.4.2
+        specifier: 0.4.2
         version: 0.4.2(magicast@0.3.5)
       changelogen:
-        specifier: ^0.6.2
+        specifier: 0.6.2
         version: 0.6.2(magicast@0.3.5)
       eslint:
-        specifier: ^9.38.0
+        specifier: 9.38.0
         version: 9.38.0(jiti@2.6.1)
       eslint-config-unjs:
-        specifier: ^0.5.0
+        specifier: 0.5.0
         version: 0.5.0(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
       h3:
-        specifier: ^2.0.1-rc.5
+        specifier: 2.0.1-rc.5
         version: 2.0.1-rc.5
       obuild:
-        specifier: ^0.3.2
+        specifier: 0.3.2
         version: 0.3.2(magicast@0.3.5)(typescript@5.9.3)
       prettier:
-        specifier: ^3.6.2
+        specifier: 3.6.2
         version: 3.6.2
       typescript:
-        specifier: ^5.9.3
+        specifier: 5.9.3
         version: 5.9.3
       undici:
-        specifier: ^7.16.0
+        specifier: 7.16.0
         version: 7.16.0
       vitest:
-        specifier: ^4.0.5
+        specifier: 4.0.5
         version: 4.0.5(@types/node@24.9.2)(jiti@2.6.1)
 
 packages:

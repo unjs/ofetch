@@ -525,3 +525,21 @@ describe("ofetch", () => {
     });
   });
 });
+
+describe("isJSONSerializable", () => {
+  let isJSONSerializable: (value: unknown) => boolean;
+
+  beforeAll(async () => {
+    const utils = await import("../src/utils.ts");
+    isJSONSerializable = utils.isJSONSerializable;
+  });
+
+  it("returns false for FormData and URLSearchParams before buffer checks", () => {
+    expect(isJSONSerializable(new FormData())).toBe(false);
+    expect(isJSONSerializable(new URLSearchParams())).toBe(false);
+
+    const data = new FormData();
+    data.append("foo", "bar");
+    expect(isJSONSerializable(data)).toBe(false);
+  });
+});

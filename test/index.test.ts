@@ -542,4 +542,8 @@ describe("isJSONSerializable", () => {
     data.append("foo", "bar");
     expect(isJSONSerializable(data)).toBe(false);
   });
+
+  it("returns true for null without throwing", () => {
+    expect(isJSONSerializable(null)).toBe(true); // eslint-disable-line unicorn/no-null
+  });
 });

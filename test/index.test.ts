@@ -10,6 +10,7 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { isJSONSerializable } from "../src/utils.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -523,5 +524,49 @@ describe("ofetch", () => {
       signal: expect.any(AbortSignal),
       timeout: 10_000,
     });
+  });
+});
+
+describe("isJSONSerializable", () => {
+  it("returns false for FormData (non-empty)", () => {
+    const fd = new FormData();
+    fd.append("key", "value");
+    expect(isJSONSerializable(fd)).toBe(false);
+  });
+
+  it("returns false for empty FormData", () => {
+    expect(isJSONSerializable(new FormData())).toBe(false);
+  });
+
+  it("returns false for URLSearchParams (non-empty)", () => {
+    expect(isJSONSerializable(new URLSearchParams({ foo: "bar" }))).toBe(false);
+  });
+
+  it("returns false for empty URLSearchParams", () => {
+    expect(isJSONSerializable(new URLSearchParams())).toBe(false);
+  });
+
+  it("returns false for ArrayBuffer", () => {
+    expect(isJSONSerializable(new ArrayBuffer(8))).toBe(false);
+  });
+
+  it("returns false for Uint8Array", () => {
+    expect(isJSONSerializable(new Uint8Array([1, 2, 3]))).toBe(false);
+  });
+
+  it("returns true for plain objects", () => {
+    expect(isJSONSerializable({ a: 1 })).toBe(true);
+  });
+
+  it("returns true for arrays", () => {
+    expect(isJSONSerializable([1, 2, 3])).toBe(true);
+  });
+
+  it("returns true for objects with toJSON method", () => {
+    expect(isJSONSerializable({ toJSON: () => ({}) })).toBe(true);
+  });
+
+  it("returns false for undefined", () => {
+    expect(isJSONSerializable(undefined)).toBe(false);
   });
 });

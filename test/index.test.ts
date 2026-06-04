@@ -344,6 +344,20 @@ describe("ofetch", () => {
     });
   });
 
+  it("replaces existing array query params instead of accumulating", async () => {
+    // When the URL already carries a value for a key and the query option
+    // supplies an array for that same key, the existing value should be
+    // replaced, not accumulated alongside the new ones. The /url/** endpoint
+    // echoes the raw path+search so we can inspect all repeated values.
+    const result = await $fetch(getURL("url/check?tag=old&other=1"), {
+      query: { tag: ["a", "b"] },
+    });
+    // "tag=old" must not appear; only "tag=a" and "tag=b" should be present
+    expect(result).toContain("tag=a");
+    expect(result).toContain("tag=b");
+    expect(result).not.toContain("tag=old");
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

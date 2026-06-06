@@ -10,6 +10,7 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { isJSONSerializable } from "../src/utils.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -523,5 +524,50 @@ describe("ofetch", () => {
       signal: expect.any(AbortSignal),
       timeout: 10_000,
     });
+  });
+});
+
+describe("isJSONSerializable", () => {
+  it("returns true for null without throwing", () => {
+    expect(() => isJSONSerializable(null)).not.toThrow(); // eslint-disable-line unicorn/no-null
+    expect(isJSONSerializable(null)).toBe(true); // eslint-disable-line unicorn/no-null
+  });
+
+  it("returns false for undefined", () => {
+    expect(isJSONSerializable(undefined)).toBe(false);
+  });
+
+  it("returns true for primitives", () => {
+    expect(isJSONSerializable("hello")).toBe(true);
+    expect(isJSONSerializable(42)).toBe(true);
+    expect(isJSONSerializable(true)).toBe(true);
+    expect(isJSONSerializable(false)).toBe(true);
+  });
+
+  it("returns false for non-serializable types", () => {
+    expect(isJSONSerializable(() => {})).toBe(false);
+    expect(isJSONSerializable(Symbol("x"))).toBe(false);
+    expect(isJSONSerializable(42n)).toBe(false);
+  });
+
+  it("returns true for plain objects and arrays", () => {
+    expect(isJSONSerializable({})).toBe(true);
+    expect(isJSONSerializable({ a: 1 })).toBe(true);
+    expect(isJSONSerializable([])).toBe(true);
+    expect(isJSONSerializable([1, 2, 3])).toBe(true);
+  });
+
+  it("returns true for objects with toJSON", () => {
+    expect(isJSONSerializable({ toJSON: () => "{}" })).toBe(true);
+  });
+
+  it("returns false for Buffer and typed arrays", () => {
+    expect(isJSONSerializable(Buffer.from("hello"))).toBe(false);
+    expect(isJSONSerializable(new Uint8Array([1, 2, 3]))).toBe(false);
+  });
+
+  it("returns false for FormData and URLSearchParams", () => {
+    expect(isJSONSerializable(new FormData())).toBe(false);
+    expect(isJSONSerializable(new URLSearchParams())).toBe(false);
   });
 });

@@ -45,6 +45,7 @@ export function isJSONSerializable(value: any): boolean {
 const textTypes = new Set([
   "image/svg",
   "application/xml",
+  "application/rss+xml",
   "application/xhtml",
   "application/html",
 ]);

@@ -18,8 +18,12 @@ export function isJSONSerializable(value: any): boolean {
   if (value === undefined) {
     return false;
   }
+  // `null` is JSON serializable (`JSON.stringify(null) === "null"`).
+  if (value === null) {
+    return true;
+  }
   const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === null) {
+  if (t === "string" || t === "number" || t === "boolean") {
     return true;
   }
   if (t !== "object") {

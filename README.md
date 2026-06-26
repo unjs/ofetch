@@ -385,4 +385,4 @@ myFetch("/foo", { requiresAuth: true });
 
 ## License
 
-💛 Published under the [MIT](https://github.com/h3js/rou3/blob/main/LICENSE) license.
+💛 Published under the [MIT](https://github.com/unjs/ofetch/blob/main/LICENSE) license.

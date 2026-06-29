@@ -257,6 +257,29 @@ const apiFetch = ofetch.create({ baseURL: "/api" });
 apiFetch("/test"); // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
+## 🔧 Using a custom fetch implementation
+
+You can use `createFetch` to create an `ofetch` instance backed by a custom `fetch` function. This is useful when you need a specific fetch implementation — for example, a Node.js-compatible fetch, a service worker's fetch, or a mock in tests.
+
+```js
+import { createFetch } from "ofetch";
+
+const myFetch = createFetch({ fetch: myCustomFetchImplementation });
+
+await myFetch("/api/users");
+```
+
+A common use case is providing `undici`'s fetch for full Node.js compatibility:
+
+```js
+import { createFetch } from "ofetch";
+import { fetch } from "undici";
+
+const nodeFetch = createFetch({ fetch });
+
+await nodeFetch("https://example.com/api");
+```
+
 ## 💡 Adding headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:

@@ -10,6 +10,7 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { isJSONSerializable } from "../src/utils.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -156,6 +157,10 @@ describe("ofetch", () => {
       expect(headers).to.include({ "x-header": "1" });
       expect(headers).to.include({ accept: "application/json" });
     }
+  });
+
+  it("treats null as JSON serializable", () => {
+    expect(isJSONSerializable(null)).toBe(true); // eslint-disable-line unicorn/no-null
   });
 
   it("does not stringify body when content type != application/json", async () => {

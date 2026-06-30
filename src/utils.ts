@@ -28,12 +28,12 @@ export function isJSONSerializable(value: any): boolean {
   if (Array.isArray(value)) {
     return true;
   }
-  if (value.buffer) {
-    return false;
-  }
   // `FormData` and `URLSearchParams` should't have a `toJSON` method,
   // but Bun adds it, which is non-standard.
   if (value instanceof FormData || value instanceof URLSearchParams) {
+    return false;
+  }
+  if (value.buffer) {
     return false;
   }
   return (

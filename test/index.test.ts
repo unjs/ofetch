@@ -18,6 +18,9 @@ describe("ofetch", () => {
 
   const fetch = vi.spyOn(globalThis, "fetch");
 
+  // Counter for the flaky route used by the non-JSON error retry test.
+  let flaky503Attempts = 0;
+
   beforeAll(async () => {
     const app = new H3({ debug: true })
       // .use(async (event) => {
@@ -52,6 +55,24 @@ describe("ofetch", () => {
         () => new HTTPError({ status: 403, statusMessage: "Forbidden" })
       )
       .all("/408", () => new HTTPError({ status: 408 }))
+      // Plain-text 503 with no Content-Type header, like a bare error page
+      // emitted by nginx/HAProxy/a CDN in front of the origin.
+      .all("/text-503", () => {
+        const response = new Response("Service Unavailable", { status: 503 });
+        response.headers.delete("content-type");
+        return response;
+      })
+      // Same non-JSON 503 on the first attempt, then a JSON 200, to verify the
+      // retry path still runs for a retryable status with a non-JSON body.
+      .all("/flaky-503", () => {
+        flaky503Attempts++;
+        if (flaky503Attempts < 2) {
+          const response = new Response("Service Unavailable", { status: 503 });
+          response.headers.delete("content-type");
+          return response;
+        }
+        return { ok: true };
+      })
       .all(
         "/204",
         () => null // eslint-disable-line unicorn/no-null
@@ -248,6 +269,42 @@ describe("ofetch", () => {
     const res = await $fetch(getURL("403"), { ignoreResponseError: true });
     expect(res?.status).to.eq(403);
     expect(res?.message).to.eq("Forbidden");
+  });
+
+  it("non-JSON error body without content-type resolves to a FetchError", async () => {
+    // A plain-text 4xx/5xx with no Content-Type must not throw a bare
+    // SyntaxError from JSON.parse; it must surface as a FetchError carrying
+    // the status and the raw text body.
+    const error = await $fetch(getURL("text-503"), { retry: 0 }).catch(
+      (error_: any) => error_
+    );
+    expect(error.constructor.name).to.equal("FetchError");
+    expect(error.status).to.equal(503);
+    expect(error.data).to.equal("Service Unavailable");
+  });
+
+  it("retries a retryable status whose body is non-JSON text", async () => {
+    flaky503Attempts = 0;
+    const result = await $fetch(getURL("flaky-503"), {
+      retry: 3,
+      retryDelay: 0,
+    });
+    expect(result).to.deep.equal({ ok: true });
+    expect(flaky503Attempts).to.equal(2);
+  });
+
+  it("non-JSON error body is swallowed by ignoreResponseError", async () => {
+    const res = await $fetch(getURL("text-503"), {
+      ignoreResponseError: true,
+      retry: 0,
+    });
+    expect(res).to.equal("Service Unavailable");
+  });
+
+  it("valid JSON without content-type still parses to an object", async () => {
+    flaky503Attempts = 1; // force /flaky-503 to answer 200 JSON immediately
+    const res = await $fetch(getURL("flaky-503"), { retry: 0 });
+    expect(res).to.deep.equal({ ok: true });
   });
 
   it("204 no content", async () => {

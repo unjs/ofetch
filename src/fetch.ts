@@ -217,7 +217,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           const data = await context.response.text();
           if (data) {
             const parseFunction = context.options.parseResponse || JSON.parse;
-            context.response._data = parseFunction(data);
+            try {
+              context.response._data = parseFunction(data);
+            } catch {
+              // Body is not valid JSON: keep the raw text so that error
+              // responses still resolve to a FetchError and non-JSON bodies
+              // don't throw a SyntaxError that bypasses retry/ignoreResponseError.
+              context.response._data = data;
+            }
           }
           break;
         }

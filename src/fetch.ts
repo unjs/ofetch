@@ -219,10 +219,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
             const parseFunction = context.options.parseResponse || JSON.parse;
             try {
               context.response._data = parseFunction(data);
-            } catch {
-              // Body is not valid JSON: keep the raw text so that error
-              // responses still resolve to a FetchError and non-JSON bodies
-              // don't throw a SyntaxError that bypasses retry/ignoreResponseError.
+            } catch (error) {
+              // A successful response with a malformed JSON body is a real
+              // problem, so keep throwing there. For an error response the body
+              // is often not JSON (an HTML error page, plain text), and throwing
+              // a SyntaxError would bypass retry and ignoreResponseError, so keep
+              // the raw text and let it resolve to a FetchError instead.
+              if (context.response.ok) {
+                throw error;
+              }
               context.response._data = data;
             }
           }

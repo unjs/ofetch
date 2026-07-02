@@ -73,6 +73,13 @@ describe("ofetch", () => {
         }
         return { ok: true };
       })
+      // A successful (2xx) response whose JSON body is malformed. A parse
+      // failure here is a real error and must still surface.
+      .all("/bad-json-200", () => {
+        const response = new Response("{ not: valid", { status: 200 });
+        response.headers.set("content-type", "application/json");
+        return response;
+      })
       .all(
         "/204",
         () => null // eslint-disable-line unicorn/no-null
@@ -291,6 +298,10 @@ describe("ofetch", () => {
     });
     expect(result).to.deep.equal({ ok: true });
     expect(flaky503Attempts).to.equal(2);
+  });
+
+  it("throws when a successful response has a malformed JSON body", async () => {
+    await expect($fetch(getURL("bad-json-200"))).rejects.toThrow();
   });
 
   it("non-JSON error body is swallowed by ignoreResponseError", async () => {

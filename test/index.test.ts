@@ -309,6 +309,33 @@ describe("ofetch", () => {
     await expect(abortHandle()).rejects.toThrow(/aborted/);
   });
 
+  it("network errors are retried even when retryStatusCodes excludes 500", async () => {
+    // Simulate a network-level failure (no HTTP response at all).
+    // Previously, ofetch fell back to status code 500 when context.response
+    // was undefined. A custom retryStatusCodes array that excluded 500 would
+    // therefore also suppress retries for connection errors.
+    let callCount = 0;
+    const networkError = new TypeError("Failed to fetch");
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => {
+      callCount++;
+      throw networkError;
+    };
+    try {
+      await $fetch("https://example.com", {
+        retry: 2,
+        // 500 is intentionally absent; only proxy-related codes are listed.
+        retryStatusCodes: [502, 503, 504],
+      });
+    } catch {
+      // expected to throw after exhausting retries
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+    // Initial attempt + 2 retries = 3 calls total.
+    expect(callCount).toBe(3);
+  });
+
   it("passing request obj should return request obj in error", async () => {
     const error = await $fetch(getURL("/403"), { method: "post" }).catch(
       (error: any) => error

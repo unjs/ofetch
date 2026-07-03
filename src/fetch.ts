@@ -54,12 +54,18 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         retries = isPayloadMethod(context.options.method) ? 0 : 1;
       }
 
-      const responseCode = (context.response && context.response.status) || 500;
+      // When there is no response (network / connection error), bypass the
+      // status code check and always retry. Previously the code fell back to
+      // 500, which caused requests to silently stop being retried whenever
+      // callers supplied a custom retryStatusCodes array that excluded 500.
+      const hasResponse = !!(context.response && context.response.status);
+      const responseCode = hasResponse ? context.response!.status : undefined;
       if (
         retries > 0 &&
-        (Array.isArray(context.options.retryStatusCodes)
-          ? context.options.retryStatusCodes.includes(responseCode)
-          : retryStatusCodes.has(responseCode))
+        (!hasResponse ||
+          (Array.isArray(context.options.retryStatusCodes)
+            ? context.options.retryStatusCodes.includes(responseCode!)
+            : retryStatusCodes.has(responseCode!)))
       ) {
         const retryDelay =
           typeof context.options.retryDelay === "function"

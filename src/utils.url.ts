@@ -36,6 +36,12 @@ export function joinURL(base?: string, path?: string): string {
 
 /**
  * Adds the base path to the input path, if it is not already present.
+ *
+ * The base-already-present short-circuit requires the character after the
+ * base to be a URL boundary (`/`, `?`, `#`) or end-of-string. Without the
+ * boundary check, an attacker-controlled `input` such as
+ * `http://api.internal.attacker.com/...` would be accepted as-if it already
+ * had the `http://api.internal` base and skip the join (CWE-918 SSRF).
  */
 export function withBase(input = "", base = ""): string {
   if (!base || base === "/") {
@@ -44,7 +50,15 @@ export function withBase(input = "", base = ""): string {
 
   const _base = withoutTrailingSlash(base);
   if (input.startsWith(_base)) {
-    return input;
+    const nextChar = input[_base.length];
+    if (
+      nextChar === undefined ||
+      nextChar === "/" ||
+      nextChar === "?" ||
+      nextChar === "#"
+    ) {
+      return input;
+    }
   }
 
   return joinURL(_base, input);

@@ -397,6 +397,32 @@ describe("ofetch", () => {
     ).toMatchObject({ foo: "2", bar: "3" });
   });
 
+  it("normalizes headers reassigned in onRequest hook", async () => {
+    // A `Headers` instance reassigned in the hook is sent as-is.
+    expect(
+      await $fetch(getURL("/echo"), {
+        method: "POST",
+        body: { num: 42 },
+        onRequest(ctx) {
+          ctx.options.headers = new Headers({ "x-foo": "bar" });
+        },
+      }).then((r) => r.headers)
+    ).toMatchObject({ "x-foo": "bar" });
+
+    // A plain object reassigned in the hook is normalized back to `Headers`
+    // instead of throwing `headers.get is not a function` before the request.
+    expect(
+      await $fetch(getURL("/echo"), {
+        method: "POST",
+        body: { num: 42 },
+        onRequest(ctx) {
+          // @ts-expect-error backwards compatibility for object headers
+          ctx.options.headers = { "x-foo": "bar" };
+        },
+      }).then((r) => r.headers)
+    ).toMatchObject({ "x-foo": "bar" });
+  });
+
   it("hook errors", async () => {
     // onRequest
     await expect(

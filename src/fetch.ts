@@ -109,6 +109,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     if (context.options.onRequest) {
       await callHooks(context, context.options.onRequest);
+      // A hook may reassign `headers` to a plain object or array (a valid
+      // `HeadersInit`), so normalize it back to a `Headers` instance before the
+      // code below calls `.get()`/`.set()`/`.has()` on it.
+      if (!(context.options.headers instanceof Headers)) {
+        context.options.headers = new Headers(context.options.headers || {});
+      }
     }
 
     if (typeof context.request === "string") {
@@ -143,8 +149,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
         // Set Content-Type and Accept headers to application/json by default
         // for JSON serializable request bodies.
-        // Pass empty object as older browsers don't support undefined.
-        context.options.headers = new Headers(context.options.headers || {});
         if (!contentType) {
           context.options.headers.set("content-type", "application/json");
         }

@@ -524,4 +524,45 @@ describe("ofetch", () => {
       timeout: 10_000,
     });
   });
+
+  describe("bugfixes", () => {
+    it("handles undefined headers without crash (#493)", async () => {
+      // Should not throw when no headers are provided
+      const result = await $fetch(getURL("ok"), {});
+      expect(result).toBe("ok");
+    });
+
+    it("merges params set in onRequest hook (#477)", async () => {
+      const { path } = await $fetch(getURL("echo"), {
+        query: { a: 1 },
+        onRequest(ctx) {
+          ctx.options.params = { b: 2 };
+        },
+      });
+      const params = Object.fromEntries(new URL(path, "http://_").searchParams);
+      expect(params).toMatchObject({ a: "1", b: "2" });
+    });
+
+    it("merges query set in onRequest hook", async () => {
+      const { path } = await $fetch(getURL("echo"), {
+        onRequest(ctx) {
+          ctx.options.query = { dynamic: "true" };
+        },
+      });
+      const params = Object.fromEntries(new URL(path, "http://_").searchParams);
+      expect(params).toMatchObject({ dynamic: "true" });
+    });
+
+    it("trims whitespace from baseURL (#530)", async () => {
+      const result = await $fetch("/x?foo=123", {
+        baseURL: getURL("url") + " ",
+      });
+      expect(result).toBe("/url/x?foo=123");
+
+      const result2 = await $fetch("/x?foo=123", {
+        baseURL: getURL("url") + "\t",
+      });
+      expect(result2).toBe("/url/x?foo=123");
+    });
+  });
 });

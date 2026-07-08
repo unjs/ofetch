@@ -8,6 +8,7 @@ import {
   resolveFetchOptions,
   callHooks,
 } from "./utils.ts";
+import { computeBackoffDelay } from "./retry.ts";
 import type {
   CreateFetchOptions,
   FetchResponse,
@@ -17,6 +18,11 @@ import type {
   FetchRequest,
   FetchOptions,
 } from "./types.ts";
+
+interface RetryInternalState {
+  _retryAttempt?: number;
+  _retryPrevDelay?: number;
+}
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 const retryStatusCodes = new Set([
@@ -61,18 +67,33 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           ? context.options.retryStatusCodes.includes(responseCode)
           : retryStatusCodes.has(responseCode))
       ) {
-        const retryDelay =
-          typeof context.options.retryDelay === "function"
-            ? context.options.retryDelay(context)
-            : context.options.retryDelay || 0;
+        const internal = context.options as RetryInternalState;
+        let retryDelay = 0;
+        let nextPrevDelay: number | undefined;
+        if (context.options.retryBackoff) {
+          retryDelay = computeBackoffDelay({
+            options: context.options.retryBackoff,
+            attempt: internal._retryAttempt ?? 0,
+            prevDelay: internal._retryPrevDelay,
+          });
+          nextPrevDelay = retryDelay;
+        } else {
+          retryDelay =
+            typeof context.options.retryDelay === "function"
+              ? context.options.retryDelay(context)
+              : context.options.retryDelay || 0;
+        }
         if (retryDelay > 0) {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
         // Timeout
-        return $fetchRaw(context.request, {
+        const nextOptions: FetchOptions & RetryInternalState = {
           ...context.options,
           retry: retries - 1,
-        });
+          _retryAttempt: (internal._retryAttempt ?? 0) + 1,
+          _retryPrevDelay: nextPrevDelay,
+        };
+        return $fetchRaw(context.request, nextOptions);
       }
     }
 
@@ -90,16 +111,18 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     T = any,
     R extends ResponseType = "json",
   >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
+    const resolvedOptions = resolveFetchOptions<R, T>(
+      _request,
+      _options,
+      globalOptions.defaults as unknown as FetchOptions<R, T>,
+      Headers
+    );
     const context: FetchContext = {
       request: _request,
-      options: resolveFetchOptions<R, T>(
-        _request,
-        _options,
-        globalOptions.defaults as unknown as FetchOptions<R, T>,
-        Headers
-      ),
+      options: resolvedOptions,
       response: undefined,
       error: undefined,
+      retryAttempt: (resolvedOptions as RetryInternalState)._retryAttempt,
     };
 
     // Uppercase method name

@@ -295,6 +295,32 @@ describe("ofetch", () => {
     expect(race).to.equal("fast");
   });
 
+  it("retry with retryBackoff (equal-jitter)", async () => {
+    const onRequest = vi.fn();
+    const error = await $fetch(getURL("408"), {
+      retry: 2,
+      retryBackoff: { strategy: "equal-jitter", base: 1, cap: 5 },
+      onRequest,
+    }).catch((error_: any) => error_);
+    expect(error.status).toBe(408);
+    // initial request + 2 retries
+    expect(onRequest).toHaveBeenCalledTimes(3);
+    // retryAttempt is undefined on first call, then 1, 2
+    const attempts = onRequest.mock.calls.map(([ctx]) => ctx.retryAttempt);
+    expect(attempts).toEqual([undefined, 1, 2]);
+  });
+
+  it("retryBackoff takes precedence over retryDelay", async () => {
+    const retryDelay = vi.fn(() => 0);
+    const error = await $fetch(getURL("408"), {
+      retry: 1,
+      retryDelay,
+      retryBackoff: { strategy: "decorrelated-jitter", base: 1, cap: 5 },
+    }).catch((error_: any) => error_);
+    expect(error.status).toBe(408);
+    expect(retryDelay).not.toHaveBeenCalled();
+  });
+
   it("abort with retry", async () => {
     const controller = new AbortController();
     async function abortHandle() {

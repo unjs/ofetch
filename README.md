@@ -126,6 +126,29 @@ await ofetch("http://google.com/404", {
 });
 ```
 
+### Exponential Backoff with Jitter
+
+To spread retry attempts over time and reduce thundering-herd effects, set `retryBackoff` instead of a fixed `retryDelay`:
+
+```ts
+await ofetch("http://google.com/api", {
+  retry: 5,
+  retryBackoff: {
+    strategy: "full-jitter", // or "equal-jitter" | "decorrelated-jitter"
+    base: 100, // minimum delay in ms
+    cap: 3000, // maximum delay in ms
+  },
+});
+```
+
+Supported strategies (see [AWS: Exponential Backoff And Jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/)):
+
+- `full-jitter` (recommended): `sleep = random(0, min(cap, base * 2^attempt))`
+- `equal-jitter`: `temp = min(cap, base * 2^attempt); sleep = temp/2 + random(0, temp/2)`
+- `decorrelated-jitter`: `sleep = min(cap, random(base, prev * 3))`
+
+When `retryBackoff` is set, it takes precedence over `retryDelay`. The current retry count is exposed on the request context as `ctx.retryAttempt` (`undefined` on the first attempt, `1`, `2`, … on retries).
+
 ## ✔️ Timeout
 
 You can specify `timeout` in milliseconds to automatically abort a request after a timeout (default is disabled).

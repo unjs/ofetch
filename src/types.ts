@@ -1,3 +1,7 @@
+import type { RetryBackoffOptions } from "./retry.ts";
+
+export type { RetryBackoffOptions, RetryBackoffStrategy } from "./retry.ts";
+
 // --------------------------
 // $fetch API
 // --------------------------
@@ -68,6 +72,13 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
+
+  /**
+   * Exponential backoff with jitter for retry delays.
+   * When set, takes precedence over `retryDelay`.
+   * @see https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+   */
+  retryBackoff?: RetryBackoffOptions;
 }
 
 export interface ResolvedFetchOptions<
@@ -84,7 +95,7 @@ export interface CreateFetchOptions {
 
 export type GlobalOptions = Pick<
   FetchOptions,
-  "timeout" | "retry" | "retryDelay"
+  "timeout" | "retry" | "retryDelay" | "retryBackoff"
 >;
 
 // --------------------------
@@ -96,6 +107,8 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   options: ResolvedFetchOptions<R>;
   response?: FetchResponse<T>;
   error?: Error;
+  /** Number of retries already performed before this attempt. `undefined` on the first attempt. */
+  retryAttempt?: number;
 }
 
 type MaybePromise<T> = T | Promise<T>;

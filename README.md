@@ -126,6 +126,21 @@ await ofetch("http://google.com/404", {
 });
 ```
 
+`retryDelay` can also be a function that receives the fetch context (with
+`request`, `options`, `response`, and `error`) and returns the delay in
+milliseconds. This lets you compute the delay dynamically — for example, to
+honor a server's `Retry-After` header:
+
+```ts
+await ofetch("/api", {
+  retry: 3,
+  retryDelay: (context) => {
+    const retryAfter = Number(context.response?.headers.get("retry-after"));
+    return Number.isFinite(retryAfter) ? retryAfter * 1000 : 500;
+  },
+});
+```
+
 ## ✔️ Timeout
 
 You can specify `timeout` in milliseconds to automatically abort a request after a timeout (default is disabled).

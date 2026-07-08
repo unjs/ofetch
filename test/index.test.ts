@@ -10,6 +10,7 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { isJSONSerializable } from "../src/utils.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -523,5 +524,26 @@ describe("ofetch", () => {
       signal: expect.any(AbortSignal),
       timeout: 10_000,
     });
+  });
+});
+
+describe("isJSONSerializable", () => {
+  it("treats null as serializable without throwing", () => {
+    // `typeof null` is "object", so the old `t === null` check was dead code
+    // and execution fell through to `value.buffer`, throwing on null.
+    // eslint-disable-next-line unicorn/no-null
+    const value = null;
+    expect(() => isJSONSerializable(value)).not.toThrow();
+    expect(isJSONSerializable(value)).toBe(true);
+  });
+
+  it("classifies common values", () => {
+    expect(isJSONSerializable(undefined)).toBe(false);
+    expect(isJSONSerializable("str")).toBe(true);
+    expect(isJSONSerializable(1)).toBe(true);
+    expect(isJSONSerializable({ a: 1 })).toBe(true);
+    expect(isJSONSerializable([1, 2])).toBe(true);
+    expect(isJSONSerializable(new Uint8Array())).toBe(false);
+    expect(isJSONSerializable(() => {})).toBe(false);
   });
 });

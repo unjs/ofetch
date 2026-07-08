@@ -44,7 +44,10 @@ export function withBase(input = "", base = ""): string {
 
   const _base = withoutTrailingSlash(base);
   if (input.startsWith(_base)) {
-    return input;
+    const nextChar = input[_base.length];
+    if (!nextChar || nextChar === "/" || nextChar === "?" || nextChar === "#") {
+      return input;
+    }
   }
 
   return joinURL(_base, input);

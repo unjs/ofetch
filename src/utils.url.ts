@@ -90,6 +90,7 @@ export function withQuery(input: string, query?: QueryObject): string {
     if (value === undefined) {
       searchParams.delete(key);
     } else if (Array.isArray(value)) {
+      searchParams.delete(key);
       for (const item of value) {
         searchParams.append(key, normalizeQueryValue(item));
       }

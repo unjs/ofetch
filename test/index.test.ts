@@ -505,6 +505,45 @@ describe("ofetch", () => {
     expect(onResponseError).toHaveBeenCalledTimes(2);
   });
 
+  describe("safe fetch", () => {
+    it("returns { data, error: undefined } on success", async () => {
+      const result = await $fetch.safe(getURL("ok"));
+      expect(result.data).toBe("ok");
+      expect(result.error).toBeUndefined();
+    });
+
+    it("returns { data: undefined, error } on failure", async () => {
+      const result = await $fetch.safe(getURL("404"));
+      expect(result.data).toBeUndefined();
+      expect(result.error).toBeDefined();
+      expect(result.error?.status).toBe(404);
+    });
+
+    it("returns { data: undefined, error } on network error", async () => {
+      const result = await $fetch.safe("http://localhost:1");
+      expect(result.data).toBeUndefined();
+      expect(result.error).toBeDefined();
+    });
+
+    it("error narrows type correctly", async () => {
+      const result = await $fetch.safe(getURL("403"));
+      if (result.error) {
+        expect(result.data).toBeUndefined();
+        expect(result.error.status).toBe(403);
+        expect(result.error.statusText).toBe("Forbidden");
+      } else {
+        throw new Error("Expected error");
+      }
+    });
+
+    it("works with create()", async () => {
+      const api = $fetch.create({ baseURL: getURL("") });
+      const result = await api.safe("ok");
+      expect(result.data).toBe("ok");
+      expect(result.error).toBeUndefined();
+    });
+  });
+
   it("default fetch options", async () => {
     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {});
     expect(fetch).toHaveBeenCalledOnce();

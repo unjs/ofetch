@@ -2,6 +2,10 @@
 // $fetch API
 // --------------------------
 
+export type SafeResult<T, E = IFetchError> =
+  | { data: T; error: undefined }
+  | { data: undefined; error: E };
+
 export interface $Fetch {
   <T = any, R extends ResponseType = "json">(
     request: FetchRequest,
@@ -13,6 +17,11 @@ export interface $Fetch {
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
   create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
+  /** Returns `{ data, error }` instead of throwing. */
+  safe<T = any, R extends ResponseType = "json">(
+    request: FetchRequest,
+    options?: FetchOptions<R>
+  ): Promise<SafeResult<MappedResponseType<R, T>>>;
 }
 
 // --------------------------

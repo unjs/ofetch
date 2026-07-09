@@ -5,11 +5,11 @@
 export interface $Fetch {
   <T = any, R extends ResponseType = "json">(
     request: FetchRequest,
-    options?: FetchOptions<R>
+    options?: FetchOptions<R, T>
   ): Promise<MappedResponseType<R, T>>;
   raw<T = any, R extends ResponseType = "json">(
     request: FetchRequest,
-    options?: FetchOptions<R>
+    options?: FetchOptions<R, T>
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
   create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;

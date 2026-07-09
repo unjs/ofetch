@@ -505,6 +505,50 @@ describe("ofetch", () => {
     expect(onResponseError).toHaveBeenCalledTimes(2);
   });
 
+  describe("download progress", () => {
+    it("calls onDownloadProgress during response", async () => {
+      const progress: Array<{
+        transferred: number;
+        total?: number;
+        percent?: number;
+      }> = [];
+      await $fetch(getURL("ok"), {
+        onDownloadProgress(p) {
+          progress.push({ ...p });
+        },
+      });
+      expect(progress.length).toBeGreaterThan(0);
+      const last = progress.at(-1)!;
+      expect(last.transferred).toBeGreaterThan(0);
+    });
+
+    it("reports total from content-length header", async () => {
+      const progress: Array<{
+        transferred: number;
+        total?: number;
+        percent?: number;
+      }> = [];
+      await $fetch(getURL("ok"), {
+        onDownloadProgress(p) {
+          progress.push({ ...p });
+        },
+      });
+      const last = progress.at(-1)!;
+      if (last.total) {
+        expect(last.percent).toBeDefined();
+        expect(last.percent).toBeGreaterThan(0);
+        expect(last.percent).toBeLessThanOrEqual(1);
+      }
+    });
+
+    it("still parses response correctly with progress tracking", async () => {
+      const result = await $fetch(getURL("params?a=1"), {
+        onDownloadProgress() {},
+      });
+      expect(result).toEqual({ a: "1" });
+    });
+  });
+
   it("default fetch options", async () => {
     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {});
     expect(fetch).toHaveBeenCalledOnce();

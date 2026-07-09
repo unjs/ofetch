@@ -206,6 +206,61 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       !nullBodyResponses.has(context.response.status) &&
       context.options.method !== "HEAD";
     if (hasBody) {
+      // Download progress tracking
+      // Skip for stream responseType — progress tracking buffers the entire body
+      if (
+        context.options.onDownloadProgress &&
+        context.response.body &&
+        context.options.responseType !== "stream"
+      ) {
+        const total =
+          Number(context.response.headers.get("content-length")) || undefined;
+        let transferred = 0;
+        const reader = context.response.body.getReader();
+        const chunks: Uint8Array[] = [];
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              break;
+            }
+            chunks.push(value);
+            transferred += value.byteLength;
+            context.options.onDownloadProgress({
+              transferred,
+              total,
+              percent: total ? Math.min(transferred / total, 1) : undefined,
+            });
+          }
+        } catch (error) {
+          reader.cancel().catch(() => {});
+          context.error = error as Error;
+          if (context.options.onRequestError) {
+            await callHooks(
+              context as FetchContext & { error: Error },
+              context.options.onRequestError
+            );
+          }
+          return await onError(context);
+        }
+
+        // Reconstruct response from chunks
+        const body = new Uint8Array(transferred);
+        let offset = 0;
+        for (const chunk of chunks) {
+          body.set(chunk, offset);
+          offset += chunk.byteLength;
+        }
+
+        // Create a new response with the collected body for further parsing
+        context.response = new Response(body, {
+          status: context.response.status,
+          statusText: context.response.statusText,
+          headers: context.response.headers,
+        }) as FetchResponse<any>;
+      }
+
       const responseType =
         (context.options.parseResponse
           ? "json"

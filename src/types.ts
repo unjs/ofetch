@@ -68,6 +68,11 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
+
+  /** Define custom hooks */
+  hooks?: {
+    [key: string]: FetchHook<FetchContext<T, R>>;
+  };
 }
 
 export interface ResolvedFetchOptions<

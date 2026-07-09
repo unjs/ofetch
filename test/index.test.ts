@@ -524,4 +524,104 @@ describe("ofetch", () => {
       timeout: 10_000,
     });
   });
+
+  it("call custom hooks", async () => {
+    const customCommon = vi.fn();
+    const customOnRequest = vi.fn();
+    const customOnRequestError = vi.fn();
+    const customOnResponse = vi.fn();
+    const customOnResponseError = vi.fn();
+
+    const onRequest = (context) => {
+      context.options.hooks.customCommon();
+      context.options.hooks.customOnRequest(context.request);
+    };
+    const onRequestError = (context) => {
+      context.options.hooks.customCommon();
+      context.options.hooks.customOnRequestError(context.error.message);
+    };
+    const onResponse = (context) => {
+      context.options.hooks.customCommon();
+      context.options.hooks.customOnResponse(
+        context.response.status,
+        context.response.statusText
+      );
+    };
+    const onResponseError = (context) => {
+      context.options.hooks.customCommon();
+      context.options.hooks.customOnResponseError(
+        context.response.status,
+        context.response.statusText
+      );
+    };
+
+    await $fetch(getURL("/ok"), {
+      onRequest,
+      onRequestError,
+      onResponse,
+      onResponseError,
+      hooks: {
+        customCommon,
+        customOnRequest,
+        customOnRequestError,
+        customOnResponse,
+        customOnResponseError,
+      },
+    });
+
+    expect(customCommon).toHaveBeenCalledTimes(2);
+    expect(customOnRequest).toHaveBeenCalledOnce();
+    expect(customOnRequest).toHaveBeenCalledWith("http://localhost:3000/ok");
+    expect(customOnRequestError).not.toHaveBeenCalled();
+    expect(customOnResponse).toHaveBeenCalledOnce();
+    expect(customOnResponse).toHaveBeenCalledWith(200, "OK");
+    expect(customOnResponseError).not.toHaveBeenCalled();
+
+    customCommon.mockReset();
+    customOnRequest.mockReset();
+    customOnRequestError.mockReset();
+    customOnResponse.mockReset();
+    customOnResponseError.mockReset();
+
+    await $fetch(getURL("/403"), {
+      onRequest,
+      onRequestError,
+      onResponse,
+      onResponseError,
+      hooks: {
+        customCommon,
+        customOnRequest,
+        customOnRequestError,
+        customOnResponse,
+        customOnResponseError,
+      },
+    }).catch((error) => error);
+
+    expect(customCommon).toHaveBeenCalledTimes(3);
+    expect(customOnRequest).toHaveBeenCalledOnce();
+    expect(customOnRequest).toHaveBeenCalledWith("http://localhost:3000/403");
+    expect(customOnRequestError).not.toHaveBeenCalled();
+    expect(customOnResponse).toHaveBeenCalledOnce();
+    expect(customOnResponse).toHaveBeenCalledWith(403, "Forbidden");
+    expect(customOnResponseError).toHaveBeenCalledOnce();
+    expect(customOnResponseError).toHaveBeenCalledWith(403, "Forbidden");
+
+    customCommon.mockReset();
+    customOnRequest.mockReset();
+    customOnRequestError.mockReset();
+    customOnResponse.mockReset();
+    customOnResponseError.mockReset();
+
+    await $fetch("/" /* non absolute is not acceptable */, {
+      onRequestError,
+      hooks: {
+        customCommon,
+        customOnRequestError,
+      },
+    }).catch((error) => error);
+
+    expect(customOnRequestError).toHaveBeenCalledWith(
+      "Failed to parse URL from /"
+    );
+  });
 });

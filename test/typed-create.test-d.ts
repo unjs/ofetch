@@ -1,0 +1,134 @@
+import { describe, expectTypeOf, it } from "vitest";
+import { createFetch } from "../src/fetch.ts";
+import type { $Fetch, TypedFetch } from "../src/types.ts";
+
+// Mock OpenAPI-style schema (similar to openapi-typescript output)
+interface ApiPaths {
+  "/users": {
+    get: {
+      responses: {
+        200: {
+          content: { "application/json": { id: number; name: string }[] };
+        };
+      };
+    };
+    post: {
+      requestBody: {
+        content: { "application/json": { name: string } };
+      };
+      responses: {
+        200: {
+          content: { "application/json": { id: number; name: string } };
+        };
+      };
+    };
+  };
+  "/users/{id}": {
+    get: {
+      responses: {
+        200: { content: { "application/json": { id: number; name: string } } };
+      };
+    };
+    delete: {
+      responses: {
+        200: { content: { "application/json": { success: boolean } } };
+      };
+    };
+  };
+}
+
+describe("typed create", () => {
+  it("$fetch.create returns $Fetch without generics", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create({});
+    expectTypeOf(api).toMatchTypeOf<$Fetch>();
+  });
+
+  it("$fetch.create<S> returns TypedFetch<S>", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+    expectTypeOf(api).toMatchTypeOf<TypedFetch<ApiPaths>>();
+  });
+
+  it("infers GET response type from schema", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+
+    const result = api("/users");
+    expectTypeOf(result).toEqualTypeOf<
+      Promise<{ id: number; name: string }[]>
+    >();
+  });
+
+  it("infers GET response with explicit method", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+
+    const result = api("/users/{id}", { method: "GET" });
+    expectTypeOf(result).toEqualTypeOf<Promise<{ id: number; name: string }>>();
+  });
+
+  it("infers POST response type", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+
+    const result = api("/users", { method: "POST" });
+    expectTypeOf(result).toEqualTypeOf<Promise<{ id: number; name: string }>>();
+  });
+
+  it("infers DELETE response type", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+
+    const result = api("/users/{id}", { method: "DELETE" });
+    expectTypeOf(result).toEqualTypeOf<Promise<{ success: boolean }>>();
+  });
+
+  it("accepts lowercase methods", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+
+    const result = api("/users", { method: "post" });
+    expectTypeOf(result).toEqualTypeOf<Promise<{ id: number; name: string }>>();
+  });
+
+  it("rejects paths not in schema", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+
+    // @ts-expect-error — path not in schema
+    api("/nonexistent");
+  });
+
+  it("TypedFetch.create preserves schema type", () => {
+    const $fetch = createFetch();
+    const api = $fetch.create<ApiPaths>({});
+    const api2 = api.create({ headers: { Authorization: "Bearer ..." } });
+
+    // api2 should still be TypedFetch<ApiPaths>
+    const result = api2("/users");
+    expectTypeOf(result).toEqualTypeOf<
+      Promise<{ id: number; name: string }[]>
+    >();
+  });
+
+  it("works with upper-case schema keys", () => {
+    interface UpperCasePaths {
+      "/health": {
+        GET: {
+          responses: {
+            200: { content: { "application/json": { status: string } } };
+          };
+        };
+      };
+    }
+    const $fetch = createFetch();
+    const api = $fetch.create<UpperCasePaths>({});
+
+    const result = api("/health");
+    expectTypeOf(result).toEqualTypeOf<Promise<{ status: string }>>();
+
+    const result2 = api("/health", { method: "GET" });
+    expectTypeOf(result2).toEqualTypeOf<Promise<{ status: string }>>();
+  });
+});

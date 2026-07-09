@@ -12,7 +12,62 @@ export interface $Fetch {
     options?: FetchOptions<R>
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
-  create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
+  create<S = never>(
+    defaults: FetchOptions,
+    globalOptions?: CreateFetchOptions
+  ): [S] extends [never] ? $Fetch : TypedFetch<S>;
+}
+
+// --------------------------
+// Typed Fetch (OpenAPI support)
+// --------------------------
+
+type UpperMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD";
+type LowerMethod = Lowercase<UpperMethod>;
+type AnyMethod = UpperMethod | LowerMethod;
+
+// Find the actual key in Obj whose lowercase matches Lowercase<K>
+type CaseInsensitiveKey<Obj, K extends string> = {
+  [Key in string & keyof Obj]: Lowercase<Key> extends Lowercase<K>
+    ? Key
+    : never;
+}[string & keyof Obj];
+
+type ExtractMethod<S, P extends keyof S, M extends string> =
+  S[P] extends Record<string, any>
+    ? CaseInsensitiveKey<S[P], M> extends infer ActualKey
+      ? ActualKey extends keyof S[P]
+        ? S[P][ActualKey]
+        : never
+      : never
+    : never;
+
+type ResponseBody<Op> = Op extends {
+  responses: { 200: { content: { "application/json": infer R } } };
+}
+  ? R
+  : Op extends { responses: { 200: { schema: infer R } } }
+    ? R
+    : Op extends { response: infer R }
+      ? R
+      : unknown;
+
+export interface TypedFetch<S> {
+  <P extends string & keyof S, M extends string & AnyMethod = "GET">(
+    request: P,
+    options?: FetchOptions & { method?: M }
+  ): Promise<ResponseBody<ExtractMethod<S, P, M>>>;
+
+  raw<P extends string & keyof S, M extends string & AnyMethod = "GET">(
+    request: P,
+    options?: FetchOptions & { method?: M }
+  ): Promise<FetchResponse<ResponseBody<ExtractMethod<S, P, M>>>>;
+
+  native: Fetch;
+  create(
+    defaults: FetchOptions,
+    globalOptions?: CreateFetchOptions
+  ): TypedFetch<S>;
 }
 
 // --------------------------

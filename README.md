@@ -19,16 +19,24 @@ A better fetch API. Works on node, browser, and workers.
 
 ## 🚀 Quick Start
 
-Install:
+### npm
 
 ```bash
 npx nypm i ofetch
 ```
 
-Import:
-
 ```js
 import { ofetch } from "ofetch";
+```
+
+### JSR
+
+```bash
+jsr add @unjs/ofetch
+```
+
+```js
+import { ofetch } from "@unjs/ofetch";
 ```
 
 ## ✔️ Parsing Response

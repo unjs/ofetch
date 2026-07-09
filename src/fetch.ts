@@ -35,6 +35,7 @@ const nullBodyResponses = new Set([101, 204, 205, 304]);
 
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
+  const _pendingRequests = new Map<string, Promise<FetchResponse<any>>>();
 
   async function onError(context: FetchContext): Promise<FetchResponse<any>> {
     // Is Abort
@@ -127,6 +128,36 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
+    // Request deduplication (after URL is resolved with baseURL/query)
+    if (context.options.dedupe && !isPayloadMethod(context.options.method)) {
+      const method = (context.options.method || "GET").toUpperCase();
+      const requestUrl =
+        typeof context.request === "string"
+          ? context.request
+          : (context.request as Request).url;
+      const dedupeKey = `${method}:${requestUrl}`;
+      const pending = _pendingRequests.get(dedupeKey);
+      if (pending) {
+        return pending;
+      }
+      const execute = async (): Promise<FetchResponse<any>> => {
+        try {
+          return await _executeFetch(context);
+        } finally {
+          _pendingRequests.delete(dedupeKey);
+        }
+      };
+      const promise = execute();
+      _pendingRequests.set(dedupeKey, promise);
+      return promise;
+    }
+
+    return _executeFetch(context);
+  };
+
+  async function _executeFetch(
+    context: FetchContext
+  ): Promise<FetchResponse<any>> {
     if (context.options.body && isPayloadMethod(context.options.method)) {
       if (isJSONSerializable(context.options.body)) {
         const contentType = context.options.headers.get("content-type");
@@ -254,7 +285,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     return context.response;
-  };
+  }
 
   const $fetch = async function $fetch(request, options) {
     const r = await $fetchRaw(request, options);

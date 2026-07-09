@@ -68,6 +68,13 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
+
+  /**
+   * When enabled, identical concurrent requests are coalesced into a single
+   * network call. The response is shared between all callers.
+   * Only applies to non-payload methods (GET, HEAD) by default.
+   */
+  dedupe?: boolean;
 }
 
 export interface ResolvedFetchOptions<

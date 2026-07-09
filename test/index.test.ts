@@ -524,4 +524,13 @@ describe("ofetch", () => {
       timeout: 10_000,
     });
   });
+
+  it("params still works as query alias (deprecated)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const result = await $fetch(getURL("params"), {
+      params: { test: "true" },
+    });
+    expect(result).toEqual({ test: "true" });
+    warn.mockRestore();
+  });
 });

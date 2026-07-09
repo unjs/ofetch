@@ -7,6 +7,16 @@ import type {
   ResponseType,
 } from "./types.ts";
 
+let _paramsDeprecationWarned = false;
+function warnDeprecatedParams() {
+  if (!_paramsDeprecationWarned) {
+    _paramsDeprecationWarned = true;
+    console.warn(
+      "[ofetch] `params` option is deprecated. Use `query` instead."
+    );
+  }
+}
+
 const payloadMethods = new Set(
   Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
 );
@@ -98,7 +108,12 @@ export function resolveFetchOptions<
     Headers
   );
 
-  // Merge query/params
+  // Warn about deprecated `params` usage
+  if (input?.params || defaults?.params) {
+    warnDeprecatedParams();
+  }
+
+  // Merge query/params (params is deprecated alias for query)
   let query: Record<string, any> | undefined;
   if (defaults?.query || defaults?.params || input?.params || input?.query) {
     query = {

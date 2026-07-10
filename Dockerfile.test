@@ -1,0 +1,19 @@
+FROM public.ecr.aws/x8v8d7g8/mars-base:latest
+
+WORKDIR /app
+
+# Copy only manifest first to leverage Docker layer caching
+COPY package.json pnpm-lock.yaml ./
+
+# Ensure non-interactive install in CI contexts
+ENV CI=true
+# Prefer IPv4 to avoid ::1 binding issues in some environments
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
+
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the source
+COPY . .
+
+# Allow passing the test command at runtime
+ENTRYPOINT ["/bin/bash", "-lc"]

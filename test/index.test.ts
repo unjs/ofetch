@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
-import { $fetch } from "../src/index.ts";
+import { $fetch, FetchError, isFetchError } from "../src/index.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -522,6 +522,39 @@ describe("ofetch", () => {
       headers: expect.any(Headers),
       signal: expect.any(AbortSignal),
       timeout: 10_000,
+    });
+  });
+
+  describe("isFetchError", () => {
+    it("returns true for FetchError instances", async () => {
+      const error = await $fetch(getURL("404")).catch((error_: any) => error_);
+      expect(isFetchError(error)).toBe(true);
+      expect(error).toBeInstanceOf(FetchError);
+    });
+
+    it("returns false for non-FetchError values", () => {
+      expect(isFetchError(new Error("test"))).toBe(false);
+      // eslint-disable-next-line unicorn/no-null
+      expect(isFetchError(null)).toBe(false);
+      expect(isFetchError(undefined)).toBe(false);
+      expect(isFetchError("string")).toBe(false);
+      expect(isFetchError({})).toBe(false);
+    });
+
+    it("narrows type correctly", async () => {
+      const error: unknown = await $fetch(getURL("403")).catch(
+        (error_: any) => error_
+      );
+      if (isFetchError(error)) {
+        expect(error.status).toBe(403);
+        expect(error.statusText).toBe("Forbidden");
+        expect(error.data).toBeDefined();
+        expect(error.request).toBeDefined();
+        expect(error.options).toBeDefined();
+        expect(error.response).toBeDefined();
+      } else {
+        throw new Error("Expected FetchError");
+      }
     });
   });
 });

@@ -65,3 +65,7 @@ export function createFetchError<T = any>(
 
   return fetchError;
 }
+
+export function isFetchError<T = any>(error: unknown): error is FetchError<T> {
+  return error instanceof FetchError;
+}

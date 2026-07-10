@@ -13,6 +13,7 @@ import type {
   FetchResponse,
   ResponseType,
   FetchContext,
+  FetchRetryState,
   $Fetch,
   FetchRequest,
   FetchOptions,
@@ -45,34 +46,62 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         context.error.name === "AbortError" &&
         !context.options.timeout) ||
       false;
+
     // Retry
     if (context.options.retry !== false && !isAbort) {
-      let retries;
+      let retryLimit: number;
       if (typeof context.options.retry === "number") {
-        retries = context.options.retry;
+        retryLimit = context.options.retry;
       } else {
-        retries = isPayloadMethod(context.options.method) ? 0 : 1;
+        retryLimit = isPayloadMethod(context.options.method) ? 0 : 1;
       }
 
-      const responseCode = (context.response && context.response.status) || 500;
-      if (
-        retries > 0 &&
-        (Array.isArray(context.options.retryStatusCodes)
-          ? context.options.retryStatusCodes.includes(responseCode)
-          : retryStatusCodes.has(responseCode))
-      ) {
-        const retryDelay =
-          typeof context.options.retryDelay === "function"
-            ? context.options.retryDelay(context)
-            : context.options.retryDelay || 0;
-        if (retryDelay > 0) {
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      const currentAttempt = context.retry?.attempt ?? 0;
+
+      if (retryLimit > 0 && currentAttempt < retryLimit) {
+        // Fallback to 500 for network errors (no response)
+        const responseCode = context.response?.status ?? 500;
+
+        // If retryCondition is provided, it decides. Otherwise fall back to status code check.
+        let shouldRetry: boolean;
+        if (context.options.retryCondition) {
+          shouldRetry = await context.options.retryCondition(context);
+        } else {
+          shouldRetry = Array.isArray(context.options.retryStatusCodes)
+            ? context.options.retryStatusCodes.includes(responseCode)
+            : retryStatusCodes.has(responseCode);
         }
-        // Timeout
-        return $fetchRaw(context.request, {
-          ...context.options,
-          retry: retries - 1,
-        });
+
+        if (shouldRetry) {
+          const retryState: FetchRetryState = {
+            attempt: currentAttempt + 1,
+            limit: retryLimit,
+          };
+
+          // Attach retry state to context for hooks
+          context.retry = retryState;
+
+          // Call onRetry hooks before retrying
+          if (context.options.onRetry) {
+            await callHooks(
+              context as FetchContext & { retry: FetchRetryState },
+              context.options.onRetry
+            );
+          }
+
+          const retryDelay =
+            typeof context.options.retryDelay === "function"
+              ? context.options.retryDelay(context)
+              : context.options.retryDelay || 0;
+          if (retryDelay > 0) {
+            await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          }
+          return $fetchRaw(context.request, {
+            ...context.options,
+            retry: retryLimit,
+            _retryState: retryState,
+          } as any);
+        }
       }
     }
 
@@ -90,16 +119,34 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     T = any,
     R extends ResponseType = "json",
   >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
+    // Extract internal retry state passed from onError
+    const { _retryState, ...userOptions } = _options as FetchOptions<R> & {
+      _retryState?: FetchRetryState;
+    };
+
+    const resolvedOptions = resolveFetchOptions<R, T>(
+      _request,
+      userOptions as FetchOptions<R>,
+      globalOptions.defaults as unknown as FetchOptions<R, T>,
+      Headers
+    );
+
+    // Compute retry limit for initial context
+    let retryLimit = 0;
+    if (resolvedOptions.retry !== false) {
+      if (typeof resolvedOptions.retry === "number") {
+        retryLimit = resolvedOptions.retry;
+      } else {
+        retryLimit = isPayloadMethod(resolvedOptions.method) ? 0 : 1;
+      }
+    }
+
     const context: FetchContext = {
       request: _request,
-      options: resolveFetchOptions<R, T>(
-        _request,
-        _options,
-        globalOptions.defaults as unknown as FetchOptions<R, T>,
-        Headers
-      ),
+      options: resolvedOptions,
       response: undefined,
       error: undefined,
+      retry: _retryState ?? { attempt: 0, limit: retryLimit },
     };
 
     // Uppercase method name

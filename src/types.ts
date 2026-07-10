@@ -68,6 +68,13 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   /** Default is [408, 409, 425, 429, 500, 502, 503, 504] */
   retryStatusCodes?: number[];
+
+  /**
+   * Custom condition to determine whether to retry a request.
+   * When provided, replaces the default status code check entirely.
+   * When absent, falls back to matching against `retryStatusCodes`.
+   */
+  retryCondition?: (context: FetchContext<T, R>) => boolean | Promise<boolean>;
 }
 
 export interface ResolvedFetchOptions<
@@ -91,11 +98,20 @@ export type GlobalOptions = Pick<
 // Hooks and Context
 // --------------------------
 
+export interface FetchRetryState {
+  /** Current retry attempt number (starts at 0 for initial request) */
+  attempt: number;
+  /** Configured maximum number of retries */
+  limit: number;
+}
+
 export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   request: FetchRequest;
   options: ResolvedFetchOptions<R>;
   response?: FetchResponse<T>;
   error?: Error;
+  /** Retry state for the current request */
+  retry?: FetchRetryState;
 }
 
 type MaybePromise<T> = T | Promise<T>;
@@ -113,6 +129,10 @@ export interface FetchHooks<T = any, R extends ResponseType = ResponseType> {
   >;
   onResponseError?: MaybeArray<
     FetchHook<FetchContext<T, R> & { response: FetchResponse<T> }>
+  >;
+  /** Called before a retry attempt. Can be used to modify options (e.g., refresh tokens). */
+  onRetry?: MaybeArray<
+    FetchHook<FetchContext<T, R> & { retry: FetchRetryState }>
   >;
 }
 

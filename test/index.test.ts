@@ -16,6 +16,9 @@ describe("ofetch", () => {
   const getURL = (url: string = "/") =>
     listener.url! + (url.replace(/^\//, "") || "");
 
+  let retryCount = 0;
+  let retryMax = 2;
+
   const fetch = vi.spyOn(globalThis, "fetch");
 
   beforeAll(async () => {
@@ -62,6 +65,13 @@ describe("ofetch", () => {
             resolve(new HTTPError({ status: 408 }));
           }, 1000 * 5);
         });
+      })
+      .all("/retry-count", () => {
+        retryCount++;
+        if (retryCount <= retryMax) {
+          return new HTTPError({ status: 500 });
+        }
+        return { count: retryCount };
       });
 
     listener = await serve(app, { port: 0, hostname: "localhost" }).ready();
@@ -73,6 +83,8 @@ describe("ofetch", () => {
 
   beforeEach(() => {
     fetch.mockClear();
+    retryCount = 0;
+    retryMax = 2;
   });
 
   it("ok", async () => {
@@ -522,6 +534,149 @@ describe("ofetch", () => {
       headers: expect.any(Headers),
       signal: expect.any(AbortSignal),
       timeout: 10_000,
+    });
+  });
+
+  describe("retry", () => {
+    it("exposes retry state in context", async () => {
+      const states: Array<{ attempt: number; limit: number }> = [];
+      await $fetch(getURL("408"), {
+        retry: 2,
+        retryDelay: 1,
+        onResponseError(ctx) {
+          states.push({
+            attempt: ctx.retry?.attempt ?? -1,
+            limit: ctx.retry?.limit ?? -1,
+          });
+        },
+      }).catch(() => {});
+      // limit is always correct, attempt increments
+      expect(states).toEqual([
+        { attempt: 0, limit: 2 },
+        { attempt: 1, limit: 2 },
+        { attempt: 2, limit: 2 },
+      ]);
+    });
+
+    it("exposes retry state in retryDelay callback", async () => {
+      const attempts: number[] = [];
+      await $fetch(getURL("408"), {
+        retry: 3,
+        retryDelay(ctx) {
+          attempts.push(ctx.retry?.attempt ?? -1);
+          return 1;
+        },
+      }).catch(() => {});
+      // retryDelay is called before each retry with the upcoming attempt number
+      expect(attempts).toEqual([1, 2, 3]);
+    });
+
+    it("supports retryCondition callback", async () => {
+      retryMax = 1;
+      const result = await $fetch(getURL("retry-count"), {
+        retry: 3,
+        retryDelay: 1,
+        retryCondition(ctx) {
+          return ctx.response?.status === 500;
+        },
+      });
+      expect(result).toEqual({ count: 2 });
+    });
+
+    it("retryCondition replaces default status code check", async () => {
+      // retryCondition: () => false should prevent retry even for 408
+      await $fetch(getURL("408"), {
+        retry: 1,
+        retryDelay: 1,
+        retryCondition: () => false,
+      }).catch((error: any) => {
+        expect(error.status).toBe(408);
+      });
+      // No retry — retryCondition returned false
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("falls back to retryStatusCodes when no retryCondition", async () => {
+      await $fetch(getURL("408"), {
+        retry: 1,
+        retryDelay: 1,
+      }).catch((error: any) => {
+        expect(error.status).toBe(408);
+      });
+      // 408 is in default retryStatusCodes, so 1 retry happens
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("retries network errors by default (no response)", async () => {
+      await $fetch("http://localhost:1", {
+        retry: 1,
+        retryDelay: 1,
+      }).catch(() => {});
+      // Network error falls back to 500 which is in retryStatusCodes
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("calls onRetry hook before each retry", async () => {
+      const onRetryCalls: Array<{ attempt: number; limit: number }> = [];
+      await $fetch(getURL("408"), {
+        retry: 2,
+        retryDelay: 1,
+        onRetry(ctx) {
+          onRetryCalls.push({ ...ctx.retry });
+        },
+      }).catch(() => {});
+      expect(onRetryCalls).toEqual([
+        { attempt: 1, limit: 2 },
+        { attempt: 2, limit: 2 },
+      ]);
+    });
+
+    it("onRetry can modify request options (e.g., refresh token)", async () => {
+      const headers: string[] = [];
+      const customFetch = $fetch.create({
+        headers: { Authorization: "Bearer expired" },
+      });
+      await customFetch(getURL("408"), {
+        retry: 1,
+        retryDelay: 1,
+        onRetry(ctx) {
+          ctx.options.headers.set("Authorization", "Bearer refreshed");
+        },
+        onRequest(ctx) {
+          headers.push(ctx.options.headers.get("Authorization") ?? "");
+        },
+      }).catch(() => {});
+      expect(headers[0]).toBe("Bearer expired");
+      expect(headers[1]).toBe("Bearer refreshed");
+    });
+
+    it("does not retry on abort even with retryCondition", async () => {
+      const controller = new AbortController();
+      controller.abort();
+      await expect(
+        $fetch(getURL("ok"), {
+          signal: controller.signal,
+          retry: 3,
+          retryCondition: () => true,
+        })
+      ).rejects.toThrow(/aborted/);
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("retryCondition receives error for network failures", async () => {
+      const conditions: Array<{ hasError: boolean; hasResponse: boolean }> = [];
+      await $fetch("http://localhost:1", {
+        retry: 1,
+        retryDelay: 1,
+        retryCondition(ctx) {
+          conditions.push({
+            hasError: !!ctx.error,
+            hasResponse: !!ctx.response,
+          });
+          return true;
+        },
+      }).catch(() => {});
+      expect(conditions).toEqual([{ hasError: true, hasResponse: false }]);
     });
   });
 });

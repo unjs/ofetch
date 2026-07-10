@@ -505,6 +505,89 @@ describe("ofetch", () => {
     expect(onResponseError).toHaveBeenCalledTimes(2);
   });
 
+  describe("hook merging", () => {
+    it("merges default and per-request hooks (defaults run first)", async () => {
+      const order: string[] = [];
+      const customFetch = $fetch.create({
+        onRequest() {
+          order.push("default");
+        },
+      });
+      await customFetch(getURL("ok"), {
+        onRequest() {
+          order.push("per-request");
+        },
+      });
+      expect(order).toEqual(["default", "per-request"]);
+    });
+
+    it("merges array hooks from defaults and per-request", async () => {
+      const order: string[] = [];
+      const customFetch = $fetch.create({
+        onRequest: [
+          () => {
+            order.push("default-1");
+          },
+          () => {
+            order.push("default-2");
+          },
+        ],
+      });
+      await customFetch(getURL("ok"), {
+        onRequest: [
+          () => {
+            order.push("per-request-1");
+          },
+          () => {
+            order.push("per-request-2");
+          },
+        ],
+      });
+      expect(order).toEqual([
+        "default-1",
+        "default-2",
+        "per-request-1",
+        "per-request-2",
+      ]);
+    });
+
+    it("works when only defaults have hooks", async () => {
+      const onRequest = vi.fn();
+      const customFetch = $fetch.create({ onRequest });
+      await customFetch(getURL("ok"));
+      expect(onRequest).toHaveBeenCalledOnce();
+    });
+
+    it("works when only per-request has hooks", async () => {
+      const onRequest = vi.fn();
+      const customFetch = $fetch.create({});
+      await customFetch(getURL("ok"), { onRequest });
+      expect(onRequest).toHaveBeenCalledOnce();
+    });
+
+    it("merges all hook types", async () => {
+      const defaultOnResponse = vi.fn();
+      const defaultOnResponseError = vi.fn();
+      const perRequestOnResponse = vi.fn();
+      const perRequestOnResponseError = vi.fn();
+
+      const customFetch = $fetch.create({
+        onResponse: defaultOnResponse,
+        onResponseError: defaultOnResponseError,
+      });
+
+      await customFetch(getURL("403"), {
+        onResponse: perRequestOnResponse,
+        onResponseError: perRequestOnResponseError,
+      }).catch(() => {});
+
+      expect(defaultOnResponse).toHaveBeenCalledOnce();
+      expect(perRequestOnResponse).toHaveBeenCalledOnce();
+      expect(defaultOnResponseError).toHaveBeenCalledOnce();
+      expect(perRequestOnResponseError).toHaveBeenCalledOnce();
+    });
+  });
+
   it("default fetch options", async () => {
     await $fetch("https://jsonplaceholder.typicode.com/todos/1", {});
     expect(fetch).toHaveBeenCalledOnce();

@@ -116,6 +116,19 @@ describe("ofetch", () => {
     );
   });
 
+  it("baseURL with trailing whitespace is trimmed", async () => {
+    // Trailing control characters (e.g. from .env parsing) should not break URL merging
+    expect(
+      await $fetch("/x?foo=123", { baseURL: getURL("url") + "\r\n" })
+    ).to.equal("/url/x?foo=123");
+    expect(
+      await $fetch("/x?foo=123", { baseURL: getURL("url") + "\t" })
+    ).to.equal("/url/x?foo=123");
+    expect(
+      await $fetch("/x", { baseURL: getURL("url") + "  " })
+    ).to.equal("/url/x");
+  });
+
   it("stringifies posts body automatically", async () => {
     const { body } = await $fetch(getURL("post"), {
       method: "POST",

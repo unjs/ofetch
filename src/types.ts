@@ -12,7 +12,10 @@ export interface $Fetch {
     options?: FetchOptions<R>
   ): Promise<FetchResponse<MappedResponseType<R, T>>>;
   native: Fetch;
-  create(defaults: FetchOptions, globalOptions?: CreateFetchOptions): $Fetch;
+  create<R extends ResponseType = ResponseType, T = any>(
+    defaults: FetchOptions<R, T>,
+    globalOptions?: CreateFetchOptions
+  ): $Fetch;
 }
 
 // --------------------------

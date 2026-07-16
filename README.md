@@ -114,7 +114,7 @@ await ofetch("/url", { ignoreResponseError: true });
 
 You can specify the amount of retry and delay between them using `retry` and `retryDelay` options and also pass a custom array of codes using `retryStatusCodes` option.
 
-The default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH`, and `DELETE` methods where `ofetch` does not retry by default to avoid introducing side effects. If you set a custom value for `retry` it will **always retry** for all requests.
+The default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH`, and `DELETE` methods where `ofetch` does not retry by default to avoid introducing side effects. The `QUERY` method (which carries a payload but is safe and idempotent) does retry by default. If you set a custom value for `retry` it will **always retry** for all requests.
 
 The default for `retryDelay` is `0` ms.
 

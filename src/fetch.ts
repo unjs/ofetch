@@ -3,6 +3,7 @@ import { withBase, withQuery } from "./utils.url.ts";
 import { createFetchError } from "./error.ts";
 import {
   isPayloadMethod,
+  isNonRetryableMethod,
   isJSONSerializable,
   detectResponseType,
   resolveFetchOptions,
@@ -51,7 +52,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (typeof context.options.retry === "number") {
         retries = context.options.retry;
       } else {
-        retries = isPayloadMethod(context.options.method) ? 0 : 1;
+        retries = isNonRetryableMethod(context.options.method) ? 0 : 1;
       }
 
       const responseCode = (context.response && context.response.status) || 500;

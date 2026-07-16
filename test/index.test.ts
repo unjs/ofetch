@@ -158,6 +158,21 @@ describe("ofetch", () => {
     }
   });
 
+  it("stringifies QUERY body automatically", async () => {
+    const { body } = await $fetch(getURL("post"), {
+      method: "QUERY",
+      body: { query: "{ users { name } }" },
+    });
+    expect(body).to.deep.eq({ query: "{ users { name } }" });
+
+    const { headers } = await $fetch(getURL("post"), {
+      method: "QUERY",
+      body: { query: "{ users { name } }" },
+    });
+    expect(headers).to.include({ "content-type": "application/json" });
+    expect(headers).to.include({ accept: "application/json" });
+  });
+
   it("does not stringify body when content type != application/json", async () => {
     const message = '"Hallo von Pascal"';
     const { body } = await $fetch(getURL("echo"), {

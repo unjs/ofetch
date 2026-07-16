@@ -8,10 +8,20 @@ import type {
 } from "./types.ts";
 
 const payloadMethods = new Set(
-  Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
+  Object.freeze(["PATCH", "POST", "PUT", "DELETE", "QUERY"])
 );
 export function isPayloadMethod(method = "GET"): boolean {
   return payloadMethods.has(method.toUpperCase());
+}
+
+// Payload methods that are NOT safe/idempotent — these won't retry by default
+// to avoid unintended side effects. QUERY is excluded because it's defined as
+// safe and idempotent per RFC 10008.
+const nonRetryableMethods = new Set(
+  Object.freeze(["POST", "PUT", "PATCH", "DELETE"])
+);
+export function isNonRetryableMethod(method = "GET"): boolean {
+  return nonRetryableMethods.has(method.toUpperCase());
 }
 
 export function isJSONSerializable(value: any): boolean {

@@ -60,7 +60,7 @@ If an object or a class with a `.toJSON()` method is passed to the `body` option
 
 `ofetch` utilizes `JSON.stringify()` to convert the passed object. Classes without a `.toJSON()` method have to be converted into a string value in advance before being passed to the `body` option.
 
-For `PUT`, `PATCH`, and `POST` request methods, when a string or object body is set, `ofetch` adds the default `"content-type": "application/json"` and `accept: "application/json"` headers (which you can always override).
+For `PUT`, `PATCH`, `POST`, `DELETE`, and `QUERY` request methods, when a string or object body is set, `ofetch` adds the default `"content-type": "application/json"` and `accept: "application/json"` headers (which you can always override).
 
 Additionally, `ofetch` supports binary responses with `Buffer`, `ReadableStream`, `Stream`, and [compatible body types](https://developer.mozilla.org/en-US/docs/Web/API/fetch#body). `ofetch` will automatically set the `duplex: "half"` option for streaming support!
 
@@ -114,7 +114,15 @@ await ofetch("/url", { ignoreResponseError: true });
 
 You can specify the amount of retry and delay between them using `retry` and `retryDelay` options and also pass a custom array of codes using `retryStatusCodes` option.
 
-The default for `retry` is `1` retry, except for `POST`, `PUT`, `PATCH`, and `DELETE` methods where `ofetch` does not retry by default to avoid introducing side effects. If you set a custom value for `retry` it will **always retry** for all requests.
+The default retry behavior depends on the request method:
+
+- **Default** (`retry: 1`) — applies to `GET`, `HEAD`, `QUERY`, and other safe methods.
+- **No retry by default** (`retry: 0`) — applies to `POST`, `PUT`, `PATCH`, and `DELETE` to avoid introducing side effects.
+
+You can override the default by setting `retry` explicitly:
+
+- A **positive number** overrides the method-specific default and will retry for all requests.
+- **`false`** or **`0`** disables retries entirely.
 
 The default for `retryDelay` is `0` ms.
 

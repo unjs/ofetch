@@ -75,7 +75,11 @@ export function detectResponseType(_contentType = ""): ResponseType {
     return "stream";
   }
 
-  if (textTypes.has(contentType) || contentType.startsWith("text/")) {
+  if (
+    textTypes.has(contentType) ||
+    contentType.startsWith("text/") ||
+    contentType.endsWith("+xml")
+  ) {
     return "text";
   }
 

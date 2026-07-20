@@ -47,6 +47,10 @@ describe("ofetch", () => {
         event.res.headers.set("Content-Type", "application/octet-stream");
         return new Blob(["binary"]);
       })
+      .all("/rss", (event) => {
+        event.res.headers.set("Content-Type", "application/rss+xml");
+        return "<rss></rss>";
+      })
       .all(
         "/403",
         () => new HTTPError({ status: 403, statusMessage: "Forbidden" })
@@ -108,6 +112,10 @@ describe("ofetch", () => {
 
   it("returns a blob for binary content-type", async () => {
     expect(await $fetch(getURL("binary"))).to.be.instanceOf(Blob);
+  });
+
+  it("returns text for +xml content-type", async () => {
+    expect(await $fetch(getURL("rss"))).to.equal("<rss></rss>");
   });
 
   it("baseURL", async () => {

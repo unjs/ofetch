@@ -257,6 +257,36 @@ const apiFetch = ofetch.create({ baseURL: "/api" });
 apiFetch("/test"); // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
+## ✔️ Custom `fetch` implementation
+
+`ofetch` calls the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) under the hood. By default it uses `globalThis.fetch`, but you can provide your own implementation when creating an instance.
+
+This is useful for tests (mocking requests), forcing a specific runtime implementation (for example [undici](https://undici.nodejs.org/) in Node.js), or environments where you need a custom `fetch` wrapper.
+
+Pass `fetch` to `createFetch` or as the second argument of `ofetch.create`:
+
+```ts
+import { createFetch } from "ofetch";
+
+const $fetch = createFetch({
+  fetch: myCustomFetch,
+  defaults: {
+    baseURL: "/api",
+  },
+});
+```
+
+```ts
+import { ofetch } from "ofetch";
+
+const apiFetch = ofetch.create(
+  { baseURL: "/api" },
+  { fetch: myCustomFetch }
+);
+```
+
+The custom `fetch` must match the standard `fetch(input, init?)` signature. All `ofetch` features (JSON body handling, retries, hooks, and so on) still run on top of it.
+
 ## 💡 Adding headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:

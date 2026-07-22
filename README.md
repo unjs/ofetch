@@ -272,15 +272,28 @@ await ofetch("/movies", {
 
 ## 🍣 Access to Raw Response
 
-If you need to access raw response (for headers, etc), you can use `ofetch.raw`:
+If you need to access response headers or status while still using `ofetch` parsing, use `ofetch.raw`:
 
 ```js
 const response = await ofetch.raw("/sushi");
 
-// response._data
+// response.status
 // response.headers
-// ...
+// response._data
 ```
+
+`ofetch.raw` returns the native `Response` object, but `ofetch` still reads and parses the body for you. The parsed result is available on `response._data` (the same value returned by `ofetch()`).
+
+Because the body stream is consumed during parsing, calling `response.json()`, `response.blob()`, `response.text()`, or similar methods on the returned response will throw a "body stream already read" error. Read the parsed body from `response._data` instead:
+
+```js
+const response = await ofetch.raw("/favicon.png", { responseType: "blob" });
+
+const blob = response._data; // Blob
+// await response.blob() // throws: body already consumed
+```
+
+In `onResponseError` hooks, use `error.data` to access the parsed error response body.
 
 ## 🌿 Using Native Fetch
 

@@ -50,6 +50,7 @@ const textTypes = new Set([
 ]);
 
 const JSON_RE = /^application\/(?:[\w!#$%&*.^`~-]*\+)?json(;.+)?$/i;
+const XML_RE = /^(?:application|image)\/(?:[\w!#$%&*.^`~-]+\+)?xml$/i;
 
 // This provides reasonable defaults for the correct parser based on Content-Type header.
 export function detectResponseType(_contentType = ""): ResponseType {
@@ -75,7 +76,11 @@ export function detectResponseType(_contentType = ""): ResponseType {
     return "stream";
   }
 
-  if (textTypes.has(contentType) || contentType.startsWith("text/")) {
+  if (
+    XML_RE.test(contentType) ||
+    textTypes.has(contentType) ||
+    contentType.startsWith("text/")
+  ) {
     return "text";
   }
 

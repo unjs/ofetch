@@ -10,6 +10,28 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { detectResponseType } from "../src/utils.ts";
+
+describe("detectResponseType", () => {
+  it.each([
+    "application/xml",
+    "application/rss+xml",
+    "application/atom+xml",
+    "application/xhtml+xml",
+    "image/svg+xml",
+    "text/xml",
+    "application/soap+xml; charset=utf-8",
+    "APPLICATION/RSS+XML",
+  ])("detects %s as text", (contentType) => {
+    expect(detectResponseType(contentType)).to.equal("text");
+  });
+
+  it("preserves other response type detection", () => {
+    expect(detectResponseType("application/octet-stream")).to.equal("blob");
+    expect(detectResponseType("application/ld+json")).to.equal("json");
+    expect(detectResponseType("text/event-stream")).to.equal("stream");
+  });
+});
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;

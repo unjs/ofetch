@@ -66,6 +66,15 @@ export function withQuery(input: string, query?: QueryObject): string {
     return input;
   }
 
+  // The fragment always comes last (RFC 3986), so split it off before
+  // touching the query and re-append it at the end.
+  const hashIndex = input.indexOf("#");
+  let hash = "";
+  if (hashIndex !== -1) {
+    hash = input.slice(hashIndex);
+    input = input.slice(0, hashIndex);
+  }
+
   const searchIndex = input.indexOf("?");
 
   if (searchIndex === -1) {
@@ -80,7 +89,7 @@ export function withQuery(input: string, query?: QueryObject): string {
       });
     const searchParams = new URLSearchParams(normalizedQuery);
     const queryString = searchParams.toString();
-    return queryString ? `${input}?${queryString}` : input;
+    return queryString ? `${input}?${queryString}${hash}` : `${input}${hash}`;
   }
 
   const searchParams = new URLSearchParams(input.slice(searchIndex + 1));
@@ -99,7 +108,7 @@ export function withQuery(input: string, query?: QueryObject): string {
   }
 
   const queryString = searchParams.toString();
-  return queryString ? `${base}?${queryString}` : base;
+  return queryString ? `${base}?${queryString}${hash}` : `${base}${hash}`;
 }
 
 function normalizeQueryValue(value: QueryValue): string {

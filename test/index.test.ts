@@ -382,6 +382,30 @@ describe("ofetch", () => {
     expect(parseParams(path)).toMatchObject({ a: "1", b: "2", c: "3" });
   });
 
+  it("keeps the hash out of the query", async () => {
+    // The hash is always last, so query params have to be inserted before it.
+    expect(
+      await $fetch(getURL("echo#hash"), { query: { foo: "1" } }).then(
+        (r) => r.path
+      )
+    ).to.equal("/echo?foo=1");
+
+    expect(
+      await $fetch(getURL("echo?a=1#hash"), { query: { b: "2" } }).then(
+        (r) => r.path
+      )
+    ).to.equal("/echo?a=1&b=2");
+
+    let requestURL: string | undefined;
+    await $fetch(getURL("echo#hash"), {
+      query: { foo: "1" },
+      onResponse({ request }) {
+        requestURL = request as string;
+      },
+    });
+    expect(requestURL).to.equal(getURL("echo") + "?foo=1#hash");
+  });
+
   it("uses request headers", async () => {
     expect(
       await $fetch(

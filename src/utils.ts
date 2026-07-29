@@ -25,6 +25,9 @@ export function isJSONSerializable(value: any): boolean {
   if (t !== "object") {
     return false; // bigint, function, symbol, undefined
   }
+  if (value === null) {
+    return true;
+  }
   if (Array.isArray(value)) {
     return true;
   }
@@ -47,6 +50,8 @@ const textTypes = new Set([
   "application/xml",
   "application/xhtml",
   "application/html",
+  "application/rss+xml",
+  "application/atom+xml",
 ]);
 
 const JSON_RE = /^application\/(?:[\w!#$%&*.^`~-]*\+)?json(;.+)?$/i;

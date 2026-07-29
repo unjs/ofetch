@@ -88,6 +88,56 @@ export type GlobalOptions = Pick<
 >;
 
 // --------------------------
+// Retry
+// --------------------------
+
+/**
+ * Augment via `declare module "ofetch"` to type custom retry causes:
+ *
+ * ```ts
+ * declare module "ofetch" {
+ *   interface FetchTypes {
+ *     retryCause: "auth" | "warmup"; // strict
+ *     retryCause: "auth" | "warmup" | (string & {}); // also allow any string
+ *   }
+ * }
+ * ```
+ */
+export interface FetchTypes {}
+
+export type RetryCause =
+  | "auto"
+  | "manual"
+  | (FetchTypes extends { retryCause: infer T extends string }
+      ? T
+      : string & {});
+
+export type RetryTrigger = "status" | "network" | "timeout";
+
+export interface RetryEntry {
+  cause: RetryCause;
+  trigger: RetryTrigger;
+  status?: number;
+}
+
+export interface RetryHistory {
+  readonly history: readonly RetryEntry[];
+  readonly last: RetryEntry | undefined;
+  count(cause?: RetryCause): number;
+}
+
+export interface RetryIntent<T = any, R extends ResponseType = ResponseType> {
+  /**
+   * `'auto'` is reserved for automatic retries
+   * @default 'manual'
+   */
+  cause?: Exclude<RetryCause, "auto">;
+  request?: FetchRequest;
+  options?: FetchOptions<R, T>;
+  delay?: number;
+}
+
+// --------------------------
 // Hooks and Context
 // --------------------------
 
@@ -96,23 +146,33 @@ export interface FetchContext<T = any, R extends ResponseType = ResponseType> {
   options: ResolvedFetchOptions<R>;
   response?: FetchResponse<T>;
   error?: Error;
+  retries: RetryHistory;
+  pendingRetry?: RetryIntent<T, R>;
+  retry(intent?: RetryIntent<T, R>): RetryIntent<T, R>;
+  cancelRetry(): void;
 }
 
 type MaybePromise<T> = T | Promise<T>;
 type MaybeArray<T> = T | T[];
 
-export type FetchHook<C extends FetchContext = FetchContext> = (
+export type FetchHook<C extends FetchContext<any, any> = FetchContext> = (
   context: C
 ) => MaybePromise<void>;
 
+export type FetchRetryHook<C extends FetchContext<any, any> = FetchContext> = (
+  context: C
+) => MaybePromise<void | ReturnType<C["retry"]>>;
+
 export interface FetchHooks<T = any, R extends ResponseType = ResponseType> {
   onRequest?: MaybeArray<FetchHook<FetchContext<T, R>>>;
-  onRequestError?: MaybeArray<FetchHook<FetchContext<T, R> & { error: Error }>>;
+  onRequestError?: MaybeArray<
+    FetchRetryHook<FetchContext<T, R> & { error: Error }>
+  >;
   onResponse?: MaybeArray<
-    FetchHook<FetchContext<T, R> & { response: FetchResponse<T> }>
+    FetchRetryHook<FetchContext<T, R> & { response: FetchResponse<T> }>
   >;
   onResponseError?: MaybeArray<
-    FetchHook<FetchContext<T, R> & { response: FetchResponse<T> }>
+    FetchRetryHook<FetchContext<T, R> & { response: FetchResponse<T> }>
   >;
 }
 
@@ -151,6 +211,7 @@ export interface IFetchError<T = any> extends Error {
   statusText?: string;
   statusCode?: number;
   statusMessage?: string;
+  retries?: readonly RetryEntry[];
 }
 
 // --------------------------

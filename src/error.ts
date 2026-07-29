@@ -49,6 +49,12 @@ export function createFetchError<T = any>(
     });
   }
 
+  Object.defineProperty(fetchError, "retries", {
+    get() {
+      return ctx.retries?.history;
+    },
+  });
+
   for (const [key, refKey] of [
     ["data", "_data"],
     ["status", "status"],

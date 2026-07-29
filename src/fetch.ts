@@ -7,15 +7,21 @@ import {
   detectResponseType,
   resolveFetchOptions,
   callHooks,
+  callRetryHooks,
+  createRetryIntent,
+  createRetryHistory,
+  mergeRetryOptions,
+  sleep,
 } from "./utils.ts";
 import type {
   CreateFetchOptions,
   FetchResponse,
-  ResponseType,
   FetchContext,
   $Fetch,
   FetchRequest,
   FetchOptions,
+  RetryEntry,
+  RetryTrigger,
 } from "./types.ts";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -36,43 +42,78 @@ const nullBodyResponses = new Set([101, 204, 205, 304]);
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
 
-  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  async function onError(
+    context: FetchContext,
+    history: RetryEntry[],
+    timeoutSignal?: AbortSignal
+  ): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
     const isAbort =
       (context.error &&
-        context.error.name === "AbortError" &&
-        !context.options.timeout) ||
+        ((context.error.name === "AbortError" && !timeoutSignal?.aborted) ||
+          context.options.signal?.aborted)) ||
       false;
-    // Retry
-    if (context.options.retry !== false && !isAbort) {
-      let retries;
-      if (typeof context.options.retry === "number") {
-        retries = context.options.retry;
-      } else {
-        retries = isPayloadMethod(context.options.method) ? 0 : 1;
+
+    if (!isAbort) {
+      let trigger: RetryTrigger = "network";
+      if (context.response) {
+        trigger = "status";
+      } else if (
+        context.error &&
+        (context.error.name === "TimeoutError" ||
+          (context.error.name === "AbortError" && timeoutSignal?.aborted))
+      ) {
+        trigger = "timeout";
       }
 
-      const responseCode = (context.response && context.response.status) || 500;
-      if (
-        retries > 0 &&
-        (Array.isArray(context.options.retryStatusCodes)
-          ? context.options.retryStatusCodes.includes(responseCode)
-          : retryStatusCodes.has(responseCode))
-      ) {
-        const retryDelay =
-          typeof context.options.retryDelay === "function"
-            ? context.options.retryDelay(context)
-            : context.options.retryDelay || 0;
-        if (retryDelay > 0) {
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      // Manual retry claimed by a hook
+      if (context.pendingRetry) {
+        return performRetry(context, history, trigger);
+      }
+
+      // Automatic retry
+      if (context.options.retry !== false) {
+        let retries;
+        if (typeof context.options.retry === "number") {
+          retries = context.options.retry;
+        } else {
+          retries = isPayloadMethod(context.options.method) ? 0 : 1;
         }
-        // Timeout
-        return $fetchRaw(context.request, {
-          ...context.options,
-          retry: retries - 1,
-        });
+
+        // Count the number of automatic retries since the last manual fetch
+        let autoUsed = 0;
+        for (
+          let i = history.length - 1;
+          i >= 0 && history[i].cause === "auto";
+          i--
+        ) {
+          autoUsed++;
+        }
+
+        const responseCode =
+          (context.response && context.response.status) || 500;
+        if (
+          autoUsed < retries &&
+          (Array.isArray(context.options.retryStatusCodes)
+            ? context.options.retryStatusCodes.includes(responseCode)
+            : retryStatusCodes.has(responseCode))
+        ) {
+          const retryDelay =
+            typeof context.options.retryDelay === "function"
+              ? context.options.retryDelay(context)
+              : context.options.retryDelay || 0;
+          if (retryDelay > 0) {
+            await sleep(retryDelay, context.options.signal ?? undefined);
+          }
+          history.push({
+            cause: "auto",
+            trigger,
+            status: context.response?.status,
+          });
+          return doFetch(context.request, context.options, history);
+        }
       }
     }
 
@@ -81,25 +122,55 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     // Only available on V8 based runtimes (https://v8.dev/docs/stack-trace-api)
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(error, $fetchRaw);
+      Error.captureStackTrace(error, doFetch);
     }
     throw error;
   }
 
-  const $fetchRaw: $Fetch["raw"] = async function $fetchRaw<
-    T = any,
-    R extends ResponseType = "json",
-  >(_request: FetchRequest, _options: FetchOptions<R> = {}) {
+  async function performRetry(
+    context: FetchContext,
+    history: RetryEntry[],
+    trigger: RetryTrigger
+  ): Promise<FetchResponse<any>> {
+    const intent = context.pendingRetry!;
+    history.push({
+      cause: intent.cause || "manual",
+      trigger,
+      status: context.response?.status,
+    });
+    if (intent.delay && intent.delay > 0) {
+      await sleep(intent.delay, context.options.signal ?? undefined);
+    }
+    return doFetch(
+      intent.request === undefined ? context.request : intent.request,
+      intent.options
+        ? mergeRetryOptions(context.options, intent.options)
+        : context.options,
+      history
+    );
+  }
+
+  async function doFetch(
+    _request: FetchRequest,
+    _options: FetchOptions,
+    history: RetryEntry[]
+  ): Promise<FetchResponse<any>> {
     const context: FetchContext = {
       request: _request,
-      options: resolveFetchOptions<R, T>(
+      options: resolveFetchOptions(
         _request,
         _options,
-        globalOptions.defaults as unknown as FetchOptions<R, T>,
+        globalOptions.defaults,
         Headers
       ),
       response: undefined,
       error: undefined,
+      retries: createRetryHistory(history),
+      pendingRetry: undefined,
+      retry: (intent) => createRetryIntent(context, intent),
+      cancelRetry: () => {
+        context.pendingRetry = undefined;
+      },
     };
 
     // Uppercase method name
@@ -166,35 +237,34 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    let abortTimeout: NodeJS.Timeout | undefined;
-
-    if (context.options.timeout) {
-      context.options.signal = context.options.signal
-        ? AbortSignal.any([
-            AbortSignal.timeout(context.options.timeout),
-            context.options.signal,
-          ])
-        : AbortSignal.timeout(context.options.timeout);
-    }
+    // The timeout applies per attempt: a fresh timeout signal is created for
+    // every attempt and combined with the caller's signal, which is kept
+    // untouched on `context.options` so retries start from a clean slate.
+    const timeoutSignal = context.options.timeout
+      ? AbortSignal.timeout(context.options.timeout)
+      : undefined;
 
     try {
       context.response = await fetch(
         context.request,
-        context.options as RequestInit
+        (timeoutSignal
+          ? {
+              ...context.options,
+              signal: context.options.signal
+                ? AbortSignal.any([timeoutSignal, context.options.signal])
+                : timeoutSignal,
+            }
+          : context.options) as RequestInit
       );
     } catch (error) {
       context.error = error as Error;
       if (context.options.onRequestError) {
-        await callHooks(
+        await callRetryHooks(
           context as FetchContext & { error: Error },
           context.options.onRequestError
         );
       }
-      return await onError(context);
-    } finally {
-      if (abortTimeout) {
-        clearTimeout(abortTimeout);
-      }
+      return await onError(context, history, timeoutSignal);
     }
 
     const hasBody =
@@ -233,7 +303,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     if (context.options.onResponse) {
-      await callHooks(
+      await callRetryHooks(
         context as FetchContext & { response: FetchResponse<any> },
         context.options.onResponse
       );
@@ -245,16 +315,27 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       context.response.status < 600
     ) {
       if (context.options.onResponseError) {
-        await callHooks(
+        await callRetryHooks(
           context as FetchContext & { response: FetchResponse<any> },
           context.options.onResponseError
         );
       }
-      return await onError(context);
+      return await onError(context, history, timeoutSignal);
+    }
+
+    if (context.pendingRetry) {
+      return performRetry(context, history, "status");
     }
 
     return context.response;
-  };
+  }
+
+  const $fetchRaw = function $fetchRaw(
+    _request: FetchRequest,
+    _options: FetchOptions = {}
+  ) {
+    return doFetch(_request, _options, []);
+  } as $Fetch["raw"];
 
   const $fetch = async function $fetch(request, options) {
     const r = await $fetchRaw(request, options);

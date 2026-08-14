@@ -18,6 +18,8 @@ describe("ofetch", () => {
 
   const fetch = vi.spyOn(globalThis, "fetch");
 
+  let timeoutThenOkCount = 0;
+
   beforeAll(async () => {
     const app = new H3({ debug: true })
       // .use(async (event) => {
@@ -62,6 +64,14 @@ describe("ofetch", () => {
             resolve(new HTTPError({ status: 408 }));
           }, 1000 * 5);
         });
+      })
+      .all("/timeout-then-ok", async () => {
+        timeoutThenOkCount++;
+        // Slow enough to trip a short timeout only on the first attempt.
+        if (timeoutThenOkCount === 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000 * 5));
+        }
+        return "ok";
       });
 
     listener = await serve(app, { port: 0, hostname: "localhost" }).ready();
@@ -342,6 +352,18 @@ describe("ofetch", () => {
       expect(error.cause.name).to.equal("TimeoutError");
       expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
+  });
+
+  it("retry after a timeout uses a fresh timeout for each attempt", async () => {
+    timeoutThenOkCount = 0;
+    // The first attempt times out; the retry must get its own timeout window
+    // (not reuse the already aborted signal) so it can succeed.
+    const result = await $fetch(getURL("timeout-then-ok"), {
+      timeout: 100,
+      retry: 2,
+    });
+    expect(result).to.equal("ok");
+    expect(timeoutThenOkCount).toBeGreaterThanOrEqual(2);
   });
 
   it("deep merges defaultOptions", async () => {

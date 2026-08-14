@@ -168,20 +168,23 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     let abortTimeout: NodeJS.Timeout | undefined;
 
+    // Derive a fresh timeout signal for each attempt without persisting it on
+    // `context.options.signal`. Otherwise a retry triggered by a timeout would
+    // reuse the already aborted signal and abort immediately instead of getting
+    // its own timeout window.
+    let fetchOptions = context.options as RequestInit;
     if (context.options.timeout) {
-      context.options.signal = context.options.signal
-        ? AbortSignal.any([
-            AbortSignal.timeout(context.options.timeout),
-            context.options.signal,
-          ])
-        : AbortSignal.timeout(context.options.timeout);
+      const timeoutSignal = AbortSignal.timeout(context.options.timeout);
+      fetchOptions = {
+        ...context.options,
+        signal: context.options.signal
+          ? AbortSignal.any([timeoutSignal, context.options.signal])
+          : timeoutSignal,
+      } as RequestInit;
     }
 
     try {
-      context.response = await fetch(
-        context.request,
-        context.options as RequestInit
-      );
+      context.response = await fetch(context.request, fetchOptions);
     } catch (error) {
       context.error = error as Error;
       if (context.options.onRequestError) {

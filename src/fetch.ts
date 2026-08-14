@@ -197,6 +197,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       );
     } catch (error) {
       context.error = error as Error;
+      if (abortTimeout) {
+        clearTimeout(abortTimeout);
+      }
       if (context.options.onRequestError) {
         await callHooks(
           context as FetchContext & { error: Error },
@@ -204,68 +207,79 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         );
       }
       return await onError(context);
+    }
+
+    // Keep the timeout armed until the body is consumed. Clearing it in the
+    // fetch() finally (headers received) left incomplete bodies hanging forever.
+    // https://github.com/unjs/ofetch/issues/620
+    try {
+      const hasBody =
+        (context.response.body ||
+          // https://github.com/unjs/ofetch/issues/324
+          // https://github.com/unjs/ofetch/issues/294
+          // https://github.com/JakeChampion/fetch/issues/1454
+          (context.response as any)._bodyInit) &&
+        !nullBodyResponses.has(context.response.status) &&
+        context.options.method !== "HEAD";
+      if (hasBody) {
+        const responseType =
+          (context.options.parseResponse
+            ? "json"
+            : context.options.responseType) ||
+          detectResponseType(context.response.headers.get("content-type") || "");
+
+        // We override the `.json()` method to parse the body more securely with `destr`
+        switch (responseType) {
+          case "json": {
+            const data = await context.response.text();
+            const parseFunction = context.options.parseResponse || destr;
+            context.response._data = parseFunction(data);
+            break;
+          }
+          case "stream": {
+            context.response._data =
+              context.response.body || (context.response as any)._bodyInit; // (see refs above)
+            break;
+          }
+          default: {
+            context.response._data = await context.response[responseType]();
+          }
+        }
+      }
+
+      if (context.options.onResponse) {
+        await callHooks(
+          context as FetchContext & { response: FetchResponse<any> },
+          context.options.onResponse
+        );
+      }
+
+      if (
+        !context.options.ignoreResponseError &&
+        context.response.status >= 400 &&
+        context.response.status < 600
+      ) {
+        if (context.options.onResponseError) {
+          await callHooks(
+            context as FetchContext & { response: FetchResponse<any> },
+            context.options.onResponseError
+          );
+        }
+        return await onError(context);
+      }
+
+      return context.response;
+    } catch (error) {
+      if (context.options.signal?.aborted) {
+        context.error = error as Error;
+        return await onError(context);
+      }
+      throw error;
     } finally {
       if (abortTimeout) {
         clearTimeout(abortTimeout);
       }
     }
-
-    const hasBody =
-      (context.response.body ||
-        // https://github.com/unjs/ofetch/issues/324
-        // https://github.com/unjs/ofetch/issues/294
-        // https://github.com/JakeChampion/fetch/issues/1454
-        (context.response as any)._bodyInit) &&
-      !nullBodyResponses.has(context.response.status) &&
-      context.options.method !== "HEAD";
-    if (hasBody) {
-      const responseType =
-        (context.options.parseResponse
-          ? "json"
-          : context.options.responseType) ||
-        detectResponseType(context.response.headers.get("content-type") || "");
-
-      // We override the `.json()` method to parse the body more securely with `destr`
-      switch (responseType) {
-        case "json": {
-          const data = await context.response.text();
-          const parseFunction = context.options.parseResponse || destr;
-          context.response._data = parseFunction(data);
-          break;
-        }
-        case "stream": {
-          context.response._data =
-            context.response.body || (context.response as any)._bodyInit; // (see refs above)
-          break;
-        }
-        default: {
-          context.response._data = await context.response[responseType]();
-        }
-      }
-    }
-
-    if (context.options.onResponse) {
-      await callHooks(
-        context as FetchContext & { response: FetchResponse<any> },
-        context.options.onResponse
-      );
-    }
-
-    if (
-      !context.options.ignoreResponseError &&
-      context.response.status >= 400 &&
-      context.response.status < 600
-    ) {
-      if (context.options.onResponseError) {
-        await callHooks(
-          context as FetchContext & { response: FetchResponse<any> },
-          context.options.onResponseError
-        );
-      }
-      return await onError(context);
-    }
-
-    return context.response;
   };
 
   const $fetch = async function $fetch(request, options) {

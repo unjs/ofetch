@@ -90,6 +90,16 @@ describe("ofetch", () => {
             }, 1000 * 5);
           });
         })
+      )
+      .use(
+        "/slow-body",
+        eventHandler(async (event) => {
+          event.node.res.writeHead(200, {
+            "content-type": "text/plain; charset=utf-8",
+          });
+          event.node.res.write("partial");
+          await new Promise(() => {});
+        })
       );
 
     listener = await listen(toNodeListener(app));
@@ -375,6 +385,18 @@ describe("ofetch", () => {
       expect(error.cause.name).to.equal("TimeoutError");
       expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
+  });
+
+  it("aborts when response body does not finish before timeout", async () => {
+    const start = Date.now();
+    await expect(
+      $fetch(getURL("slow-body"), {
+        timeout: 150,
+        retry: 0,
+        responseType: "text",
+      })
+    ).rejects.toBeDefined();
+    expect(Date.now() - start).toBeLessThan(1500);
   });
 
   it("deep merges defaultOptions", async () => {

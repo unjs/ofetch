@@ -136,6 +136,8 @@ await ofetch("http://google.com/404", {
 });
 ```
 
+When combined with auto retry, each attempt gets its own fresh `timeout` window.
+
 ## ✔️ Type Friendly
 
 The response can be type assisted:

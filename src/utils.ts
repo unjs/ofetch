@@ -8,7 +8,7 @@ import type {
 } from "./types.ts";
 
 const payloadMethods = new Set(
-  Object.freeze(["PATCH", "POST", "PUT", "DELETE"])
+  Object.freeze(["PATCH", "POST", "PUT", "DELETE", "QUERY"])
 );
 export function isPayloadMethod(method = "GET"): boolean {
   return payloadMethods.has(method.toUpperCase());

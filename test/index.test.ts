@@ -158,6 +158,17 @@ describe("ofetch", () => {
     }
   });
 
+  it("stringifies query body automatically", async () => {
+    // RFC 10008 QUERY method is a payload method (like POST) — bodies should be
+    // JSON-stringified and default Content-Type/Accept headers should be set.
+    const { body, headers } = await $fetch(getURL("post"), {
+      method: "QUERY",
+      body: { num: 42 },
+    });
+    expect(body).to.deep.eq({ num: 42 });
+    expect(headers).to.include({ "content-type": "application/json" });
+    expect(headers).to.include({ accept: "application/json" });
+  });
   it("does not stringify body when content type != application/json", async () => {
     const message = '"Hallo von Pascal"';
     const { body } = await $fetch(getURL("echo"), {

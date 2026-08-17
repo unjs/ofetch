@@ -359,10 +359,39 @@ describe("ofetch", () => {
       timeout: 100,
       retry: 0,
     }).catch((error: any) => error);
-    const hang = new Promise((resolve) => setTimeout(resolve, 1000, "hang"));
-    const result = await Promise.race([request, hang]);
+    let hangTimer: ReturnType<typeof setTimeout> | undefined;
+    const hang = new Promise((resolve) => {
+      hangTimer = setTimeout(resolve, 1000, "hang");
+    });
+    const result = await Promise.race([request, hang]).finally(() => {
+      clearTimeout(hangTimer);
+    });
     expect(result).not.to.equal("hang");
     expect((result as any).cause?.name).to.equal("TimeoutError");
+  });
+
+  it("retries when the body read times out", async () => {
+    // https://github.com/unjs/ofetch/issues/620
+    // The response headers arrive successfully, so the retry decision must not
+    // be based on the (200) status of the response we failed to read.
+    let attempts = 0;
+    const request = $fetch(getURL("timeout-body"), {
+      timeout: 100,
+      retry: 1,
+      retryDelay: 0,
+      onRequest() {
+        attempts++;
+      },
+    }).catch((error: any) => error);
+    let hangTimer: ReturnType<typeof setTimeout> | undefined;
+    const hang = new Promise((resolve) => {
+      hangTimer = setTimeout(resolve, 2000, "hang");
+    });
+    const result = await Promise.race([request, hang]).finally(() => {
+      clearTimeout(hangTimer);
+    });
+    expect(result).not.to.equal("hang");
+    expect(attempts).to.equal(2);
   });
 
   it("deep merges defaultOptions", async () => {

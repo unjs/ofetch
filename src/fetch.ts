@@ -54,7 +54,16 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         retries = isPayloadMethod(context.options.method) ? 0 : 1;
       }
 
-      const responseCode = (context.response && context.response.status) || 500;
+      // A failure while reading the body (aborted/timed out stream, network
+      // error mid-stream) is a transport failure even though the response
+      // headers already arrived, so retry eligibility must not be decided from
+      // the (successful) status code of that response. Parse failures are not
+      // retryable since replaying the request cannot make the payload valid.
+      const isTransportError =
+        !!context.error && context.error.name !== "SyntaxError";
+      const responseCode =
+        (!isTransportError && context.response && context.response.status) ||
+        500;
       if (
         retries > 0 &&
         (Array.isArray(context.options.retryStatusCodes)

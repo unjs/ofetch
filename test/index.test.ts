@@ -62,6 +62,15 @@ describe("ofetch", () => {
             resolve(new HTTPError({ status: 408 }));
           }, 1000 * 5);
         });
+      })
+      .all("/timeout-body", (event) => {
+        // Responds with headers immediately, then keeps the body open forever.
+        event.res.headers.set("content-type", "application/json");
+        return new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('{"foo":'));
+          },
+        });
       });
 
     listener = await serve(app, { port: 0, hostname: "localhost" }).ready();
@@ -342,6 +351,18 @@ describe("ofetch", () => {
       expect(error.cause.name).to.equal("TimeoutError");
       expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
+  });
+
+  it("aborting on timeout while the body is still streaming", async () => {
+    // https://github.com/unjs/ofetch/issues/620
+    const request = $fetch(getURL("timeout-body"), {
+      timeout: 100,
+      retry: 0,
+    }).catch((error: any) => error);
+    const hang = new Promise((resolve) => setTimeout(resolve, 1000, "hang"));
+    const result = await Promise.race([request, hang]);
+    expect(result).not.to.equal("hang");
+    expect((result as any).cause?.name).to.equal("TimeoutError");
   });
 
   it("deep merges defaultOptions", async () => {

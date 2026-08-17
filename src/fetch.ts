@@ -166,8 +166,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    let abortTimeout: NodeJS.Timeout | undefined;
-
     if (context.options.timeout) {
       context.options.signal = context.options.signal
         ? AbortSignal.any([
@@ -191,10 +189,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         );
       }
       return await onError(context);
-    } finally {
-      if (abortTimeout) {
-        clearTimeout(abortTimeout);
-      }
     }
 
     const hasBody =
@@ -212,23 +206,38 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           : context.options.responseType) ||
         detectResponseType(context.response.headers.get("content-type") || "");
 
-      switch (responseType) {
-        case "json": {
-          const data = await context.response.text();
-          if (data) {
-            const parseFunction = context.options.parseResponse || JSON.parse;
-            context.response._data = parseFunction(data);
+      try {
+        switch (responseType) {
+          case "json": {
+            const data = await context.response.text();
+            if (data) {
+              const parseFunction = context.options.parseResponse || JSON.parse;
+              context.response._data = parseFunction(data);
+            }
+            break;
           }
-          break;
+          case "stream": {
+            context.response._data =
+              context.response.body || (context.response as any)._bodyInit; // (see refs above)
+            break;
+          }
+          default: {
+            context.response._data = await context.response[responseType]();
+          }
         }
-        case "stream": {
-          context.response._data =
-            context.response.body || (context.response as any)._bodyInit; // (see refs above)
-          break;
+      } catch (error) {
+        // Reading the body can fail on its own (aborted/timed out stream,
+        // network error mid-stream, invalid JSON), so normalize it like any
+        // other request error instead of leaking the raw rejection.
+        // https://github.com/unjs/ofetch/issues/620
+        context.error = error as Error;
+        if (context.options.onRequestError) {
+          await callHooks(
+            context as FetchContext & { error: Error },
+            context.options.onRequestError
+          );
         }
-        default: {
-          context.response._data = await context.response[responseType]();
-        }
+        return await onError(context);
       }
     }
 

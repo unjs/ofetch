@@ -62,6 +62,15 @@ describe("ofetch", () => {
             resolve(new HTTPError({ status: 408 }));
           }, 1000 * 5);
         });
+      })
+      .all("/timeout-body", (event) => {
+        // Responds with headers immediately, then keeps the body open forever.
+        event.res.headers.set("content-type", "application/json");
+        return new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('{"foo":'));
+          },
+        });
       });
 
     listener = await serve(app, { port: 0, hostname: "localhost" }).ready();
@@ -342,6 +351,65 @@ describe("ofetch", () => {
       expect(error.cause.name).to.equal("TimeoutError");
       expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
+  });
+
+  it("aborting on timeout while the body is still streaming", async () => {
+    // https://github.com/unjs/ofetch/issues/620
+    const request = $fetch(getURL("timeout-body"), {
+      timeout: 100,
+      retry: 0,
+    }).catch((error: any) => error);
+    let hangTimer: ReturnType<typeof setTimeout> | undefined;
+    const hang = new Promise((resolve) => {
+      hangTimer = setTimeout(resolve, 1000, "hang");
+    });
+    const result = await Promise.race([request, hang]).finally(() => {
+      clearTimeout(hangTimer);
+    });
+    expect(result).not.to.equal("hang");
+    expect((result as any).cause?.name).to.equal("TimeoutError");
+  });
+
+  it("retries when the body read times out", async () => {
+    // https://github.com/unjs/ofetch/issues/620
+    // The response headers arrive successfully, so the retry decision must not
+    // be based on the (200) status of the response we failed to read.
+    let attempts = 0;
+    const request = $fetch(getURL("timeout-body"), {
+      timeout: 100,
+      retry: 1,
+      retryDelay: 0,
+      onRequest() {
+        attempts++;
+      },
+    }).catch((error: any) => error);
+    let hangTimer: ReturnType<typeof setTimeout> | undefined;
+    const hang = new Promise((resolve) => {
+      hangTimer = setTimeout(resolve, 2000, "hang");
+    });
+    const result = await Promise.race([request, hang]).finally(() => {
+      clearTimeout(hangTimer);
+    });
+    expect(result).not.to.equal("hang");
+    expect(attempts).to.equal(2);
+  });
+
+  it("does not retry when parseResponse throws", async () => {
+    // The body was read successfully, so the request did happen: replaying a
+    // possibly non-idempotent request cannot make the payload parseable.
+    let attempts = 0;
+    const error = await $fetch(getURL("ok"), {
+      retry: 1,
+      retryDelay: 0,
+      onRequest() {
+        attempts++;
+      },
+      parseResponse() {
+        throw new TypeError("bad payload");
+      },
+    }).catch((error_: any) => error_);
+    expect(attempts).to.equal(1);
+    expect(error.cause?.message).to.equal("bad payload");
   });
 
   it("deep merges defaultOptions", async () => {

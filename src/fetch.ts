@@ -36,7 +36,10 @@ const nullBodyResponses = new Set([101, 204, 205, 304]);
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
 
-  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  async function onError(
+    context: FetchContext,
+    isTransportError = false
+  ): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
@@ -54,7 +57,16 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         retries = isPayloadMethod(context.options.method) ? 0 : 1;
       }
 
-      const responseCode = (context.response && context.response.status) || 500;
+      // A failure while reading the body (aborted/timed out stream, network
+      // error mid-stream) is a transport failure even though the response
+      // headers already arrived, so retry eligibility must not be decided from
+      // the (successful) status code of that response. Failures raised while
+      // parsing an already-read body are not transport errors: the request did
+      // succeed, and replaying it (possibly non-idempotent) cannot make the
+      // payload valid.
+      const responseCode =
+        (!isTransportError && context.response && context.response.status) ||
+        500;
       if (
         retries > 0 &&
         (Array.isArray(context.options.retryStatusCodes)
@@ -166,8 +178,6 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    let abortTimeout: NodeJS.Timeout | undefined;
-
     if (context.options.timeout) {
       context.options.signal = context.options.signal
         ? AbortSignal.any([
@@ -190,11 +200,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           context.options.onRequestError
         );
       }
-      return await onError(context);
-    } finally {
-      if (abortTimeout) {
-        clearTimeout(abortTimeout);
-      }
+      return await onError(context, true);
     }
 
     const hasBody =
@@ -212,23 +218,44 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           : context.options.responseType) ||
         detectResponseType(context.response.headers.get("content-type") || "");
 
-      switch (responseType) {
-        case "json": {
-          const data = await context.response.text();
-          if (data) {
-            const parseFunction = context.options.parseResponse || JSON.parse;
-            context.response._data = parseFunction(data);
+      // Reading the body is a continuation of the transport (the stream can be
+      // aborted, time out or fail mid-way), while parsing it happens after the
+      // request already succeeded. They are tracked separately so only the
+      // former is eligible for a retry.
+      let isTransportError = true;
+      try {
+        switch (responseType) {
+          case "json": {
+            const data = await context.response.text();
+            isTransportError = false;
+            if (data) {
+              const parseFunction = context.options.parseResponse || JSON.parse;
+              context.response._data = parseFunction(data);
+            }
+            break;
           }
-          break;
+          case "stream": {
+            context.response._data =
+              context.response.body || (context.response as any)._bodyInit; // (see refs above)
+            break;
+          }
+          default: {
+            context.response._data = await context.response[responseType]();
+          }
         }
-        case "stream": {
-          context.response._data =
-            context.response.body || (context.response as any)._bodyInit; // (see refs above)
-          break;
+      } catch (error) {
+        // Reading or parsing the body can fail on its own (aborted/timed out
+        // stream, network error mid-stream, invalid JSON), so normalize it like
+        // any other request error instead of leaking the raw rejection.
+        // https://github.com/unjs/ofetch/issues/620
+        context.error = error as Error;
+        if (context.options.onRequestError) {
+          await callHooks(
+            context as FetchContext & { error: Error },
+            context.options.onRequestError
+          );
         }
-        default: {
-          context.response._data = await context.response[responseType]();
-        }
+        return await onError(context, isTransportError);
       }
     }
 

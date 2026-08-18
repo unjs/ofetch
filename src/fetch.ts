@@ -36,7 +36,10 @@ const nullBodyResponses = new Set([101, 204, 205, 304]);
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
 
-  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  async function onError(
+    context: FetchContext,
+    isTransportError = false
+  ): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
@@ -57,10 +60,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       // A failure while reading the body (aborted/timed out stream, network
       // error mid-stream) is a transport failure even though the response
       // headers already arrived, so retry eligibility must not be decided from
-      // the (successful) status code of that response. Parse failures are not
-      // retryable since replaying the request cannot make the payload valid.
-      const isTransportError =
-        !!context.error && context.error.name !== "SyntaxError";
+      // the (successful) status code of that response. Failures raised while
+      // parsing an already-read body are not transport errors: the request did
+      // succeed, and replaying it (possibly non-idempotent) cannot make the
+      // payload valid.
       const responseCode =
         (!isTransportError && context.response && context.response.status) ||
         500;
@@ -197,7 +200,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           context.options.onRequestError
         );
       }
-      return await onError(context);
+      return await onError(context, true);
     }
 
     const hasBody =
@@ -215,10 +218,16 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           : context.options.responseType) ||
         detectResponseType(context.response.headers.get("content-type") || "");
 
+      // Reading the body is a continuation of the transport (the stream can be
+      // aborted, time out or fail mid-way), while parsing it happens after the
+      // request already succeeded. They are tracked separately so only the
+      // former is eligible for a retry.
+      let isTransportError = true;
       try {
         switch (responseType) {
           case "json": {
             const data = await context.response.text();
+            isTransportError = false;
             if (data) {
               const parseFunction = context.options.parseResponse || JSON.parse;
               context.response._data = parseFunction(data);
@@ -235,9 +244,9 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           }
         }
       } catch (error) {
-        // Reading the body can fail on its own (aborted/timed out stream,
-        // network error mid-stream, invalid JSON), so normalize it like any
-        // other request error instead of leaking the raw rejection.
+        // Reading or parsing the body can fail on its own (aborted/timed out
+        // stream, network error mid-stream, invalid JSON), so normalize it like
+        // any other request error instead of leaking the raw rejection.
         // https://github.com/unjs/ofetch/issues/620
         context.error = error as Error;
         if (context.options.onRequestError) {
@@ -246,7 +255,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
             context.options.onRequestError
           );
         }
-        return await onError(context);
+        return await onError(context, isTransportError);
       }
     }
 

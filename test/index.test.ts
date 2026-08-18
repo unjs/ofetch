@@ -394,6 +394,24 @@ describe("ofetch", () => {
     expect(attempts).to.equal(2);
   });
 
+  it("does not retry when parseResponse throws", async () => {
+    // The body was read successfully, so the request did happen: replaying a
+    // possibly non-idempotent request cannot make the payload parseable.
+    let attempts = 0;
+    const error = await $fetch(getURL("ok"), {
+      retry: 1,
+      retryDelay: 0,
+      onRequest() {
+        attempts++;
+      },
+      parseResponse() {
+        throw new TypeError("bad payload");
+      },
+    }).catch((error_: any) => error_);
+    expect(attempts).to.equal(1);
+    expect(error.cause?.message).to.equal("bad payload");
+  });
+
   it("deep merges defaultOptions", async () => {
     const _customFetch = $fetch.create({
       query: {

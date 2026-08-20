@@ -33,6 +33,41 @@ const retryStatusCodes = new Set([
 // https://developer.mozilla.org/en-US/docs/Web/API/Response/body
 const nullBodyResponses = new Set([101, 204, 205, 304]);
 
+function getAbortReason(signal: AbortSignal): unknown {
+  return (
+    signal.reason ||
+    new DOMException("This operation was aborted", "AbortError")
+  );
+}
+
+async function withAbortSignal<T>(
+  promise: Promise<T>,
+  signal: AbortSignal | null | undefined
+): Promise<T> {
+  if (!signal) {
+    return promise;
+  }
+  if (signal.aborted) {
+    throw getAbortReason(signal);
+  }
+
+  let abortHandler: (() => void) | undefined;
+  const abortPromise = new Promise<never>((_, reject) => {
+    abortHandler = () => {
+      reject(getAbortReason(signal));
+    };
+    signal.addEventListener("abort", abortHandler, { once: true });
+  });
+
+  try {
+    return await Promise.race([promise, abortPromise]);
+  } finally {
+    if (abortHandler) {
+      signal.removeEventListener("abort", abortHandler);
+    }
+  }
+}
+
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
 
@@ -212,23 +247,37 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           : context.options.responseType) ||
         detectResponseType(context.response.headers.get("content-type") || "");
 
-      switch (responseType) {
-        case "json": {
-          const data = await context.response.text();
-          if (data) {
-            const parseFunction = context.options.parseResponse || JSON.parse;
-            context.response._data = parseFunction(data);
+      try {
+        switch (responseType) {
+          case "json": {
+            const data = await withAbortSignal(
+              context.response.text(),
+              context.options.signal
+            );
+            if (data) {
+              const parseFunction = context.options.parseResponse || JSON.parse;
+              context.response._data = parseFunction(data);
+            }
+            break;
           }
-          break;
+          case "stream": {
+            context.response._data =
+              context.response.body || (context.response as any)._bodyInit; // (see refs above)
+            break;
+          }
+          default: {
+            context.response._data = await withAbortSignal(
+              context.response[responseType](),
+              context.options.signal
+            );
+          }
         }
-        case "stream": {
-          context.response._data =
-            context.response.body || (context.response as any)._bodyInit; // (see refs above)
-          break;
+      } catch (error) {
+        if (!context.options.signal?.aborted) {
+          throw error;
         }
-        default: {
-          context.response._data = await context.response[responseType]();
-        }
+        context.error = error as Error;
+        return await onError(context);
       }
     }
 

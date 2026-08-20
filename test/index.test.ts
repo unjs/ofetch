@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
-import { $fetch } from "../src/index.ts";
+import { $fetch, createFetch } from "../src/index.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -342,6 +342,35 @@ describe("ofetch", () => {
       expect(error.cause.name).to.equal("TimeoutError");
       expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
+  });
+
+  it("aborts response body parsing on timeout", async () => {
+    const customFetch = createFetch({
+      fetch: async () =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode("{"));
+            },
+          }),
+          {
+            headers: {
+              "content-type": "application/json",
+            },
+          }
+        ),
+    });
+
+    const timeout = customFetch("https://example.com", {
+      timeout: 100,
+      retry: 0,
+    }).catch((error: any) => error.cause?.name || error.name);
+    const result = await Promise.race([
+      timeout,
+      new Promise((resolve) => setTimeout(() => resolve("hung"), 300)),
+    ]);
+
+    expect(result).to.equal("TimeoutError");
   });
 
   it("deep merges defaultOptions", async () => {

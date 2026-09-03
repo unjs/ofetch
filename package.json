@@ -32,7 +32,7 @@
     "obuild": "^0.3.2",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "undici": "^7.16.0",
+    "undici": "^8.10.1",
     "vitest": "^4.0.5"
   },
   "packageManager": "pnpm@10.20.0"

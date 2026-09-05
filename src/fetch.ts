@@ -212,9 +212,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           : context.options.responseType) ||
         detectResponseType(context.response.headers.get("content-type") || "");
 
+      // https://github.com/unjs/ofetch/issues/620
+      // AbortSignal.timeout() must also cover body parsing; pass the signal explicitly.
+      const bodySignal = context.options.signal;
+      const bodyInit = bodySignal ? { signal: bodySignal } : undefined;
+
       switch (responseType) {
         case "json": {
-          const data = await context.response.text();
+          const data = await context.response.text(bodyInit);
           if (data) {
             const parseFunction = context.options.parseResponse || JSON.parse;
             context.response._data = parseFunction(data);
@@ -227,7 +232,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           break;
         }
         default: {
-          context.response._data = await context.response[responseType]();
+          context.response._data = await context.response[responseType](bodyInit);
         }
       }
     }

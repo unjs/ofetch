@@ -336,7 +336,7 @@ setGlobalDispatcher(new ProxyAgent("http://localhost:3128"));
 ```ts
 import { Agent } from "undici";
 
-// Note: This makes fetch unsecure against MITM attacks. USE AT YOUR OWN RISK!
+// Note: This makes fetch insecure against MITM attacks. USE AT YOUR OWN RISK!
 const unsecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 await ofetch("https://self-signed.example.com/", { dispatcher: unsecureAgent });
 ```
@@ -385,4 +385,4 @@ myFetch("/foo", { requiresAuth: true });
 
 ## License
 
-💛 Published under the [MIT](https://github.com/h3js/rou3/blob/main/LICENSE) license.
+💛 Published under the [MIT](https://github.com/unjs/ofetch/blob/main/LICENSE) license.

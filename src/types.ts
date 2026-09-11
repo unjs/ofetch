@@ -26,7 +26,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
 
   body?: RequestInit["body"] | Record<string, any>;
 
-  ignoreResponseError?: boolean;
+  ignoreResponseError?: boolean | number[];
 
   /**
    * @deprecated use query instead.

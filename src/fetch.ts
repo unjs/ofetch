@@ -239,8 +239,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       );
     }
 
+    const ignoreResponseError = context.options.ignoreResponseError;
+    const doIgnoreResponseError =
+      ignoreResponseError === true ||
+      (Array.isArray(ignoreResponseError) &&
+        ignoreResponseError.includes(context.response.status));
+
     if (
-      !context.options.ignoreResponseError &&
+      !doIgnoreResponseError &&
       context.response.status >= 400 &&
       context.response.status < 600
     ) {

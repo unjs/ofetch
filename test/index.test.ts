@@ -250,6 +250,16 @@ describe("ofetch", () => {
     expect(res?.message).to.eq("Forbidden");
   });
 
+  it("ignores configured response error status codes", async () => {
+    const res = await $fetch(getURL("403"), { ignoreResponseError: [403] });
+    expect(res?.status).to.eq(403);
+    expect(res?.message).to.eq("Forbidden");
+
+    await expect(
+      $fetch(getURL("408"), { ignoreResponseError: [403] })
+    ).rejects.toThrow("408");
+  });
+
   it("204 no content", async () => {
     const res = await $fetch(getURL("204"));
     expect(res).toBe(undefined);

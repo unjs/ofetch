@@ -91,10 +91,12 @@ To catch error response:
 await ofetch("/url").catch((error) => error.data);
 ```
 
-To bypass status error catching you can set `ignoreResponseError` option:
+To bypass status error catching you can set `ignoreResponseError` to `true`, or
+provide the status codes to bypass:
 
 ```ts
 await ofetch("/url", { ignoreResponseError: true });
+await ofetch("/url", { ignoreResponseError: [403, 404] });
 ```
 
 ## ✔️ Auto Retry

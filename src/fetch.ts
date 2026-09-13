@@ -51,7 +51,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (typeof context.options.retry === "number") {
         retries = context.options.retry;
       } else {
-        retries = isPayloadMethod(context.options.method) ? 0 : 1;
+        retries = isPayloadMethod(getRequestMethod(context)) ? 0 : 1;
       }
 
       const responseCode = (context.response && context.response.status) || 500;
@@ -127,7 +127,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    if (context.options.body && isPayloadMethod(context.options.method)) {
+    if (context.options.body && isPayloadMethod(getRequestMethod(context))) {
       if (isJSONSerializable(context.options.body)) {
         const contentType = context.options.headers.get("content-type");
 
@@ -204,7 +204,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         // https://github.com/JakeChampion/fetch/issues/1454
         (context.response as any)._bodyInit) &&
       !nullBodyResponses.has(context.response.status) &&
-      context.options.method !== "HEAD";
+      getRequestMethod(context) !== "HEAD";
     if (hasBody) {
       const responseType =
         (context.options.parseResponse
@@ -277,4 +277,10 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     });
 
   return $fetch;
+}
+
+function getRequestMethod(context: FetchContext): string {
+  return (
+    context.options.method || (context.request as Request)?.method || "GET"
+  );
 }

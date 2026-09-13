@@ -267,6 +267,21 @@ describe("ofetch", () => {
     expect(error.request).to.equal(getURL("404"));
   });
 
+  it("does not replay a POST Request after a retryable response", async () => {
+    await expect(
+      $fetch(new Request(getURL("408"), { method: "POST" }))
+    ).rejects.toMatchObject({ status: 408 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("serializes a JSON body override for a POST Request", async () => {
+    const { body } = await $fetch(
+      new Request(getURL("post"), { method: "POST" }),
+      { body: { message: "hello" } }
+    );
+    expect(body).to.deep.equal({ message: "hello" });
+  });
+
   it("retry with number delay", async () => {
     const slow = $fetch<string>(getURL("408"), {
       retry: 2,

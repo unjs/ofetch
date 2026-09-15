@@ -19,7 +19,9 @@ export function isJSONSerializable(value: any): boolean {
     return false;
   }
   const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === null) {
+  // `typeof null` is `"object"`, so check for `null` explicitly before the
+  // general object handling below (which would throw on `null.buffer`).
+  if (t === "string" || t === "number" || t === "boolean" || value === null) {
     return true;
   }
   if (t !== "object") {

@@ -30,13 +30,22 @@ export function isJSONSerializable(value: any): boolean {
   if (Array.isArray(value)) {
     return true;
   }
-  if (value.buffer) {
-    return false;
-  }
   // `FormData` and `URLSearchParams` shouldn't have a `toJSON` method,
-  // but Bun adds it, which is non-standard.
+  // but Bun adds it, which is non-standard. Check before `value.buffer`
+  // to avoid throwing on objects whose `buffer` getter throws.
   if (value instanceof FormData || value instanceof URLSearchParams) {
     return false;
+  }
+  if (value instanceof ArrayBuffer || value instanceof SharedArrayBuffer) {
+    return false;
+  }
+  // Guard against objects with throwing `buffer` getters or no buffer property
+  try {
+    if (value.buffer) {
+      return false;
+    }
+  } catch {
+    // If `buffer` access throws, fall through to constructor/JSON checks
   }
   return (
     (value.constructor && value.constructor.name === "Object") ||

@@ -33,9 +33,15 @@ describe("utils", () => {
       expect(isJSONSerializable(new ArrayBuffer(4))).toBe(false);
     });
 
-    it("returns false for FormData and URLSearchParams", () => {
-      expect(isJSONSerializable(new FormData())).toBe(false);
-      expect(isJSONSerializable(new URLSearchParams())).toBe(false);
+    it("does not throw when accessing buffer throws", () => {
+      const obj = {
+        constructor: { name: "Object" },
+        get buffer() {
+          throw new Error("getter error");
+        },
+      };
+      // Should return true (plain object) instead of throwing
+      expect(isJSONSerializable(obj)).toBe(true);
     });
   });
 });

@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
-import { $fetch } from "../src/index.ts";
+import { $fetch, createFetch } from "../src/index.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -307,6 +307,104 @@ describe("ofetch", () => {
       console.log("response", response);
     }
     await expect(abortHandle()).rejects.toThrow(/aborted/);
+  });
+
+  it("does not retry a prebuilt write Request", async () => {
+    for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+      let calls = 0;
+      const _fetch = createFetch({
+        fetch: async () => {
+          calls++;
+          return new Response("unavailable", { status: 503 });
+        },
+      });
+      await _fetch(new Request(getURL("408"), { method })).catch(() => {});
+      expect(calls, method).toBe(1);
+    }
+  });
+
+  it("still retries a prebuilt GET Request", async () => {
+    let calls = 0;
+    const _fetch = createFetch({
+      fetch: async () => {
+        calls++;
+        return new Response("unavailable", { status: 503 });
+      },
+    });
+    await _fetch(new Request(getURL("408"))).catch(() => {});
+    expect(calls).toBe(2);
+  });
+
+  it("an explicit retry count still wins over a prebuilt Request method", async () => {
+    let calls = 0;
+    const _fetch = createFetch({
+      fetch: async () => {
+        calls++;
+        return new Response("unavailable", { status: 503 });
+      },
+    });
+    await _fetch(new Request(getURL("408"), { method: "POST" }), {
+      retry: 2,
+    }).catch(() => {});
+    expect(calls).toBe(3);
+  });
+
+  it("an explicit method option still wins over a prebuilt Request method", async () => {
+    let calls = 0;
+    const _fetch = createFetch({
+      fetch: async () => {
+        calls++;
+        return new Response("unavailable", { status: 503 });
+      },
+    });
+    await _fetch(new Request(getURL("408"), { method: "GET" }), {
+      method: "POST",
+    }).catch(() => {});
+    expect(calls).toBe(1);
+  });
+
+  it("serializes a JSON body for a prebuilt POST Request", async () => {
+    const { body, headers } = await $fetch<any>(
+      new Request(getURL("post"), { method: "POST" }),
+      { body: { foo: 42 } }
+    );
+    expect(body).to.deep.eq({ foo: 42 });
+    expect(headers["content-type"]).to.equal("application/json");
+  });
+
+  it("does not parse a body for a prebuilt HEAD Request", async () => {
+    const _fetch = createFetch({
+      fetch: async () => new Response("should not be parsed", { status: 200 }),
+    });
+    const response = await _fetch.raw(
+      new Request(getURL("ok"), { method: "HEAD" })
+    );
+    expect(response._data).toBeUndefined();
+  });
+
+  it("form encodes a body for a parameterized form content-type", async () => {
+    const { body, headers } = await $fetch<any>(getURL("echo"), {
+      method: "POST",
+      body: { foo: "1", bar: "a b" },
+      headers: {
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+      },
+    });
+    expect(body).to.equal("foo=1&bar=a+b");
+    expect(headers["content-type"]).to.equal(
+      "application/x-www-form-urlencoded; charset=UTF-8"
+    );
+  });
+
+  it("form encodes a body for a mixed case form content-type", async () => {
+    const { body } = await $fetch<any>(
+      new Request(getURL("echo"), {
+        method: "POST",
+        headers: { "content-type": "Application/X-WWW-Form-Urlencoded" },
+      }),
+      { body: { foo: "1", bar: "a b" } }
+    );
+    expect(body).to.equal("foo=1&bar=a+b");
   });
 
   it("passing request obj should return request obj in error", async () => {

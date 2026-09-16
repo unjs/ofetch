@@ -14,6 +14,38 @@ export function isPayloadMethod(method = "GET"): boolean {
   return payloadMethods.has(method.toUpperCase());
 }
 
+/**
+ * Resolve the method `fetch` will actually use.
+ *
+ * `fetch` reads the method from the init object when it is set and falls back
+ * to the one on a prebuilt `Request`, so guards that only look at
+ * `options.method` miss the method of a `new Request(url, { method })` input.
+ */
+export function resolveMethod(
+  request: FetchRequest,
+  options?: { method?: string }
+): string {
+  return (
+    options?.method ||
+    (typeof request !== "string" && (request as Request).method) ||
+    "GET"
+  ).toUpperCase();
+}
+
+/**
+ * Check whether a `content-type` header selects the form url-encoded body.
+ *
+ * The header can carry parameters and any casing — a prebuilt `Request` keeps
+ * `application/x-www-form-urlencoded; charset=UTF-8` as-is — so the media type
+ * is compared on its own and case-insensitively.
+ */
+export function isFormUrlEncoded(contentType: string | null): boolean {
+  return (
+    (contentType || "").split(";")[0].trim().toLowerCase() ===
+    "application/x-www-form-urlencoded"
+  );
+}
+
 export function isJSONSerializable(value: any): boolean {
   if (value === undefined) {
     return false;

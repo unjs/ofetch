@@ -4,8 +4,10 @@ import { createFetchError } from "./error.ts";
 import {
   isPayloadMethod,
   isJSONSerializable,
+  isFormUrlEncoded,
   detectResponseType,
   resolveFetchOptions,
+  resolveMethod,
   callHooks,
 } from "./utils.ts";
 import type {
@@ -51,7 +53,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (typeof context.options.retry === "number") {
         retries = context.options.retry;
       } else {
-        retries = isPayloadMethod(context.options.method) ? 0 : 1;
+        retries = isPayloadMethod(
+          resolveMethod(context.request, context.options)
+        )
+          ? 0
+          : 1;
       }
 
       const responseCode = (context.response && context.response.status) || 500;
@@ -127,18 +133,22 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    if (context.options.body && isPayloadMethod(context.options.method)) {
+    // `fetch` takes the method from the init object when set, and otherwise
+    // from a prebuilt `Request` input. Resolve it after `onRequest` so hooks
+    // that replace the request or the method are taken into account.
+    const method = resolveMethod(context.request, context.options);
+
+    if (context.options.body && isPayloadMethod(method)) {
       if (isJSONSerializable(context.options.body)) {
         const contentType = context.options.headers.get("content-type");
 
         // Automatically stringify request bodies, when not already a string.
         if (typeof context.options.body !== "string") {
-          context.options.body =
-            contentType === "application/x-www-form-urlencoded"
-              ? new URLSearchParams(
-                  context.options.body as Record<string, any>
-                ).toString()
-              : JSON.stringify(context.options.body);
+          context.options.body = isFormUrlEncoded(contentType)
+            ? new URLSearchParams(
+                context.options.body as Record<string, any>
+              ).toString()
+            : JSON.stringify(context.options.body);
         }
 
         // Set Content-Type and Accept headers to application/json by default
@@ -204,7 +214,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         // https://github.com/JakeChampion/fetch/issues/1454
         (context.response as any)._bodyInit) &&
       !nullBodyResponses.has(context.response.status) &&
-      context.options.method !== "HEAD";
+      method !== "HEAD";
     if (hasBody) {
       const responseType =
         (context.options.parseResponse

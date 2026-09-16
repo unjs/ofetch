@@ -4,6 +4,7 @@ import { createFetchError } from "./error.ts";
 import {
   isPayloadMethod,
   isJSONSerializable,
+  isFormUrlEncoded,
   detectResponseType,
   resolveFetchOptions,
   resolveMethod,
@@ -143,12 +144,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
         // Automatically stringify request bodies, when not already a string.
         if (typeof context.options.body !== "string") {
-          context.options.body =
-            contentType === "application/x-www-form-urlencoded"
-              ? new URLSearchParams(
-                  context.options.body as Record<string, any>
-                ).toString()
-              : JSON.stringify(context.options.body);
+          context.options.body = isFormUrlEncoded(contentType)
+            ? new URLSearchParams(
+                context.options.body as Record<string, any>
+              ).toString()
+            : JSON.stringify(context.options.body);
         }
 
         // Set Content-Type and Accept headers to application/json by default

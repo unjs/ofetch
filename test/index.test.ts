@@ -382,6 +382,31 @@ describe("ofetch", () => {
     expect(response._data).toBeUndefined();
   });
 
+  it("form encodes a body for a parameterized form content-type", async () => {
+    const { body, headers } = await $fetch<any>(getURL("echo"), {
+      method: "POST",
+      body: { foo: "1", bar: "a b" },
+      headers: {
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+      },
+    });
+    expect(body).to.equal("foo=1&bar=a+b");
+    expect(headers["content-type"]).to.equal(
+      "application/x-www-form-urlencoded; charset=UTF-8"
+    );
+  });
+
+  it("form encodes a body for a mixed case form content-type", async () => {
+    const { body } = await $fetch<any>(
+      new Request(getURL("echo"), {
+        method: "POST",
+        headers: { "content-type": "Application/X-WWW-Form-Urlencoded" },
+      }),
+      { body: { foo: "1", bar: "a b" } }
+    );
+    expect(body).to.equal("foo=1&bar=a+b");
+  });
+
   it("passing request obj should return request obj in error", async () => {
     const error = await $fetch(getURL("/403"), { method: "post" }).catch(
       (error: any) => error

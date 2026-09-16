@@ -32,6 +32,20 @@ export function resolveMethod(
   ).toUpperCase();
 }
 
+/**
+ * Check whether a `content-type` header selects the form url-encoded body.
+ *
+ * The header can carry parameters and any casing — a prebuilt `Request` keeps
+ * `application/x-www-form-urlencoded; charset=UTF-8` as-is — so the media type
+ * is compared on its own and case-insensitively.
+ */
+export function isFormUrlEncoded(contentType: string | null): boolean {
+  return (
+    (contentType || "").split(";")[0].trim().toLowerCase() ===
+    "application/x-www-form-urlencoded"
+  );
+}
+
 export function isJSONSerializable(value: any): boolean {
   if (value === undefined) {
     return false;

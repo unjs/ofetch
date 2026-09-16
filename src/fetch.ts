@@ -6,6 +6,7 @@ import {
   isJSONSerializable,
   detectResponseType,
   resolveFetchOptions,
+  resolveMethod,
   callHooks,
 } from "./utils.ts";
 import type {
@@ -51,7 +52,11 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       if (typeof context.options.retry === "number") {
         retries = context.options.retry;
       } else {
-        retries = isPayloadMethod(context.options.method) ? 0 : 1;
+        retries = isPayloadMethod(
+          resolveMethod(context.request, context.options)
+        )
+          ? 0
+          : 1;
       }
 
       const responseCode = (context.response && context.response.status) || 500;
@@ -127,7 +132,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    if (context.options.body && isPayloadMethod(context.options.method)) {
+    // `fetch` takes the method from the init object when set, and otherwise
+    // from a prebuilt `Request` input. Resolve it after `onRequest` so hooks
+    // that replace the request or the method are taken into account.
+    const method = resolveMethod(context.request, context.options);
+
+    if (context.options.body && isPayloadMethod(method)) {
       if (isJSONSerializable(context.options.body)) {
         const contentType = context.options.headers.get("content-type");
 
@@ -204,7 +214,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         // https://github.com/JakeChampion/fetch/issues/1454
         (context.response as any)._bodyInit) &&
       !nullBodyResponses.has(context.response.status) &&
-      context.options.method !== "HEAD";
+      method !== "HEAD";
     if (hasBody) {
       const responseType =
         (context.options.parseResponse

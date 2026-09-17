@@ -4,7 +4,7 @@ import { isJSONSerializable } from "../src/utils.ts";
 describe("utils", () => {
   describe("isJSONSerializable", () => {
     it("returns true for null (fixes #571)", () => {
-      expect(isJSONSerializable(null)).toBe(true);
+      expect(isJSONSerializable(JSON.parse("null"))).toBe(true);
     });
 
     it("returns true for primitives", () => {
@@ -32,6 +32,15 @@ describe("utils", () => {
       expect(isJSONSerializable(new Uint8Array(4))).toBe(false);
       expect(isJSONSerializable(new ArrayBuffer(4))).toBe(false);
     });
+
+    it.each([new FormData(), new URLSearchParams()])(
+      "returns false for form bodies even with toJSON (#580): %s",
+      (body) => {
+        expect(isJSONSerializable(body)).toBe(false);
+        Object.assign(body, { toJSON: () => ({}) });
+        expect(isJSONSerializable(body)).toBe(false);
+      }
+    );
 
     it("does not throw when accessing buffer throws", () => {
       const obj = {

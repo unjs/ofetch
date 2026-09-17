@@ -4,6 +4,9 @@ import { isJSONSerializable } from "../src/utils.ts";
 describe("utils", () => {
   describe("isJSONSerializable", () => {
     it("returns true for null (fixes #571)", () => {
+      // null is the fixture under test here — unicorn/no-null must stay on
+      // for the rest of the file, so this line needs a targeted suppression.
+      // eslint-disable-next-line unicorn/no-null
       expect(isJSONSerializable(JSON.parse("null"))).toBe(true);
     });
 

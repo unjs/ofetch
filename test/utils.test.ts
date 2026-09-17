@@ -42,6 +42,16 @@ describe("utils", () => {
       }
     );
 
+    it("does not throw when SharedArrayBuffer is unavailable", () => {
+      const saved = globalThis.SharedArrayBuffer;
+      try {
+        (globalThis as any).SharedArrayBuffer = undefined;
+        expect(isJSONSerializable({ hello: "world" })).toBe(true);
+      } finally {
+        (globalThis as any).SharedArrayBuffer = saved;
+      }
+    });
+
     it("does not throw when accessing buffer throws", () => {
       const obj = {
         constructor: { name: "Object" },

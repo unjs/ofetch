@@ -36,7 +36,13 @@ export function isJSONSerializable(value: any): boolean {
   if (value instanceof FormData || value instanceof URLSearchParams) {
     return false;
   }
-  if (value instanceof ArrayBuffer || value instanceof SharedArrayBuffer) {
+  if (value instanceof ArrayBuffer) {
+    return false;
+  }
+  if (
+    typeof SharedArrayBuffer !== "undefined" &&
+    value instanceof SharedArrayBuffer
+  ) {
     return false;
   }
   // Guard against objects with throwing `buffer` getters or no buffer property

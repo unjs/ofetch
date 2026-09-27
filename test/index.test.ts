@@ -525,3 +525,24 @@ describe("ofetch", () => {
     });
   });
 });
+
+describe("isJSONSerializable", () => {
+  it("handles primitives and null safely", async () => {
+    const { isJSONSerializable } = await import("../src/utils.ts");
+    // eslint-disable-next-line unicorn/no-null
+    expect(isJSONSerializable(null)).toBe(true);
+    expect(isJSONSerializable(undefined)).toBe(false);
+    expect(isJSONSerializable("hello")).toBe(true);
+    expect(isJSONSerializable(123)).toBe(true);
+    expect(isJSONSerializable(true)).toBe(true);
+    expect(isJSONSerializable(Symbol("test"))).toBe(false);
+  });
+
+  it("handles objects and special types", async () => {
+    const { isJSONSerializable } = await import("../src/utils.ts");
+    expect(isJSONSerializable({ foo: "bar" })).toBe(true);
+    expect(isJSONSerializable(Object.create(null))).toBe(true);
+    expect(isJSONSerializable(new FormData())).toBe(false);
+    expect(isJSONSerializable(new URLSearchParams())).toBe(false);
+  });
+});

@@ -18,26 +18,33 @@ export function isJSONSerializable(value: any): boolean {
   if (value === undefined) {
     return false;
   }
+  if (value === null) {
+    return true;
+  }
   const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === null) {
+  if (t === "string" || t === "number" || t === "boolean") {
     return true;
   }
   if (t !== "object") {
-    return false; // bigint, function, symbol, undefined
+    return false; // bigint, function, symbol
   }
   if (Array.isArray(value)) {
     return true;
   }
+  // `FormData` and `URLSearchParams` shouldn't have a `toJSON` method,
+  // but Bun adds it, which is non-standard.
+  if (
+    (typeof FormData !== "undefined" && value instanceof FormData) ||
+    (typeof URLSearchParams !== "undefined" && value instanceof URLSearchParams)
+  ) {
+    return false;
+  }
   if (value.buffer) {
     return false;
   }
-  // `FormData` and `URLSearchParams` shouldn't have a `toJSON` method,
-  // but Bun adds it, which is non-standard.
-  if (value instanceof FormData || value instanceof URLSearchParams) {
-    return false;
-  }
   return (
-    (value.constructor && value.constructor.name === "Object") ||
+    !value.constructor ||
+    value.constructor.name === "Object" ||
     typeof value.toJSON === "function"
   );
 }

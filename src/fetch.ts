@@ -16,6 +16,7 @@ import type {
   $Fetch,
   FetchRequest,
   FetchOptions,
+  ResolvedFetchOptions,
 } from "./types.ts";
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -168,19 +169,23 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
 
     let abortTimeout: NodeJS.Timeout | undefined;
 
-    if (context.options.timeout) {
-      context.options.signal = context.options.signal
-        ? AbortSignal.any([
-            AbortSignal.timeout(context.options.timeout),
-            context.options.signal,
-          ])
-        : AbortSignal.timeout(context.options.timeout);
-    }
+    // recreate a new fetchOptions object to avoid forwarding the AbortSignal.timeout to subsequent retry calls
+    const fetchOptions: ResolvedFetchOptions = context.options.timeout
+      ? {
+          ...context.options,
+          signal: context.options.signal
+            ? AbortSignal.any([
+                AbortSignal.timeout(context.options.timeout),
+                context.options.signal,
+              ])
+            : AbortSignal.timeout(context.options.timeout),
+        }
+      : context.options;
 
     try {
       context.response = await fetch(
         context.request,
-        context.options as RequestInit
+        fetchOptions as RequestInit
       );
     } catch (error) {
       context.error = error as Error;

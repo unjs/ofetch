@@ -18,6 +18,8 @@ describe("ofetch", () => {
 
   const fetch = vi.spyOn(globalThis, "fetch");
 
+  let timeoutCallsCount = 0;
+
   beforeAll(async () => {
     const app = new H3({ debug: true })
       // .use(async (event) => {
@@ -57,6 +59,7 @@ describe("ofetch", () => {
         () => null // eslint-disable-line unicorn/no-null
       )
       .all("/timeout", async () => {
+        timeoutCallsCount++;
         await new Promise((resolve) => {
           setTimeout(() => {
             resolve(new HTTPError({ status: 408 }));
@@ -94,7 +97,9 @@ describe("ofetch", () => {
   it("allows specifying FetchResponse method", async () => {
     expect(
       await $fetch(getURL("params?test=true"), { responseType: "json" })
-    ).to.deep.equal({ test: "true" });
+    ).to.deep.equal({
+      test: "true",
+    });
     expect(
       await $fetch(getURL("params?test=true"), { responseType: "blob" })
     ).to.be.instanceOf(Blob);
@@ -293,6 +298,20 @@ describe("ofetch", () => {
 
     const race = await Promise.race([slow, fast]);
     expect(race).to.equal("fast");
+  });
+
+  it("retry with timeout", async () => {
+    const error = await $fetch(getURL("/timeout"), {
+      timeout: 10,
+      retry: 3,
+    }).catch((error_: any) => error_);
+
+    expect(error.cause.message).to.include(
+      "The operation was aborted due to timeout"
+    );
+    expect(error.cause.name).to.equal("TimeoutError");
+    expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
+    expect(timeoutCallsCount).to.equal(4);
   });
 
   it("abort with retry", async () => {

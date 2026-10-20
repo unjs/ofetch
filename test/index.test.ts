@@ -71,7 +71,9 @@ describe("ofetch", () => {
           response.headers.delete("content-type");
           return response;
         }
-        return { ok: true };
+        const response = new Response(JSON.stringify({ ok: true }));
+        response.headers.delete("content-type");
+        return response;
       })
       // A successful (2xx) response whose JSON body is malformed. A parse
       // failure here is a real error and must still surface.

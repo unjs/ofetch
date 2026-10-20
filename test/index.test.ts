@@ -18,7 +18,6 @@ describe("ofetch", () => {
 
   const fetch = vi.spyOn(globalThis, "fetch");
 
-  // Counter for the flaky route used by the non-JSON error retry test.
   let flaky503Attempts = 0;
 
   beforeAll(async () => {
@@ -55,15 +54,11 @@ describe("ofetch", () => {
         () => new HTTPError({ status: 403, statusMessage: "Forbidden" })
       )
       .all("/408", () => new HTTPError({ status: 408 }))
-      // Plain-text 503 with no Content-Type header, like a bare error page
-      // emitted by nginx/HAProxy/a CDN in front of the origin.
       .all("/text-503", () => {
         const response = new Response("Service Unavailable", { status: 503 });
         response.headers.delete("content-type");
         return response;
       })
-      // Same non-JSON 503 on the first attempt, then a JSON 200, to verify the
-      // retry path still runs for a retryable status with a non-JSON body.
       .all("/flaky-503", () => {
         flaky503Attempts++;
         if (flaky503Attempts < 2) {
@@ -75,8 +70,6 @@ describe("ofetch", () => {
         response.headers.delete("content-type");
         return response;
       })
-      // A successful (2xx) response whose JSON body is malformed. A parse
-      // failure here is a real error and must still surface.
       .all("/bad-json-200", () => {
         const response = new Response("{ not: valid", { status: 200 });
         response.headers.set("content-type", "application/json");
@@ -281,9 +274,6 @@ describe("ofetch", () => {
   });
 
   it("non-JSON error body without content-type resolves to a FetchError", async () => {
-    // A plain-text 4xx/5xx with no Content-Type must not throw a bare
-    // SyntaxError from JSON.parse; it must surface as a FetchError carrying
-    // the status and the raw text body.
     const error = await $fetch(getURL("text-503"), { retry: 0 }).catch(
       (error_: any) => error_
     );
@@ -315,7 +305,7 @@ describe("ofetch", () => {
   });
 
   it("valid JSON without content-type still parses to an object", async () => {
-    flaky503Attempts = 1; // force /flaky-503 to answer 200 JSON immediately
+    flaky503Attempts = 1;
     const res = await $fetch(getURL("flaky-503"), { retry: 0 });
     expect(res).to.deep.equal({ ok: true });
   });

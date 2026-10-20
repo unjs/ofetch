@@ -217,7 +217,14 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           const data = await context.response.text();
           if (data) {
             const parseFunction = context.options.parseResponse || JSON.parse;
-            context.response._data = parseFunction(data);
+            try {
+              context.response._data = parseFunction(data);
+            } catch (error) {
+              if (context.response.ok) {
+                throw error;
+              }
+              context.response._data = data;
+            }
           }
           break;
         }

@@ -124,6 +124,8 @@ describe("ofetch", () => {
       "application/atom+xml",
       "application/xhtml+xml",
       "image/svg+xml",
+      "model/step+xml",
+      "message/imdn+xml",
       "application/rss+xml; charset=utf-8",
     ]) {
       expect(

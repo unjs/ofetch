@@ -50,7 +50,7 @@ const textTypes = new Set([
 ]);
 
 const JSON_RE = /^application\/(?:[\w!#$%&*.^`~-]*\+)?json(;.+)?$/i;
-const XML_RE = /^(?:application|image)\/(?:[\w!#$%&*.^`~-]*\+)?xml(;.+)?$/i;
+const XML_RE = /^[\w!#$%&*.^`~-]+\/(?:[\w!#$%&*.^`~-]*\+)?xml(;.+)?$/i;
 
 // This provides reasonable defaults for the correct parser based on Content-Type header.
 export function detectResponseType(_contentType = ""): ResponseType {

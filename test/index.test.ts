@@ -13,6 +13,7 @@ import { $fetch } from "../src/index.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
+  let timeoutOnceRequests = 0;
   const getURL = (url: string = "/") =>
     listener.url! + (url.replace(/^\//, "") || "");
 
@@ -62,6 +63,15 @@ describe("ofetch", () => {
             resolve(new HTTPError({ status: 408 }));
           }, 1000 * 5);
         });
+      })
+      .all("/timeout-once", async () => {
+        timeoutOnceRequests++;
+        if (timeoutOnceRequests === 1) {
+          await new Promise((resolve) => {
+            setTimeout(resolve, 1000 * 5);
+          });
+        }
+        return "ok";
       });
 
     listener = await serve(app, { port: 0, hostname: "localhost" }).ready();
@@ -342,6 +352,16 @@ describe("ofetch", () => {
       expect(error.cause.name).to.equal("TimeoutError");
       expect(error.cause.code).to.equal(DOMException.TIMEOUT_ERR);
     });
+  });
+
+  it("retrying after a timeout", async () => {
+    const result = await $fetch<string>(getURL("timeout-once"), {
+      timeout: 100,
+      retry: 1,
+    });
+
+    expect(result).to.equal("ok");
+    expect(timeoutOnceRequests).to.equal(2);
   });
 
   it("deep merges defaultOptions", async () => {

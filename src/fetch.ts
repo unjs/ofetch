@@ -167,20 +167,26 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     }
 
     let abortTimeout: NodeJS.Timeout | undefined;
+    let fetchOptions = context.options;
 
+    // The timeout signal is derived per attempt: reusing it across retries
+    // would forward an already aborted signal.
     if (context.options.timeout) {
-      context.options.signal = context.options.signal
-        ? AbortSignal.any([
-            AbortSignal.timeout(context.options.timeout),
-            context.options.signal,
-          ])
-        : AbortSignal.timeout(context.options.timeout);
+      fetchOptions = {
+        ...context.options,
+        signal: context.options.signal
+          ? AbortSignal.any([
+              AbortSignal.timeout(context.options.timeout),
+              context.options.signal,
+            ])
+          : AbortSignal.timeout(context.options.timeout),
+      };
     }
 
     try {
       context.response = await fetch(
         context.request,
-        context.options as RequestInit
+        fetchOptions as RequestInit
       );
     } catch (error) {
       context.error = error as Error;

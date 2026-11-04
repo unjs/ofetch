@@ -251,11 +251,38 @@ This utility is useful if you need to use common options across several fetch ca
 
 **Note:** Defaults will be cloned at one level and inherited. Be careful about nested options like `headers`.
 
+`ofetch.create` also takes an optional second argument for instance-wide options such as a custom `fetch`.
+
 ```js
 const apiFetch = ofetch.create({ baseURL: "/api" });
 
 apiFetch("/test"); // Same as ofetch('/test', { baseURL: '/api' })
 ```
+
+## ✔️ Custom Fetch Implementation
+
+By default, `ofetch` calls the global `fetch`. You can swap in your own implementation with the `fetch` option, which is handy for mocking requests in tests, wiring up a custom agent or proxy, or explicitly supplying a polyfill.
+
+Pass it as the second argument of `ofetch.create`:
+
+```js
+const apiFetch = ofetch.create({ baseURL: "/api" }, { fetch: myFetch });
+```
+
+Or build the fetcher from scratch with `createFetch`:
+
+```js
+import { createFetch } from "ofetch";
+
+const apiFetch = createFetch({
+  fetch: myFetch,
+  defaults: { baseURL: "/api" },
+});
+```
+
+Your implementation is called the way `fetch` is: with the resolved request and an options object, after `ofetch` has serialized the body and run the `onRequest` hooks, and it should resolve with a `Response`. The request is a URL string when you called the fetcher with one, in which case `baseURL` and query params are already applied, and otherwise the `Request` you passed, which is forwarded untouched. Everything layered on top of `fetch` (response parsing, retries, timeouts, `onResponse` hooks) keeps working as usual.
+
+A fetcher created this way passes its implementation down, so an instance derived from it with `.create()` reuses the same `fetch` unless that call supplies its own, and [`ofetch.native`](#-using-native-fetch) calls it directly.
 
 ## 💡 Adding headers
 
@@ -284,7 +311,7 @@ const response = await ofetch.raw("/sushi");
 
 ## 🌿 Using Native Fetch
 
-As a shortcut, you can use `ofetch.native` that provides native `fetch` API
+As a shortcut, you can use `ofetch.native` that provides native `fetch` API, or the custom implementation the instance was created with if the `fetch` option was set.
 
 ```js
 const json = await ofetch.native("/sushi").then((r) => r.json());

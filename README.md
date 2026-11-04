@@ -278,6 +278,8 @@ const apiFetch = createFetch({
 });
 ```
 
+Your implementation is called with the final request URL and `RequestInit`, after `ofetch` has resolved `baseURL` and query params, serialized the body and run the `onRequest` hooks, and it should resolve with a `Response`. Everything layered on top of `fetch` (response parsing, retries, timeouts, `onResponse` hooks) keeps working as usual.
+
 ## 💡 Adding headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:

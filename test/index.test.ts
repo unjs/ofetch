@@ -158,6 +158,29 @@ describe("ofetch", () => {
     }
   });
 
+  it("sends 0 and false as JSON bodies", async () => {
+    for (const value of [0, false]) {
+      const { body, headers } = await $fetch(getURL("echo"), {
+        method: "POST",
+        body: value,
+      });
+      expect(headers).to.include({ "content-type": "application/json" });
+      expect(body).to.eq(JSON.stringify(value));
+    }
+  });
+
+  it("sends no body for undefined and null", async () => {
+    // eslint-disable-next-line unicorn/no-null
+    for (const value of [undefined, null]) {
+      const { body, headers } = await $fetch(getURL("echo"), {
+        method: "POST",
+        body: value,
+      });
+      expect(body).to.eq("");
+      expect(headers).not.to.have.property("content-type");
+    }
+  });
+
   it("does not stringify body when content type != application/json", async () => {
     const message = '"Hallo von Pascal"';
     const { body } = await $fetch(getURL("echo"), {

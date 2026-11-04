@@ -127,7 +127,12 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    if (context.options.body && isPayloadMethod(context.options.method)) {
+    if (
+      context.options.body !== undefined &&
+      context.options.body !== null &&
+      context.options.body !== "" &&
+      isPayloadMethod(context.options.method)
+    ) {
       if (isJSONSerializable(context.options.body)) {
         const contentType = context.options.headers.get("content-type");
 

@@ -251,6 +251,8 @@ This utility is useful if you need to use common options across several fetch ca
 
 **Note:** Defaults will be cloned at one level and inherited. Be careful about nested options like `headers`.
 
+`ofetch.create` also takes an optional second argument for instance-wide options such as a custom `fetch`.
+
 ```js
 const apiFetch = ofetch.create({ baseURL: "/api" });
 
@@ -309,7 +311,7 @@ const response = await ofetch.raw("/sushi");
 
 ## 🌿 Using Native Fetch
 
-As a shortcut, you can use `ofetch.native` that provides native `fetch` API
+As a shortcut, you can use `ofetch.native` that provides native `fetch` API, or the custom implementation the instance was created with if the `fetch` option was set.
 
 ```js
 const json = await ofetch.native("/sushi").then((r) => r.json());

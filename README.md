@@ -282,7 +282,7 @@ const apiFetch = createFetch({
 
 Your implementation is called the way `fetch` is: with the resolved request and an options object, after `ofetch` has serialized the body and run the `onRequest` hooks, and it should resolve with a `Response`. The request is a URL string when you called the fetcher with one, in which case `baseURL` and query params are already applied, and otherwise the `Request` you passed, which is forwarded untouched. Everything layered on top of `fetch` (response parsing, retries, timeouts, `onResponse` hooks) keeps working as usual.
 
-A fetcher created this way passes its implementation down, so any instance derived from it with `.create()` reuses the same `fetch`, and [`ofetch.native`](#-using-native-fetch) calls it directly.
+A fetcher created this way passes its implementation down, so an instance derived from it with `.create()` reuses the same `fetch` unless that call supplies its own, and [`ofetch.native`](#-using-native-fetch) calls it directly.
 
 ## 💡 Adding headers
 

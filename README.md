@@ -267,6 +267,17 @@ Pass it as the second argument of `ofetch.create`:
 const apiFetch = ofetch.create({ baseURL: "/api" }, { fetch: myFetch });
 ```
 
+Or build the fetcher from scratch with `createFetch`:
+
+```js
+import { createFetch } from "ofetch";
+
+const apiFetch = createFetch({
+  fetch: myFetch,
+  defaults: { baseURL: "/api" },
+});
+```
+
 ## 💡 Adding headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:

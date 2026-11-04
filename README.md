@@ -257,6 +257,16 @@ const apiFetch = ofetch.create({ baseURL: "/api" });
 apiFetch("/test"); // Same as ofetch('/test', { baseURL: '/api' })
 ```
 
+## ✔️ Custom Fetch Implementation
+
+By default, `ofetch` calls the global `fetch`. You can swap in your own implementation with the `fetch` option, which is handy for mocking requests in tests, wiring up a custom agent or proxy, or explicitly supplying a polyfill.
+
+Pass it as the second argument of `ofetch.create`:
+
+```js
+const apiFetch = ofetch.create({ baseURL: "/api" }, { fetch: myFetch });
+```
+
 ## 💡 Adding headers
 
 By using `headers` option, `ofetch` adds extra headers in addition to the request default headers:

@@ -10,6 +10,7 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { withBase } from "../src/utils.url.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -114,6 +115,28 @@ describe("ofetch", () => {
     expect(await $fetch("/x?foo=123", { baseURL: getURL("url") })).to.equal(
       "/url/x?foo=123"
     );
+  });
+
+  it("baseURL with query string", async () => {
+    expect(await $fetch("/users", { baseURL: getURL("url?key=abc") })).to.equal(
+      "/url/users?key=abc"
+    );
+    expect(
+      await $fetch("/users", {
+        baseURL: getURL("url?key=abc"),
+        query: { page: 2 },
+      })
+    ).to.equal("/url/users?key=abc&page=2");
+    expect(
+      await $fetch("/users?foo=bar", {
+        baseURL: getURL("url?key=abc"),
+      })
+    ).to.equal("/url/users?key=abc&foo=bar");
+    expect(
+      await $fetch("/users?key=override", {
+        baseURL: getURL("url?key=initial"),
+      })
+    ).to.equal("/url/users?key=override");
   });
 
   it("stringifies posts body automatically", async () => {
@@ -523,5 +546,60 @@ describe("ofetch", () => {
       signal: expect.any(AbortSignal),
       timeout: 10_000,
     });
+  });
+});
+
+describe("withBase", () => {
+  it("joins simple base and path", () => {
+    expect(withBase("/users", "/api")).toBe("/api/users");
+    expect(withBase("/users", "http://localhost:3000/api")).toBe(
+      "http://localhost:3000/api/users"
+    );
+  });
+
+  it("handles base with query string", () => {
+    expect(withBase("/users", "http://localhost:3000/api?key=abc")).toBe(
+      "http://localhost:3000/api/users?key=abc"
+    );
+    expect(withBase("users", "/api?key=abc")).toBe("/api/users?key=abc");
+  });
+
+  it("merges query strings when both base and input have queries", () => {
+    expect(withBase("/users?page=2", "http://localhost:3000/api?key=abc")).toBe(
+      "http://localhost:3000/api/users?key=abc&page=2"
+    );
+
+    expect(
+      withBase("/users?key=new", "http://localhost:3000/api?key=old&other=1")
+    ).toBe("http://localhost:3000/api/users?key=new&other=1");
+  });
+
+  it("preserves hash fragments", () => {
+    expect(
+      withBase("/users#results", "http://localhost:3000/api?key=abc")
+    ).toBe("http://localhost:3000/api/users?key=abc#results");
+
+    expect(withBase("/users", "http://localhost:3000/api?key=abc#base")).toBe(
+      "http://localhost:3000/api/users?key=abc#base"
+    );
+  });
+
+  it("preserves base when input is empty or root", () => {
+    expect(withBase("", "http://localhost:3000/api?key=abc")).toBe(
+      "http://localhost:3000/api?key=abc"
+    );
+    expect(withBase("/", "http://localhost:3000/api?key=abc")).toBe(
+      "http://localhost:3000/api?key=abc"
+    );
+  });
+
+  it("does not duplicate base path if input already starts with it", () => {
+    expect(withBase("/api/users", "/api")).toBe("/api/users");
+    expect(
+      withBase(
+        "http://localhost:3000/api/users",
+        "http://localhost:3000/api?key=abc"
+      )
+    ).toBe("http://localhost:3000/api/users?key=abc");
   });
 });

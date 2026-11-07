@@ -42,12 +42,67 @@ export function withBase(input = "", base = ""): string {
     return input;
   }
 
-  const _base = withoutTrailingSlash(base);
-  if (input.startsWith(_base)) {
-    return input;
+  if (!base.includes("?") && !base.includes("#")) {
+    const _base = withoutTrailingSlash(base);
+    if (input.startsWith(_base)) {
+      return input;
+    }
+
+    return joinURL(_base, input);
   }
 
-  return joinURL(_base, input);
+  const baseHashIndex = base.indexOf("#");
+  const baseHash = baseHashIndex === -1 ? "" : base.slice(baseHashIndex);
+  const baseWithoutHash =
+    baseHashIndex === -1 ? base : base.slice(0, baseHashIndex);
+
+  const baseQueryIndex = baseWithoutHash.indexOf("?");
+  const baseQuery =
+    baseQueryIndex === -1 ? "" : baseWithoutHash.slice(baseQueryIndex + 1);
+  const basePath =
+    baseQueryIndex === -1
+      ? baseWithoutHash
+      : baseWithoutHash.slice(0, baseQueryIndex);
+
+  const inputHashIndex = input.indexOf("#");
+  const inputHash = inputHashIndex === -1 ? "" : input.slice(inputHashIndex);
+  const inputWithoutHash =
+    inputHashIndex === -1 ? input : input.slice(0, inputHashIndex);
+
+  const inputQueryIndex = inputWithoutHash.indexOf("?");
+  const inputQuery =
+    inputQueryIndex === -1 ? "" : inputWithoutHash.slice(inputQueryIndex + 1);
+  const inputPath =
+    inputQueryIndex === -1
+      ? inputWithoutHash
+      : inputWithoutHash.slice(0, inputQueryIndex);
+
+  const _basePath = withoutTrailingSlash(basePath);
+  const joinedPath = inputPath.startsWith(_basePath)
+    ? inputPath
+    : joinURL(_basePath, inputPath);
+
+  let query = "";
+  if (baseQuery && inputQuery) {
+    const searchParams = new URLSearchParams(baseQuery);
+    const inputParams = new URLSearchParams(inputQuery);
+    const seen = new Set<string>();
+    for (const [key, value] of inputParams) {
+      if (seen.has(key)) {
+        searchParams.append(key, value);
+      } else {
+        seen.add(key);
+        searchParams.set(key, value);
+      }
+    }
+    query = searchParams.toString();
+  } else if (baseQuery || inputQuery) {
+    query = baseQuery || inputQuery;
+  }
+
+  const hash = inputHash || baseHash;
+
+  return `${joinedPath}${query ? `?${query}` : ""}${hash}`;
 }
 
 function withoutTrailingSlash(path?: string): string {

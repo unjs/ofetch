@@ -19,6 +19,7 @@ describe("ofetch", () => {
   const fetch = vi.spyOn(globalThis, "fetch");
 
   beforeAll(async () => {
+    let flakyCalls = 0;
     const app = new H3({ debug: true })
       // .use(async (event) => {
       //   console.log({
@@ -52,6 +53,13 @@ describe("ofetch", () => {
         () => new HTTPError({ status: 403, statusMessage: "Forbidden" })
       )
       .all("/408", () => new HTTPError({ status: 408 }))
+      .all("/408-ok", (event) => {
+        // Fail with a retryable status on odd calls (first attempt per test)
+        if (++flakyCalls % 2 === 1) {
+          return new HTTPError({ status: 408 });
+        }
+        return { path: event.url.pathname + event.url.search };
+      })
       .all(
         "/204",
         () => null // eslint-disable-line unicorn/no-null
@@ -380,6 +388,32 @@ describe("ofetch", () => {
     const parseParams = (str: string) =>
       Object.fromEntries(new URL(str, "http://_").searchParams.entries());
     expect(parseParams(path)).toMatchObject({ a: "1", b: "2", c: "3" });
+  });
+
+  it("applies query and params set in onRequest", async () => {
+    const { path: queryPath } = await $fetch(getURL("echo"), {
+      onRequest(context) {
+        context.options.query = { d: 4 };
+      },
+    });
+    expect(queryPath).to.equal("/echo?d=4");
+
+    const { path: paramsPath } = await $fetch(getURL("echo"), {
+      onRequest(context) {
+        context.options.params = { d: 4 };
+      },
+    });
+    expect(paramsPath).to.equal("/echo?d=4");
+  });
+
+  it("does not duplicate params set in onRequest on retry", async () => {
+    const { path } = await $fetch(getURL("408-ok"), {
+      retry: 1,
+      onRequest(context) {
+        context.options.params = { tag: ["x"] };
+      },
+    });
+    expect(path).to.equal("/408-ok?tag=x");
   });
 
   it("uses request headers", async () => {

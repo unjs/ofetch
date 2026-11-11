@@ -90,6 +90,11 @@ export function withQuery(input: string, query?: QueryObject): string {
     if (value === undefined) {
       searchParams.delete(key);
     } else if (Array.isArray(value)) {
+      // Replace existing values (like `set` for scalars) so that re-applying
+      // query params stays idempotent (e.g. when a retry re-runs the hooks).
+      if (value.length > 0) {
+        searchParams.delete(key);
+      }
       for (const item of value) {
         searchParams.append(key, normalizeQueryValue(item));
       }

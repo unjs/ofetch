@@ -382,6 +382,22 @@ describe("ofetch", () => {
     expect(parseParams(path)).toMatchObject({ a: "1", b: "2", c: "3" });
   });
 
+  it("applies query and params set in onRequest", async () => {
+    const { path: queryPath } = await $fetch(getURL("echo"), {
+      onRequest(context) {
+        context.options.query = { d: 4 };
+      },
+    });
+    expect(queryPath).to.equal("/echo?d=4");
+
+    const { path: paramsPath } = await $fetch(getURL("echo"), {
+      onRequest(context) {
+        context.options.params = { d: 4 };
+      },
+    });
+    expect(paramsPath).to.equal("/echo?d=4");
+  });
+
   it("uses request headers", async () => {
     expect(
       await $fetch(

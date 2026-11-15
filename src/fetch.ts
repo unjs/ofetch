@@ -36,7 +36,10 @@ const nullBodyResponses = new Set([101, 204, 205, 304]);
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
 
-  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  async function onError(
+    context: FetchContext,
+    retryRequest?: Request
+  ): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
@@ -69,7 +72,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
         // Timeout
-        return $fetchRaw(context.request, {
+        return $fetchRaw(retryRequest || context.request, {
           ...context.options,
           retry: retries - 1,
         });
@@ -177,83 +180,111 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
         : AbortSignal.timeout(context.options.timeout);
     }
 
+    const request = context.request;
+    let retryRequest: Request | undefined;
     try {
-      context.response = await fetch(
-        context.request,
-        context.options as RequestInit
-      );
-    } catch (error) {
-      context.error = error as Error;
-      if (context.options.onRequestError) {
-        await callHooks(
-          context as FetchContext & { error: Error },
-          context.options.onRequestError
+      try {
+        if (
+          typeof context.request !== "string" &&
+          context.request.body &&
+          context.options.body == undefined &&
+          typeof context.options.retry === "number" &&
+          context.options.retry > 0
+        ) {
+          retryRequest = context.request.clone();
+        }
+        context.response = await fetch(
+          context.request,
+          context.options as RequestInit
         );
+      } catch (error) {
+        context.error = error as Error;
+        if (context.options.onRequestError) {
+          await callHooks(
+            context as FetchContext & { error: Error },
+            context.options.onRequestError
+          );
+        }
+        return await onError(
+          context,
+          context.request === request ? retryRequest : undefined
+        );
+      } finally {
+        if (abortTimeout) {
+          clearTimeout(abortTimeout);
+        }
       }
-      return await onError(context);
-    } finally {
-      if (abortTimeout) {
-        clearTimeout(abortTimeout);
-      }
-    }
 
-    const hasBody =
-      (context.response.body ||
-        // https://github.com/unjs/ofetch/issues/324
-        // https://github.com/unjs/ofetch/issues/294
-        // https://github.com/JakeChampion/fetch/issues/1454
-        (context.response as any)._bodyInit) &&
-      !nullBodyResponses.has(context.response.status) &&
-      context.options.method !== "HEAD";
-    if (hasBody) {
-      const responseType =
-        (context.options.parseResponse
-          ? "json"
-          : context.options.responseType) ||
-        detectResponseType(context.response.headers.get("content-type") || "");
+      const hasBody =
+        (context.response.body ||
+          // https://github.com/unjs/ofetch/issues/324
+          // https://github.com/unjs/ofetch/issues/294
+          // https://github.com/JakeChampion/fetch/issues/1454
+          (context.response as any)._bodyInit) &&
+        !nullBodyResponses.has(context.response.status) &&
+        context.options.method !== "HEAD";
+      if (hasBody) {
+        const responseType =
+          (context.options.parseResponse
+            ? "json"
+            : context.options.responseType) ||
+          detectResponseType(
+            context.response.headers.get("content-type") || ""
+          );
 
-      switch (responseType) {
-        case "json": {
-          const data = await context.response.text();
-          if (data) {
-            const parseFunction = context.options.parseResponse || JSON.parse;
-            context.response._data = parseFunction(data);
+        switch (responseType) {
+          case "json": {
+            const data = await context.response.text();
+            if (data) {
+              const parseFunction = context.options.parseResponse || JSON.parse;
+              context.response._data = parseFunction(data);
+            }
+            break;
           }
-          break;
-        }
-        case "stream": {
-          context.response._data =
-            context.response.body || (context.response as any)._bodyInit; // (see refs above)
-          break;
-        }
-        default: {
-          context.response._data = await context.response[responseType]();
+          case "stream": {
+            context.response._data =
+              context.response.body || (context.response as any)._bodyInit; // (see refs above)
+            break;
+          }
+          default: {
+            context.response._data = await context.response[responseType]();
+          }
         }
       }
-    }
 
-    if (context.options.onResponse) {
-      await callHooks(
-        context as FetchContext & { response: FetchResponse<any> },
-        context.options.onResponse
-      );
-    }
-
-    if (
-      !context.options.ignoreResponseError &&
-      context.response.status >= 400 &&
-      context.response.status < 600
-    ) {
-      if (context.options.onResponseError) {
+      if (context.options.onResponse) {
         await callHooks(
           context as FetchContext & { response: FetchResponse<any> },
-          context.options.onResponseError
+          context.options.onResponse
         );
       }
-      return await onError(context);
-    }
 
-    return context.response;
+      if (
+        !context.options.ignoreResponseError &&
+        context.response.status >= 400 &&
+        context.response.status < 600
+      ) {
+        if (context.options.onResponseError) {
+          await callHooks(
+            context as FetchContext & { response: FetchResponse<any> },
+            context.options.onResponseError
+          );
+        }
+        return await onError(
+          context,
+          context.request === request ? retryRequest : undefined
+        );
+      }
+
+      return context.response;
+    } finally {
+      // Release a saved body when no retry consumes it, without waiting for
+      // the other branch of the cloned stream to finish.
+      const body = retryRequest?.body;
+      if (body && !body.locked) {
+        void body.cancel().catch(() => undefined);
+      }
+    }
   };
 
   const $fetch = async function $fetch(request, options) {

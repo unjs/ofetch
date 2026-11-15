@@ -169,10 +169,15 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
     let abortTimeout: NodeJS.Timeout | undefined;
 
     if (context.options.timeout) {
-      context.options.signal = context.options.signal
+      const signal =
+        context.options.signal === undefined &&
+        typeof context.request !== "string"
+          ? context.request.signal
+          : context.options.signal;
+      context.options.signal = signal
         ? AbortSignal.any([
             AbortSignal.timeout(context.options.timeout),
-            context.options.signal,
+            signal,
           ])
         : AbortSignal.timeout(context.options.timeout);
     }

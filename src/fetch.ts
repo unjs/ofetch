@@ -36,11 +36,15 @@ const nullBodyResponses = new Set([101, 204, 205, 304]);
 export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
   const { fetch = globalThis.fetch } = globalOptions;
 
-  async function onError(context: FetchContext): Promise<FetchResponse<any>> {
+  async function onError(
+    context: FetchContext,
+    signal?: AbortSignal | null
+  ): Promise<FetchResponse<any>> {
     // Is Abort
     // If it is an active abort, it will not retry automatically.
     // https://developer.mozilla.org/en-US/docs/Web/API/DOMException#error_names
     const isAbort =
+      signal?.aborted ||
       (context.error &&
         context.error.name === "AbortError" &&
         !context.options.timeout) ||
@@ -166,26 +170,28 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
       }
     }
 
-    let abortTimeout: NodeJS.Timeout | undefined;
-
+    const signal =
+      context.options.signal === undefined &&
+      typeof context.request !== "string"
+        ? context.request.signal
+        : context.options.signal;
+    let fetchOptions = context.options;
     if (context.options.timeout) {
-      const signal =
-        context.options.signal === undefined &&
-        typeof context.request !== "string"
-          ? context.request.signal
-          : context.options.signal;
-      context.options.signal = signal
-        ? AbortSignal.any([
-            AbortSignal.timeout(context.options.timeout),
-            signal,
-          ])
-        : AbortSignal.timeout(context.options.timeout);
+      // Keep the caller's override separate from this attempt's timeout so
+      // retries can inherit a replacement Request's signal and a fresh timeout.
+      const timeoutSignal = AbortSignal.timeout(context.options.timeout);
+      fetchOptions = {
+        ...context.options,
+        signal: signal
+          ? AbortSignal.any([timeoutSignal, signal])
+          : timeoutSignal,
+      };
     }
 
     try {
       context.response = await fetch(
         context.request,
-        context.options as RequestInit
+        fetchOptions as RequestInit
       );
     } catch (error) {
       context.error = error as Error;
@@ -195,11 +201,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           context.options.onRequestError
         );
       }
-      return await onError(context);
-    } finally {
-      if (abortTimeout) {
-        clearTimeout(abortTimeout);
-      }
+      return await onError(context, signal);
     }
 
     const hasBody =
@@ -255,7 +257,7 @@ export function createFetch(globalOptions: CreateFetchOptions = {}): $Fetch {
           context.options.onResponseError
         );
       }
-      return await onError(context);
+      return await onError(context, signal);
     }
 
     return context.response;

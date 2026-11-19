@@ -114,6 +114,21 @@ describe("ofetch", () => {
     expect(await $fetch("/x?foo=123", { baseURL: getURL("url") })).to.equal(
       "/url/x?foo=123"
     );
+    expect(
+      await $fetch("/users", { baseURL: getURL("url/api?key=abc") })
+    ).to.equal("/url/api/users?key=abc");
+    expect(
+      await $fetch("/users", {
+        baseURL: getURL("url/api?key=abc"),
+        query: { page: 2 },
+      })
+    ).to.equal("/url/api/users?key=abc&page=2");
+    expect(
+      await $fetch("/users?filter=active", {
+        baseURL: getURL("url/api?key=abc"),
+        query: { page: 2 },
+      })
+    ).to.equal("/url/api/users?key=abc&filter=active&page=2");
   });
 
   it("stringifies posts body automatically", async () => {

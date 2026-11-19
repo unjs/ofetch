@@ -42,12 +42,72 @@ export function withBase(input = "", base = ""): string {
     return input;
   }
 
-  const _base = withoutTrailingSlash(base);
-  if (input.startsWith(_base)) {
+  if (hasProtocol(input)) {
     return input;
   }
 
-  return joinURL(_base, input);
+  const baseParsed = parsePathAndQuery(base);
+  const inputParsed = parsePathAndQuery(input);
+
+  const _basePath = withoutTrailingSlash(baseParsed.pathname);
+  const hasBase =
+    inputParsed.pathname.startsWith(_basePath) &&
+    (!inputParsed.pathname[_basePath.length] ||
+      inputParsed.pathname[_basePath.length] === "/");
+
+  const pathname = hasBase
+    ? inputParsed.pathname
+    : joinURL(_basePath, inputParsed.pathname);
+
+  let search = "";
+  if (baseParsed.search && inputParsed.search) {
+    const searchParams = new URLSearchParams(baseParsed.search.slice(1));
+    const inputParams = new URLSearchParams(inputParsed.search.slice(1));
+    const replaced = new Set<string>();
+    for (const [key, value] of inputParams) {
+      if (!replaced.has(key)) {
+        searchParams.delete(key);
+        replaced.add(key);
+      }
+      searchParams.append(key, value);
+    }
+    const queryString = searchParams.toString();
+    search = queryString ? `?${queryString}` : "";
+  } else {
+    search = inputParsed.search || baseParsed.search;
+  }
+
+  const hash = inputParsed.hash || baseParsed.hash;
+
+  return pathname + search + hash;
+}
+
+function hasProtocol(input: string): boolean {
+  return /^[\w+.-]+:\/\//.test(input);
+}
+
+function parsePathAndQuery(url: string): {
+  pathname: string;
+  search: string;
+  hash: string;
+} {
+  let pathname = url;
+  let search = "";
+  let hash = "";
+
+  const hashIndex = pathname.indexOf("#");
+  if (hashIndex !== -1) {
+    hash = pathname.slice(hashIndex);
+    pathname = pathname.slice(0, hashIndex);
+  }
+
+  const searchIndex = pathname.indexOf("?");
+  if (searchIndex !== -1) {
+    search = pathname.slice(searchIndex);
+    pathname = pathname.slice(0, searchIndex);
+  }
+
+  return { pathname, search, hash };
 }
 
 function withoutTrailingSlash(path?: string): string {

@@ -58,7 +58,7 @@ export function detectResponseType(_contentType = ""): ResponseType {
   }
 
   // Value might look like: `application/json; charset=utf-8`
-  const contentType = _contentType.split(";").shift() || "";
+  const contentType = _contentType.split(";", 1)[0]?.trim().toLowerCase() || "";
 
   if (JSON_RE.test(contentType)) {
     return "json";

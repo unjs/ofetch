@@ -397,6 +397,26 @@ describe("ofetch", () => {
     ).toMatchObject({ foo: "2", bar: "3" });
   });
 
+  it("preserves repeated header tuple values when default headers are set", async () => {
+    const _customFetch = $fetch.create({
+      headers: {
+        "x-client": "demo",
+        Accept: "text/html",
+      },
+    });
+    const { headers } = await _customFetch(getURL("echo"), {
+      headers: [
+        ["Accept", "application/json"],
+        ["Accept", "text/plain"],
+      ],
+    });
+
+    expect(headers).toMatchObject({
+      "x-client": "demo",
+      accept: "application/json, text/plain",
+    });
+  });
+
   it("hook errors", async () => {
     // onRequest
     await expect(

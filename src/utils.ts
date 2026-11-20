@@ -128,10 +128,12 @@ function mergeHeaders(
   }
   const headers = new Headers(defaults);
   if (input) {
-    for (const [key, value] of Symbol.iterator in input || Array.isArray(input)
-      ? input
-      : new Headers(input)) {
-      headers.set(key, value);
+    const inputHeaders = new Headers(input);
+    for (const key of inputHeaders.keys()) {
+      headers.delete(key);
+    }
+    for (const [key, value] of inputHeaders) {
+      headers.append(key, value);
     }
   }
   return headers;

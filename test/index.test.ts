@@ -141,6 +141,21 @@ describe("ofetch", () => {
     });
     expect(JSON.parse(body3! as string)).toMatchObject({ num: 42 });
 
+    for (const body of [0, false]) {
+      const { body: echoedBody, headers } = await $fetch(getURL("echo"), {
+        method: "POST",
+        body,
+      });
+      expect(echoedBody).to.equal(JSON.stringify(body));
+      expect(headers).to.include({ "content-type": "application/json" });
+    }
+
+    const { headers } = await $fetch(getURL("echo"), {
+      method: "POST",
+      body: null, // eslint-disable-line unicorn/no-null
+    });
+    expect(headers).not.to.have.property("content-type");
+
     const headerFetches = [
       [["X-header", "1"]],
       { "x-header": "1" },

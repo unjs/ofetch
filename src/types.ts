@@ -24,7 +24,7 @@ export interface FetchOptions<R extends ResponseType = ResponseType, T = any>
     FetchHooks<T, R> {
   baseURL?: string;
 
-  body?: RequestInit["body"] | Record<string, any>;
+  body?: RequestInit["body"] | Record<string, any> | number | boolean;
 
   ignoreResponseError?: boolean;
 

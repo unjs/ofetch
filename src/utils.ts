@@ -19,7 +19,7 @@ export function isJSONSerializable(value: any): boolean {
     return false;
   }
   const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === null) {
+  if (t === "string" || t === "number" || t === "boolean" || value === null) {
     return true;
   }
   if (t !== "object") {
@@ -37,7 +37,9 @@ export function isJSONSerializable(value: any): boolean {
     return false;
   }
   return (
-    (value.constructor && value.constructor.name === "Object") ||
+    !value.constructor ||
+    value.constructor.name === "Object" ||
+    Object.getPrototypeOf(value) === null ||
     typeof value.toJSON === "function"
   );
 }

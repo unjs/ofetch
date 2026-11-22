@@ -38,7 +38,8 @@ export function isJSONSerializable(value: any): boolean {
   }
   const prototype = Object.getPrototypeOf(value);
   return (
-    prototype?.constructor?.name === "Object" ||
+    prototype === null ||
+    prototype.constructor?.name === "Object" ||
     typeof value.toJSON === "function"
   );
 }

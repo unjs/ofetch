@@ -158,9 +158,13 @@ describe("ofetch", () => {
     }
   });
 
-  it.each([{ buffer: "hello" }, { buffer: "hello", constructor: "x" }])(
-    "stringifies request body object %j",
-    async (payload) => {
+  it.each([
+    ["plain object", { buffer: "hello" }],
+    ["own constructor", { buffer: "hello", constructor: "x" }],
+    ["null prototype", Object.assign(Object.create(null), { buffer: "hello" })],
+  ])(
+    "stringifies a request body with a buffer property (%s)",
+    async (_, payload) => {
       const { body, headers } = await $fetch(getURL("echo"), {
         method: "POST",
         body: payload,

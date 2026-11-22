@@ -36,8 +36,9 @@ export function isJSONSerializable(value: any): boolean {
   if (value instanceof FormData || value instanceof URLSearchParams) {
     return false;
   }
+  const prototype = Object.getPrototypeOf(value);
   return (
-    (value.constructor && value.constructor.name === "Object") ||
+    prototype?.constructor?.name === "Object" ||
     typeof value.toJSON === "function"
   );
 }

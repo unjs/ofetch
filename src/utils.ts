@@ -28,7 +28,7 @@ export function isJSONSerializable(value: any): boolean {
   if (Array.isArray(value)) {
     return true;
   }
-  if (value.buffer) {
+  if (ArrayBuffer.isView(value)) {
     return false;
   }
   // `FormData` and `URLSearchParams` shouldn't have a `toJSON` method,
@@ -36,8 +36,10 @@ export function isJSONSerializable(value: any): boolean {
   if (value instanceof FormData || value instanceof URLSearchParams) {
     return false;
   }
+  const prototype = Object.getPrototypeOf(value);
   return (
-    (value.constructor && value.constructor.name === "Object") ||
+    prototype === null ||
+    prototype.constructor?.name === "Object" ||
     typeof value.toJSON === "function"
   );
 }

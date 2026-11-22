@@ -10,6 +10,7 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { isJSONSerializable } from "../src/utils.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -130,6 +131,16 @@ describe("ofetch", () => {
       })
     ).body;
     expect(body2).to.deep.eq([{ num: 42 }, { num: 43 }]);
+
+    const nullProto = Object.create(null);
+    nullProto.num = 42;
+    const bodyNullProto = (
+      await $fetch(getURL("post"), {
+        method: "POST",
+        body: nullProto,
+      })
+    ).body;
+    expect(bodyNullProto).to.deep.eq({ num: 42 });
 
     let body3;
     await $fetch(getURL("post"), {
@@ -523,5 +534,21 @@ describe("ofetch", () => {
       signal: expect.any(AbortSignal),
       timeout: 10_000,
     });
+  });
+});
+
+describe("isJSONSerializable", () => {
+  it("handles null and primitives correctly", () => {
+    expect(isJSONSerializable(null)).toBe(true); // eslint-disable-line unicorn/no-null
+    expect(isJSONSerializable(undefined)).toBe(false);
+    expect(isJSONSerializable(123)).toBe(true);
+    expect(isJSONSerializable("hello")).toBe(true);
+    expect(isJSONSerializable(true)).toBe(true);
+  });
+
+  it("handles null-prototype objects", () => {
+    const nullProto = Object.create(null);
+    nullProto.foo = "bar";
+    expect(isJSONSerializable(nullProto)).toBe(true);
   });
 });

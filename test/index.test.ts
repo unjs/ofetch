@@ -158,6 +158,17 @@ describe("ofetch", () => {
     }
   });
 
+  it("stringifies request body objects with a buffer property", async () => {
+    const payload = { buffer: "hello" };
+    const { body, headers } = await $fetch(getURL("echo"), {
+      method: "POST",
+      body: payload,
+    });
+
+    expect(body).to.equal(JSON.stringify(payload));
+    expect(headers["content-type"]).to.equal("application/json");
+  });
+
   it("does not stringify body when content type != application/json", async () => {
     const message = '"Hallo von Pascal"';
     const { body } = await $fetch(getURL("echo"), {

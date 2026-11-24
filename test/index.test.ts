@@ -524,4 +524,17 @@ describe("ofetch", () => {
       timeout: 10_000,
     });
   });
+
+  it("serializes plain objects with a buffer property as JSON", async () => {
+    await $fetch(getURL("/post"), {
+      method: "POST",
+      body: { buffer: "hello" },
+    });
+    expect(fetch).toHaveBeenCalledOnce();
+    const options = fetch.mock.calls[0][1];
+    expect(options?.body).toBe(JSON.stringify({ buffer: "hello" }));
+    expect(new Headers(options?.headers).get("content-type")).toBe(
+      "application/json"
+    );
+  });
 });

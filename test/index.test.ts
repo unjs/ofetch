@@ -10,6 +10,7 @@ import {
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
 import { $fetch } from "../src/index.ts";
+import { resolveFetchOptions } from "../src/utils.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -329,6 +330,20 @@ describe("ofetch", () => {
     }).catch(() => "timeout");
     const race = await Promise.race([noTimeout, timeout]);
     expect(race).to.equal("timeout");
+  });
+
+  it("does not pass undefined to the Headers constructor", async () => {
+    class LegacyHeaders extends Headers {
+      constructor(...args: any[]) {
+        if (args.length > 0 && args[0] === undefined) {
+          throw new TypeError("Headers constructor argument is required");
+        }
+        super(...(args as []));
+      }
+    }
+    expect(() =>
+      resolveFetchOptions("", undefined, undefined, LegacyHeaders)
+    ).not.toThrow();
   });
 
   it("aborting on timeout reason", async () => {

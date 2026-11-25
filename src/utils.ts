@@ -124,7 +124,7 @@ function mergeHeaders(
   Headers: typeof globalThis.Headers
 ): Headers {
   if (!defaults) {
-    return new Headers(input);
+    return input ? new Headers(input) : new Headers();
   }
   const headers = new Headers(defaults);
   if (input) {

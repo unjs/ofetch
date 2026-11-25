@@ -295,16 +295,18 @@ const json = await ofetch.native("/sushi").then((r) => r.json());
 **Example:** Handle SSE response:
 
 ```js
-const stream = await ofetch("/sse");
-const reader = stream.getReader();
-const decoder = new TextDecoder();
+const stream = await ofetch("/sse", { responseType: "stream" });
+const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  // Here is the chunked text of the SSE response.
-  const text = decoder.decode(value);
+  console.log(value);
 }
 ```
+
+`TextDecoderStream` preserves UTF-8 characters split across chunks. A decoded
+chunk is not necessarily a complete SSE event; buffer chunks or use an SSE
+parser if you need to handle individual events.
 
 ## 🕵️ Proxy Support
 

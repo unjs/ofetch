@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { Readable } from "node:stream";
 import { H3, HTTPError, readBody, serve } from "h3";
-import { $fetch } from "../src/index.ts";
+import { $fetch, createFetch } from "../src/index.ts";
 
 describe("ofetch", () => {
   let listener: ReturnType<typeof serve>;
@@ -156,6 +156,65 @@ describe("ofetch", () => {
       expect(headers).to.include({ "x-header": "1" });
       expect(headers).to.include({ accept: "application/json" });
     }
+  });
+
+  it("preserves repeated header tuple values when merging default headers", async () => {
+    const repeated: HeadersInit = [
+      ["Accept", "application/json"],
+      ["Accept", "text/plain"],
+    ];
+
+    // Native combination without defaults
+    const { headers: plain } = await $fetch(getURL("echo"), {
+      headers: repeated,
+    });
+    expect(plain).to.include({ accept: "application/json, text/plain" });
+
+    // Unrelated defaults must not drop repeated input values
+    const withDefaults = $fetch.create({
+      headers: { "x-client": "demo" },
+    });
+    const { headers: merged } = await withDefaults(getURL("echo"), {
+      headers: repeated,
+    });
+    expect(merged).to.include({ "x-client": "demo" });
+    expect(merged).to.include({ accept: "application/json, text/plain" });
+
+    // Request headers still override same-name defaults
+    const withAcceptDefault = $fetch.create({
+      headers: { accept: "text/html" },
+    });
+    const { headers: overridden } = await withAcceptDefault(getURL("echo"), {
+      headers: repeated,
+    });
+    expect(overridden).to.include({ accept: "application/json, text/plain" });
+  });
+
+  it("preserves separate set-cookie entries when merging default headers", async () => {
+    const input: HeadersInit = [
+      ["Set-Cookie", "a=1"],
+      ["Set-Cookie", "b=2"],
+    ];
+    const defaults = new Headers({
+      "set-cookie": "old=0",
+      "x-client": "demo",
+    });
+    let captured: Headers | undefined;
+    const client = createFetch({
+      fetch: async (_request, init) => {
+        captured = new Headers(init?.headers);
+        return new Response("ok");
+      },
+      defaults: { headers: defaults },
+    });
+    await client("https://example.invalid", { headers: input });
+    expect(captured?.getSetCookie()).toEqual(["a=1", "b=2"]);
+    expect(captured?.get("x-client")).toBe("demo");
+    expect(defaults.getSetCookie()).toEqual(["old=0"]);
+    expect(input).toEqual([
+      ["Set-Cookie", "a=1"],
+      ["Set-Cookie", "b=2"],
+    ]);
   });
 
   it("does not stringify body when content type != application/json", async () => {

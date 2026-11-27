@@ -397,6 +397,70 @@ describe("ofetch", () => {
     ).toMatchObject({ foo: "2", bar: "3" });
   });
 
+  it("preserves repeated header tuples when default headers are set", async () => {
+    const _customFetch = $fetch.create({
+      headers: {
+        "x-client": "demo",
+        accept: "text/html",
+      },
+    });
+
+    const { headers } = await _customFetch(getURL("echo"), {
+      headers: [
+        ["Accept", "application/json"],
+        ["Accept", "text/plain"],
+      ],
+    });
+
+    expect(headers).toMatchObject({
+      "x-client": "demo",
+      accept: "application/json, text/plain",
+    });
+
+    const _tupleDefaultsFetch = $fetch.create({
+      headers: [
+        ["x-tag", "a"],
+        ["x-tag", "b"],
+      ],
+    });
+
+    const { headers: defaultMergedHeaders } = await _tupleDefaultsFetch(
+      getURL("echo"),
+      {
+        headers: [
+          ["x-extra", "1"],
+          ["x-extra", "2"],
+        ],
+      }
+    );
+
+    expect(defaultMergedHeaders).toMatchObject({
+      "x-tag": "a, b",
+      "x-extra": "1, 2",
+    });
+
+    let capturedHeaders: Headers | undefined;
+    const mockFetch = $fetch.create(
+      {
+        headers: { "x-client": "demo" },
+      },
+      {
+        fetch: async (_url, init) => {
+          capturedHeaders = new Headers(init?.headers);
+          return new Response("ok");
+        },
+      }
+    );
+
+    await mockFetch("https://example.invalid", {
+      headers: [
+        ["Set-Cookie", "a=1"],
+        ["Set-Cookie", "b=2"],
+      ],
+    });
+    expect(capturedHeaders?.getSetCookie()).toEqual(["a=1", "b=2"]);
+  });
+
   it("hook errors", async () => {
     // onRequest
     await expect(

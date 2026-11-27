@@ -128,10 +128,13 @@ function mergeHeaders(
   }
   const headers = new Headers(defaults);
   if (input) {
-    for (const [key, value] of Symbol.iterator in input || Array.isArray(input)
-      ? input
-      : new Headers(input)) {
-      headers.set(key, value);
+    const seen = new Set<string>();
+    for (const [key, value] of new Headers(input)) {
+      if (!seen.has(key)) {
+        seen.add(key);
+        headers.delete(key);
+      }
+      headers.append(key, value);
     }
   }
   return headers;
